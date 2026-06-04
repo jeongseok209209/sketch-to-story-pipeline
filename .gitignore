@@ -1,10 +1,15 @@
 .DS_Store
+.claude/
 __pycache__/
 *.py[cod]
 *$py.class
+* 2.*
+.ipynb_checkpoints/
 
 .venv/
+.venv*/
 venv/
 env/
 
 results/
+outputs/

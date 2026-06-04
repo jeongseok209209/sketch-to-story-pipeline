@@ -1,0 +1,10 @@
+transformers>=4.54.0
+open_clip_torch
+Pillow
+sentencepiece
+protobuf
+huggingface_hub
+qwen-vl-utils
+ipywidgets
+pandas
+matplotlib
