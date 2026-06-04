@@ -1,0 +1,238 @@
+{
+  "image_id": "9.png",
+  "vision_steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "9.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/9.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1397,
+        1126
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "children",
+        "actions": "kite flying",
+        "scene": "in park",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of three children swinging on a rope with a tiger children kite flying in park happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "on",
+        "with",
+        "tiger",
+        "flying",
+        "in",
+        "children",
+        "happy",
+        "three",
+        "rope",
+        "park",
+        "swinging",
+        "drawing",
+        "kite",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.25070375204086304,
+        "of": 0.2927619218826294,
+        "on": 0.26437103748321533,
+        "with": 0.2783440947532654,
+        "tiger": 0.335135281085968,
+        "flying": 0.30885663628578186,
+        "in": 0.2721984386444092,
+        "children": 0.3040425181388855,
+        "happy": 0.26280543208122253,
+        "three": 0.25724247097969055,
+        "rope": 0.28369155526161194,
+        "park": 0.27237316966056824,
+        "swinging": 0.37351110577583313,
+        "drawing": 0.29152458906173706,
+        "kite": 0.278056263923645,
+        "a": 0.27051597833633423
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "on",
+          "with",
+          "tiger",
+          "flying",
+          "in",
+          "children",
+          "happy",
+          "three",
+          "rope",
+          "park",
+          "swinging",
+          "drawing",
+          "kite",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.25070375204086304,
+          "of": 0.2927619218826294,
+          "on": 0.26437103748321533,
+          "with": 0.2783440947532654,
+          "tiger": 0.335135281085968,
+          "flying": 0.30885663628578186,
+          "in": 0.2721984386444092,
+          "children": 0.3040425181388855,
+          "happy": 0.26280543208122253,
+          "three": 0.25724247097969055,
+          "rope": 0.28369155526161194,
+          "park": 0.27237316966056824,
+          "swinging": 0.37351110577583313,
+          "drawing": 0.29152458906173706,
+          "kite": 0.278056263923645,
+          "a": 0.27051597833633423
+        },
+        "who": "children",
+        "actions": "kite flying",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+        "confidence": "high"
+      }
+    }
+  },
+  "scene_record": {
+    "scene_index": 9,
+    "image_id": "9.png",
+    "vision": {
+      "objects": [
+        "s",
+        "of",
+        "on",
+        "with",
+        "tiger",
+        "flying",
+        "in",
+        "children",
+        "happy",
+        "three",
+        "rope",
+        "park",
+        "swinging",
+        "drawing",
+        "kite",
+        "a"
+      ],
+      "object_scores": {
+        "s": 0.25070375204086304,
+        "of": 0.2927619218826294,
+        "on": 0.26437103748321533,
+        "with": 0.2783440947532654,
+        "tiger": 0.335135281085968,
+        "flying": 0.30885663628578186,
+        "in": 0.2721984386444092,
+        "children": 0.3040425181388855,
+        "happy": 0.26280543208122253,
+        "three": 0.25724247097969055,
+        "rope": 0.28369155526161194,
+        "park": 0.27237316966056824,
+        "swinging": 0.37351110577583313,
+        "drawing": 0.29152458906173706,
+        "kite": 0.278056263923645,
+        "a": 0.27051597833633423
+      },
+      "who": "children",
+      "actions": "kite flying",
+      "scene": "in park",
+      "mood": "happy",
+      "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+      "confidence": "high"
+    },
+    "structured_json": {
+      "characters": [
+        "호랑이",
+        "아이들"
+      ],
+      "place": "in park",
+      "visible_items": [
+        "호랑이",
+        "아이들",
+        "행복한 마음",
+        "그림"
+      ],
+      "story_items": [
+        "그림"
+      ],
+      "mood": "따뜻하고 즐거운",
+      "theme": "함께 보내는 소중한 하루",
+      "raw_hints": {
+        "caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+        "who": "children",
+        "actions": "kite flying",
+        "scene": "in park",
+        "mood": "happy"
+      }
+    },
+    "plan_json": {
+      "title": "in park의 작은 이야기",
+      "beginning": "호랑이와 아이들이 in park에서 서로를 만난다.",
+      "middle": "모두가 따뜻하고 즐거운 마음으로 함께 시간을 보내며 작은 즐거움을 나눈다.",
+      "ending": "서로를 아끼는 마음을 느끼고 행복하게 하루를 마무리한다.",
+      "style": {
+        "audience": "어린이",
+        "tone": "따뜻하고 쉬운 문장",
+        "length": "3~5문장"
+      }
+    },
+    "story_draft": "어느 따뜻하고 즐거운 날, 호랑이와 아이들은 in park에 모였어요. 처음에는 조금 놀랐지만, 둘은 곧 서로를 바라보며 마음을 열었어요. 모두가 따뜻하고 즐거운 마음으로 함께 시간을 보내며 작은 즐거움을 나누었어요. 그날의 작은 그림은 모두에게 오래 기억될 따뜻한 이야기가 되었어요.",
+    "structuring_source": "규칙 기반 구조화",
+    "max_new_tokens": 0,
+    "exaone_raw_response": ""
+  }
+}

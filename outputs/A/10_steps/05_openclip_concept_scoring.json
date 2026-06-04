@@ -1,0 +1,43 @@
+{
+  "step": 5,
+  "name": "OpenCLIP 개념 점수화",
+  "output": "{concept: similarity}",
+  "source_text": "a children ' s drawing of a tiger and a girl flying in the sky children kite flying outside happy",
+  "candidate_extraction_regex": "[a-zA-Z]+",
+  "candidate_words": [
+    "s",
+    "of",
+    "tiger",
+    "flying",
+    "in",
+    "the",
+    "children",
+    "happy",
+    "sky",
+    "and",
+    "outside",
+    "drawing",
+    "kite",
+    "girl",
+    "a"
+  ],
+  "prompt_template": "a child's drawing of a {word}",
+  "clip_threshold": 0.22,
+  "scores": {
+    "s": 0.25982439517974854,
+    "of": 0.299577534198761,
+    "tiger": 0.34811925888061523,
+    "flying": 0.3272879719734192,
+    "in": 0.28243550658226013,
+    "the": 0.29104840755462646,
+    "children": 0.31040021777153015,
+    "happy": 0.28728047013282776,
+    "sky": 0.2768869400024414,
+    "and": 0.29953914880752563,
+    "outside": 0.2899012267589569,
+    "drawing": 0.2919388711452484,
+    "kite": 0.2642495930194855,
+    "girl": 0.25569695234298706,
+    "a": 0.27984774112701416
+  }
+}

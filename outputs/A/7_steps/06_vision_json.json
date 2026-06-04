@@ -1,0 +1,53 @@
+{
+  "step": 6,
+  "name": "교차 검증 + 통합",
+  "output": "vision_json",
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "in",
+      "door",
+      "two",
+      "with",
+      "house",
+      "children",
+      "happy",
+      "front",
+      "playing",
+      "standing",
+      "and",
+      "drawing",
+      "kite",
+      "a",
+      "are"
+    ],
+    "object_scores": {
+      "s": 0.23110470175743103,
+      "of": 0.2825506627559662,
+      "tiger": 0.32860490679740906,
+      "in": 0.2704648971557617,
+      "door": 0.2778007686138153,
+      "two": 0.2572380304336548,
+      "with": 0.2818472385406494,
+      "house": 0.23068326711654663,
+      "children": 0.29272305965423584,
+      "happy": 0.25819045305252075,
+      "front": 0.25919854640960693,
+      "playing": 0.2697405219078064,
+      "standing": 0.26910361647605896,
+      "and": 0.28091174364089966,
+      "drawing": 0.28230565786361694,
+      "kite": 0.22613433003425598,
+      "a": 0.2659257650375366,
+      "are": 0.26248791813850403
+    },
+    "who": "children",
+    "actions": "children are playing with kite",
+    "scene": "in house",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger and two children standing in front of a door",
+    "confidence": "high"
+  }
+}

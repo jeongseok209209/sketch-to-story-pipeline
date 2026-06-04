@@ -1,0 +1,16 @@
+﻿A-to-F 3B full package
+
+Included:
+- outputs/A : Experiment A outputs
+- outputs/B : Experiment B sequence/B-style structured output
+- outputs/C : Experiment C, Qwen2.5-VL-3B
+- outputs/D : Experiment D, Qwen2.5-VL-3B
+- outputs/E : Experiment E, Qwen2.5-VL-3B
+- outputs/F : Experiment F, current-image grounded correction output
+- outputs/qwen25_vl_3b_story : Qwen2.5-VL-3B scene recognition cache
+- inputs : input drawings
+- scripts/config files used for A-F runs
+
+Not included:
+- 7B rerun outputs
+- archive zip files

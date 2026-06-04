@@ -1,0 +1,230 @@
+{
+  "image_id": "6.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:15:52.537275+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/6_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "6.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/6.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1412,
+        1114
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of a tiger and a girl looking out of a window"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "children",
+        "actions": "cat and child in window",
+        "scene": "outside",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of a tiger and a girl looking out of a window children cat and child in window outside happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "tiger",
+        "cat",
+        "child",
+        "in",
+        "children",
+        "happy",
+        "looking",
+        "and",
+        "window",
+        "drawing",
+        "outside",
+        "girl",
+        "a",
+        "out"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.22452963888645172,
+        "of": 0.2741968035697937,
+        "tiger": 0.3191748857498169,
+        "cat": 0.27078700065612793,
+        "child": 0.25017815828323364,
+        "in": 0.2628127932548523,
+        "children": 0.2809635400772095,
+        "happy": 0.24419958889484406,
+        "looking": 0.27582576870918274,
+        "and": 0.27192172408103943,
+        "window": 0.26052677631378174,
+        "drawing": 0.2720659077167511,
+        "outside": 0.2769671082496643,
+        "girl": 0.2383829653263092,
+        "a": 0.2546285390853882,
+        "out": 0.27299177646636963
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "tiger",
+          "cat",
+          "child",
+          "in",
+          "children",
+          "happy",
+          "looking",
+          "and",
+          "window",
+          "drawing",
+          "outside",
+          "girl",
+          "a",
+          "out"
+        ],
+        "object_scores": {
+          "s": 0.22452963888645172,
+          "of": 0.2741968035697937,
+          "tiger": 0.3191748857498169,
+          "cat": 0.27078700065612793,
+          "child": 0.25017815828323364,
+          "in": 0.2628127932548523,
+          "children": 0.2809635400772095,
+          "happy": 0.24419958889484406,
+          "looking": 0.27582576870918274,
+          "and": 0.27192172408103943,
+          "window": 0.26052677631378174,
+          "drawing": 0.2720659077167511,
+          "outside": 0.2769671082496643,
+          "girl": 0.2383829653263092,
+          "a": 0.2546285390853882,
+          "out": 0.27299177646636963
+        },
+        "who": "children",
+        "actions": "cat and child in window",
+        "scene": "outside",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a tiger and a girl looking out of a window",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl looking out of a window. The main character was children, cat and child in window outside. The mood was happy.\n\nThe story begins:\n\n\n \"I always liked tigers because they are beautiful without being aggressive or predatory.\" – Ashiya (Asher), A kid from the village who lives at home with her parents is very scared about cats when it comes to chasing them away if she sees one running towards their house next door. This fear gets passed down through generations until now as some people still have this feeling today…"
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 창문 밖으로 바라보는 호랑이와 소녀가 그려져 있었다. 주인공은 창문 밖의 어린이, 고양이, 아이였다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"나는 항상 호랑이들이 공격적이거나 맹렬한 것이 아니라 아름답기 때문에 좋아했다\"."
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.5,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 156,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "cat",
+      "child",
+      "in",
+      "children",
+      "happy",
+      "looking",
+      "and",
+      "window",
+      "drawing",
+      "outside",
+      "girl",
+      "a",
+      "out"
+    ],
+    "object_scores": {
+      "s": 0.22452963888645172,
+      "of": 0.2741968035697937,
+      "tiger": 0.3191748857498169,
+      "cat": 0.27078700065612793,
+      "child": 0.25017815828323364,
+      "in": 0.2628127932548523,
+      "children": 0.2809635400772095,
+      "happy": 0.24419958889484406,
+      "looking": 0.27582576870918274,
+      "and": 0.27192172408103943,
+      "window": 0.26052677631378174,
+      "drawing": 0.2720659077167511,
+      "outside": 0.2769671082496643,
+      "girl": 0.2383829653263092,
+      "a": 0.2546285390853882,
+      "out": 0.27299177646636963
+    },
+    "who": "children",
+    "actions": "cat and child in window",
+    "scene": "outside",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger and a girl looking out of a window",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl looking out of a window. The main character was children, cat and child in window outside. The mood was happy.\n\nThe story begins:\n\n\n \"I always liked tigers because they are beautiful without being aggressive or predatory.\" – Ashiya (Asher), A kid from the village who lives at home with her parents is very scared about cats when it comes to chasing them away if she sees one running towards their house next door. This fear gets passed down through generations until now as some people still have this feeling today…",
+  "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 창문 밖으로 바라보는 호랑이와 소녀가 그려져 있었다. 주인공은 창문 밖의 어린이, 고양이, 아이였다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"나는 항상 호랑이들이 공격적이거나 맹렬한 것이 아니라 아름답기 때문에 좋아했다\".",
+  "metrics": {
+    "object_coverage": 0.5,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 156,
+    "paragraph_count": 1
+  }
+}

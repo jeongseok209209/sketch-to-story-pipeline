@@ -1,0 +1,43 @@
+{
+  "step": 5,
+  "name": "OpenCLIP 개념 점수화",
+  "output": "{concept: similarity}",
+  "source_text": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch tiger house at play happy",
+  "candidate_extraction_regex": "[a-zA-Z]+",
+  "candidate_words": [
+    "s",
+    "of",
+    "tiger",
+    "cat",
+    "dressed",
+    "house",
+    "children",
+    "at",
+    "happy",
+    "play",
+    "and",
+    "as",
+    "drawing",
+    "witch",
+    "a"
+  ],
+  "prompt_template": "a child's drawing of a {word}",
+  "clip_threshold": 0.22,
+  "scores": {
+    "s": 0.22348518669605255,
+    "of": 0.26876455545425415,
+    "tiger": 0.30895906686782837,
+    "cat": 0.2685147523880005,
+    "dressed": 0.26649361848831177,
+    "house": 0.2320277839899063,
+    "children": 0.28057098388671875,
+    "at": 0.25033026933670044,
+    "happy": 0.23782265186309814,
+    "play": 0.27636903524398804,
+    "and": 0.26113077998161316,
+    "as": 0.24735794961452484,
+    "drawing": 0.26966938376426697,
+    "witch": 0.27894502878189087,
+    "a": 0.2450156956911087
+  }
+}

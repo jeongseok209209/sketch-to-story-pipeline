@@ -1,0 +1,7 @@
+{
+  "step": 7,
+  "name": "GPT-2 영문 동화 생성",
+  "output": "story_en",
+  "max_new_tokens": 200,
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl playing baseball. The main character was little girl and tiger, tiger and girl playing outside. The mood was happy.\n\nThe story begins:\n\n\n \"On one occasion the girls were looking for some balls to throw at an imaginary friend who had just returned from heaven by way in town.\""
+}

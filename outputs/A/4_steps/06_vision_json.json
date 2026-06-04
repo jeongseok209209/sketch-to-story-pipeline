@@ -1,0 +1,47 @@
+{
+  "step": 6,
+  "name": "교차 검증 + 통합",
+  "output": "vision_json",
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "basket",
+      "little",
+      "bear",
+      "children",
+      "happy",
+      "playing",
+      "and",
+      "outside",
+      "drawing",
+      "girl",
+      "a",
+      "holding"
+    ],
+    "object_scores": {
+      "s": 0.22493000328540802,
+      "of": 0.2647944688796997,
+      "tiger": 0.32766884565353394,
+      "basket": 0.26788756251335144,
+      "little": 0.25390398502349854,
+      "bear": 0.23318442702293396,
+      "children": 0.28541800379753113,
+      "happy": 0.2371433675289154,
+      "playing": 0.2678506374359131,
+      "and": 0.26658231019973755,
+      "outside": 0.2485324740409851,
+      "drawing": 0.2667650878429413,
+      "girl": 0.2490476816892624,
+      "a": 0.25441938638687134,
+      "holding": 0.25878167152404785
+    },
+    "who": "little girl",
+    "actions": "girl and bear playing",
+    "scene": "outside",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger and a girl holding a basket",
+    "confidence": "high"
+  }
+}

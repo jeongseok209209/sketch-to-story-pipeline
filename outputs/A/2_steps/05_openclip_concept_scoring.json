@@ -1,0 +1,37 @@
+{
+  "step": 5,
+  "name": "OpenCLIP 개념 점수화",
+  "output": "{concept: similarity}",
+  "source_text": "a children ' s drawing of a little girl carrying a basket of eggs girl drawing outside happy",
+  "candidate_extraction_regex": "[a-zA-Z]+",
+  "candidate_words": [
+    "s",
+    "of",
+    "little",
+    "basket",
+    "children",
+    "eggs",
+    "happy",
+    "carrying",
+    "outside",
+    "drawing",
+    "girl",
+    "a"
+  ],
+  "prompt_template": "a child's drawing of a {word}",
+  "clip_threshold": 0.22,
+  "scores": {
+    "s": 0.2400810718536377,
+    "of": 0.2768254280090332,
+    "little": 0.2834776043891907,
+    "basket": 0.2829257845878601,
+    "children": 0.3003472089767456,
+    "eggs": 0.2376130074262619,
+    "happy": 0.25588610768318176,
+    "carrying": 0.2954583168029785,
+    "outside": 0.2851819097995758,
+    "drawing": 0.2769652009010315,
+    "girl": 0.2886503040790558,
+    "a": 0.26044920086860657
+  }
+}

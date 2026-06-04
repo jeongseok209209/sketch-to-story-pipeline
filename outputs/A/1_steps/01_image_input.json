@@ -1,0 +1,11 @@
+{
+  "step": 1,
+  "name": "손그림 이미지 입력",
+  "image_id": "1.png",
+  "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/1.png",
+  "image_mode": "RGB",
+  "image_size": [
+    1402,
+    1122
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "step": 6,
+  "name": "교차 검증 + 통합",
+  "output": "vision_json",
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "in",
+      "house",
+      "children",
+      "happy",
+      "front",
+      "standing",
+      "family",
+      "drawing",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.24262312054634094,
+      "of": 0.2863355278968811,
+      "in": 0.2668895125389099,
+      "house": 0.298538476228714,
+      "children": 0.30926942825317383,
+      "happy": 0.27131250500679016,
+      "front": 0.2653360366821289,
+      "standing": 0.2824033498764038,
+      "family": 0.34291672706604004,
+      "drawing": 0.26608240604400635,
+      "a": 0.26806455850601196
+    },
+    "who": "children",
+    "actions": "drawing",
+    "scene": "in front of house",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a family standing in front of a house",
+    "confidence": "high"
+  }
+}

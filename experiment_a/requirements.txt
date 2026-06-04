@@ -1,6 +1,0 @@
-torch
-transformers
-open_clip_torch
-Pillow
-sentencepiece
-protobuf

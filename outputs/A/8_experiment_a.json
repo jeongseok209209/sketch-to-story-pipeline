@@ -1,0 +1,206 @@
+{
+  "image_id": "8.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:16:53.645542+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/8_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "8.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/8.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1387,
+        1134
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of a tiger and a girl in a tree"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "children",
+        "actions": "tree",
+        "scene": "in park",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of a tiger and a girl in a tree children tree in park happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "tiger",
+        "in",
+        "tree",
+        "children",
+        "happy",
+        "park",
+        "and",
+        "drawing",
+        "girl",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.2744806408882141,
+        "of": 0.31607991456985474,
+        "tiger": 0.3505001366138458,
+        "in": 0.30009621381759644,
+        "tree": 0.2887219190597534,
+        "children": 0.31825417280197144,
+        "happy": 0.29425400495529175,
+        "park": 0.2747039198875427,
+        "and": 0.31235384941101074,
+        "drawing": 0.3095708191394806,
+        "girl": 0.2792975902557373,
+        "a": 0.3011642396450043
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "tiger",
+          "in",
+          "tree",
+          "children",
+          "happy",
+          "park",
+          "and",
+          "drawing",
+          "girl",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.2744806408882141,
+          "of": 0.31607991456985474,
+          "tiger": 0.3505001366138458,
+          "in": 0.30009621381759644,
+          "tree": 0.2887219190597534,
+          "children": 0.31825417280197144,
+          "happy": 0.29425400495529175,
+          "park": 0.2747039198875427,
+          "and": 0.31235384941101074,
+          "drawing": 0.3095708191394806,
+          "girl": 0.2792975902557373,
+          "a": 0.3011642396450043
+        },
+        "who": "children",
+        "actions": "tree",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a tiger and a girl in a tree",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl in a tree. The main character was children, tree in park. The mood was happy.\n\nThe story begins:\n...When the child first started going to school at 8 years old, she would take his hand from her face so that they could look out across the playground while playing outside together! They both became friends with each other as well as their teachers' parents for life and were inseparable since then. Then one day it happened; no matter how many times he said hello or played catch-up over dinner table - this kid never once stopped talking about trees!!! This is when all those wonderful memories start pouring into my head!! I have been thinking like him ever after!!\""
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이들의 이야기. 한때 나무에 있는 호랑이와 소녀의 어린이들의 그림이 있었다. 주인공은 어린이들이, 공원에서 있는 나무였다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. ...8살 때 아이가 처음으로 학교에 갈 때, 그녀는 자신의 얼굴을 떼어 놓았으며, 그들은 함께 놀고 있는 동안 놀이터를 건너가 볼 수 있도록 손을 잡았어요. 그들은 둘 다 서로 친구였고, 교사들의 부모와 평생 동안 서로 떼어놓을 수 없었습니다. 그리고 어느 날 그것은 일어났습니다. 그는 얼마나 많은 번 인사하거나 저녁 테이블에 따라 잡을 수 있었는지 상관없이, 이 아이는 나무에 대해 이야기 한 번도 멈추지 않았습니다!!! 이 때 모든 멋진 기억이 내 머리에 쏟아지기 시작했습니다!! 나는 그를 생각하기 시작했습니다. 그 후!!\""
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.5833333333333334,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 396,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "in",
+      "tree",
+      "children",
+      "happy",
+      "park",
+      "and",
+      "drawing",
+      "girl",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.2744806408882141,
+      "of": 0.31607991456985474,
+      "tiger": 0.3505001366138458,
+      "in": 0.30009621381759644,
+      "tree": 0.2887219190597534,
+      "children": 0.31825417280197144,
+      "happy": 0.29425400495529175,
+      "park": 0.2747039198875427,
+      "and": 0.31235384941101074,
+      "drawing": 0.3095708191394806,
+      "girl": 0.2792975902557373,
+      "a": 0.3011642396450043
+    },
+    "who": "children",
+    "actions": "tree",
+    "scene": "in park",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger and a girl in a tree",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl in a tree. The main character was children, tree in park. The mood was happy.\n\nThe story begins:\n...When the child first started going to school at 8 years old, she would take his hand from her face so that they could look out across the playground while playing outside together! They both became friends with each other as well as their teachers' parents for life and were inseparable since then. Then one day it happened; no matter how many times he said hello or played catch-up over dinner table - this kid never once stopped talking about trees!!! This is when all those wonderful memories start pouring into my head!! I have been thinking like him ever after!!\"",
+  "story_final": "어린이들의 이야기. 한때 나무에 있는 호랑이와 소녀의 어린이들의 그림이 있었다. 주인공은 어린이들이, 공원에서 있는 나무였다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. ...8살 때 아이가 처음으로 학교에 갈 때, 그녀는 자신의 얼굴을 떼어 놓았으며, 그들은 함께 놀고 있는 동안 놀이터를 건너가 볼 수 있도록 손을 잡았어요. 그들은 둘 다 서로 친구였고, 교사들의 부모와 평생 동안 서로 떼어놓을 수 없었습니다. 그리고 어느 날 그것은 일어났습니다. 그는 얼마나 많은 번 인사하거나 저녁 테이블에 따라 잡을 수 있었는지 상관없이, 이 아이는 나무에 대해 이야기 한 번도 멈추지 않았습니다!!! 이 때 모든 멋진 기억이 내 머리에 쏟아지기 시작했습니다!! 나는 그를 생각하기 시작했습니다. 그 후!!\"",
+  "metrics": {
+    "object_coverage": 0.5833333333333334,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 396,
+    "paragraph_count": 1
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "step": 5,
+  "name": "OpenCLIP 개념 점수화",
+  "output": "{concept: similarity}",
+  "source_text": "a children ' s drawing of a tiger and a girl in a tree children tree in park happy",
+  "candidate_extraction_regex": "[a-zA-Z]+",
+  "candidate_words": [
+    "s",
+    "of",
+    "tiger",
+    "in",
+    "tree",
+    "children",
+    "happy",
+    "park",
+    "and",
+    "drawing",
+    "girl",
+    "a"
+  ],
+  "prompt_template": "a child's drawing of a {word}",
+  "clip_threshold": 0.22,
+  "scores": {
+    "s": 0.2744806408882141,
+    "of": 0.31607991456985474,
+    "tiger": 0.3505001366138458,
+    "in": 0.30009621381759644,
+    "tree": 0.2887219190597534,
+    "children": 0.31825417280197144,
+    "happy": 0.29425400495529175,
+    "park": 0.2747039198875427,
+    "and": 0.31235384941101074,
+    "drawing": 0.3095708191394806,
+    "girl": 0.2792975902557373,
+    "a": 0.3011642396450043
+  }
+}

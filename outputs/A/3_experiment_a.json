@@ -1,0 +1,208 @@
+{
+  "image_id": "3.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:14:27.402392+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/3_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "3.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/3.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1414,
+        1113
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "little girl and tiger",
+        "actions": "tiger and girl playing",
+        "scene": "outside",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of a tiger and a girl playing baseball little girl and tiger tiger and girl playing outside happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "tiger",
+        "little",
+        "children",
+        "happy",
+        "baseball",
+        "playing",
+        "and",
+        "outside",
+        "drawing",
+        "girl",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.23547270894050598,
+        "of": 0.27109381556510925,
+        "tiger": 0.3393873870372772,
+        "little": 0.26848655939102173,
+        "children": 0.28579437732696533,
+        "happy": 0.24701760709285736,
+        "baseball": 0.2187243103981018,
+        "playing": 0.2777624726295471,
+        "and": 0.27572375535964966,
+        "outside": 0.25965720415115356,
+        "drawing": 0.2736055850982666,
+        "girl": 0.2598666548728943,
+        "a": 0.25999170541763306
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "tiger",
+          "little",
+          "children",
+          "happy",
+          "playing",
+          "and",
+          "outside",
+          "drawing",
+          "girl",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.23547270894050598,
+          "of": 0.27109381556510925,
+          "tiger": 0.3393873870372772,
+          "little": 0.26848655939102173,
+          "children": 0.28579437732696533,
+          "happy": 0.24701760709285736,
+          "playing": 0.2777624726295471,
+          "and": 0.27572375535964966,
+          "outside": 0.25965720415115356,
+          "drawing": 0.2736055850982666,
+          "girl": 0.2598666548728943,
+          "a": 0.25999170541763306
+        },
+        "who": "little girl and tiger",
+        "actions": "tiger and girl playing",
+        "scene": "outside",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl playing baseball. The main character was little girl and tiger, tiger and girl playing outside. The mood was happy.\n\nThe story begins:\n\n\n \"On one occasion the girls were looking for some balls to throw at an imaginary friend who had just returned from heaven by way in town.\""
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이 이야기. 한때 야구 경기를 하는 호랑이와 소녀의 어린이 그림이 있었습니다. 주인공은 어린 소녀와 호랑이, 호랑이와 소녀가 밖에서 놀고 있었습니다. 분위기는 행복했습니다. 이야기는 이렇게 시작합니다. \"일 때 소녀들은 마을로 돌아오는 길에 천국에서 돌아온 상상적인 친구에게 던지기 위해 공을 찾고 있었습니다\"."
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.25,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 176,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "little",
+      "children",
+      "happy",
+      "playing",
+      "and",
+      "outside",
+      "drawing",
+      "girl",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.23547270894050598,
+      "of": 0.27109381556510925,
+      "tiger": 0.3393873870372772,
+      "little": 0.26848655939102173,
+      "children": 0.28579437732696533,
+      "happy": 0.24701760709285736,
+      "playing": 0.2777624726295471,
+      "and": 0.27572375535964966,
+      "outside": 0.25965720415115356,
+      "drawing": 0.2736055850982666,
+      "girl": 0.2598666548728943,
+      "a": 0.25999170541763306
+    },
+    "who": "little girl and tiger",
+    "actions": "tiger and girl playing",
+    "scene": "outside",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl playing baseball. The main character was little girl and tiger, tiger and girl playing outside. The mood was happy.\n\nThe story begins:\n\n\n \"On one occasion the girls were looking for some balls to throw at an imaginary friend who had just returned from heaven by way in town.\"",
+  "story_final": "어린이 이야기. 한때 야구 경기를 하는 호랑이와 소녀의 어린이 그림이 있었습니다. 주인공은 어린 소녀와 호랑이, 호랑이와 소녀가 밖에서 놀고 있었습니다. 분위기는 행복했습니다. 이야기는 이렇게 시작합니다. \"일 때 소녀들은 마을로 돌아오는 길에 천국에서 돌아온 상상적인 친구에게 던지기 위해 공을 찾고 있었습니다\".",
+  "metrics": {
+    "object_coverage": 0.25,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 176,
+    "paragraph_count": 1
+  }
+}

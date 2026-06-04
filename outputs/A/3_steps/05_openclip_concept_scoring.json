@@ -1,0 +1,39 @@
+{
+  "step": 5,
+  "name": "OpenCLIP 개념 점수화",
+  "output": "{concept: similarity}",
+  "source_text": "a children ' s drawing of a tiger and a girl playing baseball little girl and tiger tiger and girl playing outside happy",
+  "candidate_extraction_regex": "[a-zA-Z]+",
+  "candidate_words": [
+    "s",
+    "of",
+    "tiger",
+    "little",
+    "children",
+    "happy",
+    "baseball",
+    "playing",
+    "and",
+    "outside",
+    "drawing",
+    "girl",
+    "a"
+  ],
+  "prompt_template": "a child's drawing of a {word}",
+  "clip_threshold": 0.22,
+  "scores": {
+    "s": 0.23547270894050598,
+    "of": 0.27109381556510925,
+    "tiger": 0.3393873870372772,
+    "little": 0.26848655939102173,
+    "children": 0.28579437732696533,
+    "happy": 0.24701760709285736,
+    "baseball": 0.2187243103981018,
+    "playing": 0.2777624726295471,
+    "and": 0.27572375535964966,
+    "outside": 0.25965720415115356,
+    "drawing": 0.2736055850982666,
+    "girl": 0.2598666548728943,
+    "a": 0.25999170541763306
+  }
+}

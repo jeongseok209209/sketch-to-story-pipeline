@@ -1,0 +1,11 @@
+{
+  "step": 9,
+  "name": "평가 지표 계산",
+  "output": "metrics",
+  "metrics": {
+    "object_coverage": 0.5,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 156,
+    "paragraph_count": 1
+  }
+}

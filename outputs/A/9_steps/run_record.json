@@ -1,0 +1,230 @@
+{
+  "image_id": "9.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:17:22.966327+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/9_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "9.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/9.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1397,
+        1126
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "children",
+        "actions": "kite flying",
+        "scene": "in park",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of three children swinging on a rope with a tiger children kite flying in park happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "on",
+        "with",
+        "tiger",
+        "flying",
+        "in",
+        "children",
+        "happy",
+        "three",
+        "rope",
+        "park",
+        "swinging",
+        "drawing",
+        "kite",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.25070375204086304,
+        "of": 0.2927619218826294,
+        "on": 0.26437103748321533,
+        "with": 0.2783440947532654,
+        "tiger": 0.335135281085968,
+        "flying": 0.30885663628578186,
+        "in": 0.2721984386444092,
+        "children": 0.3040425181388855,
+        "happy": 0.26280543208122253,
+        "three": 0.25724247097969055,
+        "rope": 0.28369155526161194,
+        "park": 0.27237316966056824,
+        "swinging": 0.37351110577583313,
+        "drawing": 0.29152458906173706,
+        "kite": 0.278056263923645,
+        "a": 0.27051597833633423
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "on",
+          "with",
+          "tiger",
+          "flying",
+          "in",
+          "children",
+          "happy",
+          "three",
+          "rope",
+          "park",
+          "swinging",
+          "drawing",
+          "kite",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.25070375204086304,
+          "of": 0.2927619218826294,
+          "on": 0.26437103748321533,
+          "with": 0.2783440947532654,
+          "tiger": 0.335135281085968,
+          "flying": 0.30885663628578186,
+          "in": 0.2721984386444092,
+          "children": 0.3040425181388855,
+          "happy": 0.26280543208122253,
+          "three": 0.25724247097969055,
+          "rope": 0.28369155526161194,
+          "park": 0.27237316966056824,
+          "swinging": 0.37351110577583313,
+          "drawing": 0.29152458906173706,
+          "kite": 0.278056263923645,
+          "a": 0.27051597833633423
+        },
+        "who": "children",
+        "actions": "kite flying",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of three children swinging on a rope with a tiger. The main character was children, kite flying in park. The mood was happy.\n\nThe story begins:\n \"They were all young boys from the neighborhood who used to play together at their neighbor Kukrukhovka lake near Moscow and now lived opposite one another.\"\n\n\n    <!--iframe--> -------------------------​"
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이 이야기. 한때는 호랑이와 로프에 흔들리는 어린이 3명의 그림이 있었다. 주인공은 어린이들이 공원에서 날아가는 유래가 있었다. 분위기는 행복했다. 이야기는 이렇게 시작합니다. \"그들은 모두 이웃 마을의 어린 소년들이 모스크바 근처의 쿠크루코프카 호수에서 함께 놀고 있었고 지금은 서로 반대편에 살고 있었다. \" <!--iframe--> -------------------------"
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.625,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 216,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "on",
+      "with",
+      "tiger",
+      "flying",
+      "in",
+      "children",
+      "happy",
+      "three",
+      "rope",
+      "park",
+      "swinging",
+      "drawing",
+      "kite",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.25070375204086304,
+      "of": 0.2927619218826294,
+      "on": 0.26437103748321533,
+      "with": 0.2783440947532654,
+      "tiger": 0.335135281085968,
+      "flying": 0.30885663628578186,
+      "in": 0.2721984386444092,
+      "children": 0.3040425181388855,
+      "happy": 0.26280543208122253,
+      "three": 0.25724247097969055,
+      "rope": 0.28369155526161194,
+      "park": 0.27237316966056824,
+      "swinging": 0.37351110577583313,
+      "drawing": 0.29152458906173706,
+      "kite": 0.278056263923645,
+      "a": 0.27051597833633423
+    },
+    "who": "children",
+    "actions": "kite flying",
+    "scene": "in park",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of three children swinging on a rope with a tiger. The main character was children, kite flying in park. The mood was happy.\n\nThe story begins:\n \"They were all young boys from the neighborhood who used to play together at their neighbor Kukrukhovka lake near Moscow and now lived opposite one another.\"\n\n\n    <!--iframe--> -------------------------​",
+  "story_final": "어린이 이야기. 한때는 호랑이와 로프에 흔들리는 어린이 3명의 그림이 있었다. 주인공은 어린이들이 공원에서 날아가는 유래가 있었다. 분위기는 행복했다. 이야기는 이렇게 시작합니다. \"그들은 모두 이웃 마을의 어린 소년들이 모스크바 근처의 쿠크루코프카 호수에서 함께 놀고 있었고 지금은 서로 반대편에 살고 있었다. \" <!--iframe--> -------------------------",
+  "metrics": {
+    "object_coverage": 0.625,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 216,
+    "paragraph_count": 1
+  }
+}

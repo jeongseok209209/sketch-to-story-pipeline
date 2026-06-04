@@ -1,0 +1,46 @@
+{
+  "case_001": {
+    "experiment": "A",
+    "result_file": "outputs/A/1_experiment_a.json"
+  },
+  "case_002": {
+    "experiment": "A",
+    "result_file": "outputs/A/5_experiment_a.json"
+  },
+  "case_003": {
+    "experiment": "B",
+    "result_file": "outputs/B/sequence_story.json"
+  },
+  "case_004": {
+    "experiment": "A",
+    "result_file": "outputs/A/6_experiment_a.json"
+  },
+  "case_005": {
+    "experiment": "A",
+    "result_file": "outputs/A/3_experiment_a.json"
+  },
+  "case_006": {
+    "experiment": "A",
+    "result_file": "outputs/A/8_experiment_a.json"
+  },
+  "case_007": {
+    "experiment": "A",
+    "result_file": "outputs/A/2_experiment_a.json"
+  },
+  "case_008": {
+    "experiment": "A",
+    "result_file": "outputs/A/10_experiment_a.json"
+  },
+  "case_009": {
+    "experiment": "A",
+    "result_file": "outputs/A/9_experiment_a.json"
+  },
+  "case_010": {
+    "experiment": "A",
+    "result_file": "outputs/A/7_experiment_a.json"
+  },
+  "case_011": {
+    "experiment": "A",
+    "result_file": "outputs/A/4_experiment_a.json"
+  }
+}

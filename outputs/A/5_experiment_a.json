@@ -1,0 +1,224 @@
+{
+  "image_id": "5.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:15:24.596210+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/5_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "5.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/5.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1409,
+        1117
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "tiger",
+        "actions": "house",
+        "scene": "at play",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch tiger house at play happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "tiger",
+        "cat",
+        "dressed",
+        "house",
+        "children",
+        "at",
+        "happy",
+        "play",
+        "and",
+        "as",
+        "drawing",
+        "witch",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.22348518669605255,
+        "of": 0.26876455545425415,
+        "tiger": 0.30895906686782837,
+        "cat": 0.2685147523880005,
+        "dressed": 0.26649361848831177,
+        "house": 0.2320277839899063,
+        "children": 0.28057098388671875,
+        "at": 0.25033026933670044,
+        "happy": 0.23782265186309814,
+        "play": 0.27636903524398804,
+        "and": 0.26113077998161316,
+        "as": 0.24735794961452484,
+        "drawing": 0.26966938376426697,
+        "witch": 0.27894502878189087,
+        "a": 0.2450156956911087
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "tiger",
+          "cat",
+          "dressed",
+          "house",
+          "children",
+          "at",
+          "happy",
+          "play",
+          "and",
+          "as",
+          "drawing",
+          "witch",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.22348518669605255,
+          "of": 0.26876455545425415,
+          "tiger": 0.30895906686782837,
+          "cat": 0.2685147523880005,
+          "dressed": 0.26649361848831177,
+          "house": 0.2320277839899063,
+          "children": 0.28057098388671875,
+          "at": 0.25033026933670044,
+          "happy": 0.23782265186309814,
+          "play": 0.27636903524398804,
+          "and": 0.26113077998161316,
+          "as": 0.24735794961452484,
+          "drawing": 0.26966938376426697,
+          "witch": 0.27894502878189087,
+          "a": 0.2450156956911087
+        },
+        "who": "tiger",
+        "actions": "house",
+        "scene": "at play",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch. The main character was tiger, house at play. The mood was happy.\n\nThe story begins:\n (the girl) went out to her kitchen in the morning carrying milk for breakfast. On going down she passed through several houses on horseback - first one had three cats; then another two men who would not answer their callings but were just waiting with toys or food while they waited till lunchtime came around again... When all this happened it struck me that I could have been any child living anywhere! So when you come home from school today find yourself standing outside your front door looking into empty rooms so full of people now watching television programs etc.. You know how busy life can be? Then imagine my surprise whenever suddenly something seemed odd about someone else.... This is what happens sometimes during our daily lives . Sometimes we don't notice some strange person staring us straight in eyes which makes us wonder if he has seen an animal before..... But once more after pondering these questions...... We decide never go back inside without leaving behind such things !"
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이들의 이야기. 한 때, 마녀로 옷을 입은 호랑이와 마녀로 옷을 입은 고양이라는 어린이들의 그림이 있었다. 주인공은 호랑이, 집에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다: ( 소녀) 아침 아침 아침 우유를 들고 부엌으로 갔다. 내려가면서 그녀는 몇 개의 집들을 지나가며 말 달고 - 첫째는 세 개의 고양이가 있었고; 다음에는 두 명의 남자가 그들의 호출을 응답하지 않고 장난감이나 음식을 가지고 기다리고 있었고, 그들은 다시 점심 시간까지 기다렸다. 이 모든 일이 일어났을 때 나는 내가 어디에도 살고있는 어린이가 되었다는 것을 느꼈습니다. 그래서 학교를 돌아왔을 때 오늘 당신은 당신의 문 앞에 서서 빈 방에 앉아있는 사람들을 볼 수 있습니다, 지금 TV 프로그램을 보는 등에 가득합니다. 당신은 어떻게 할 수 있는지 알고 있습니까?"
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.4666666666666667,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 422,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "cat",
+      "dressed",
+      "house",
+      "children",
+      "at",
+      "happy",
+      "play",
+      "and",
+      "as",
+      "drawing",
+      "witch",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.22348518669605255,
+      "of": 0.26876455545425415,
+      "tiger": 0.30895906686782837,
+      "cat": 0.2685147523880005,
+      "dressed": 0.26649361848831177,
+      "house": 0.2320277839899063,
+      "children": 0.28057098388671875,
+      "at": 0.25033026933670044,
+      "happy": 0.23782265186309814,
+      "play": 0.27636903524398804,
+      "and": 0.26113077998161316,
+      "as": 0.24735794961452484,
+      "drawing": 0.26966938376426697,
+      "witch": 0.27894502878189087,
+      "a": 0.2450156956911087
+    },
+    "who": "tiger",
+    "actions": "house",
+    "scene": "at play",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch. The main character was tiger, house at play. The mood was happy.\n\nThe story begins:\n (the girl) went out to her kitchen in the morning carrying milk for breakfast. On going down she passed through several houses on horseback - first one had three cats; then another two men who would not answer their callings but were just waiting with toys or food while they waited till lunchtime came around again... When all this happened it struck me that I could have been any child living anywhere! So when you come home from school today find yourself standing outside your front door looking into empty rooms so full of people now watching television programs etc.. You know how busy life can be? Then imagine my surprise whenever suddenly something seemed odd about someone else.... This is what happens sometimes during our daily lives . Sometimes we don't notice some strange person staring us straight in eyes which makes us wonder if he has seen an animal before..... But once more after pondering these questions...... We decide never go back inside without leaving behind such things !",
+  "story_final": "어린이들의 이야기. 한 때, 마녀로 옷을 입은 호랑이와 마녀로 옷을 입은 고양이라는 어린이들의 그림이 있었다. 주인공은 호랑이, 집에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다: ( 소녀) 아침 아침 아침 우유를 들고 부엌으로 갔다. 내려가면서 그녀는 몇 개의 집들을 지나가며 말 달고 - 첫째는 세 개의 고양이가 있었고; 다음에는 두 명의 남자가 그들의 호출을 응답하지 않고 장난감이나 음식을 가지고 기다리고 있었고, 그들은 다시 점심 시간까지 기다렸다. 이 모든 일이 일어났을 때 나는 내가 어디에도 살고있는 어린이가 되었다는 것을 느꼈습니다. 그래서 학교를 돌아왔을 때 오늘 당신은 당신의 문 앞에 서서 빈 방에 앉아있는 사람들을 볼 수 있습니다, 지금 TV 프로그램을 보는 등에 가득합니다. 당신은 어떻게 할 수 있는지 알고 있습니까?",
+  "metrics": {
+    "object_coverage": 0.4666666666666667,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 422,
+    "paragraph_count": 1
+  }
+}

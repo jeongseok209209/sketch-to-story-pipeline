@@ -1,0 +1,41 @@
+{
+  "step": 6,
+  "name": "교차 검증 + 통합",
+  "output": "vision_json",
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "little",
+      "basket",
+      "children",
+      "eggs",
+      "happy",
+      "carrying",
+      "outside",
+      "drawing",
+      "girl",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.2400810718536377,
+      "of": 0.2768254280090332,
+      "little": 0.2834776043891907,
+      "basket": 0.2829257845878601,
+      "children": 0.3003472089767456,
+      "eggs": 0.2376130074262619,
+      "happy": 0.25588610768318176,
+      "carrying": 0.2954583168029785,
+      "outside": 0.2851819097995758,
+      "drawing": 0.2769652009010315,
+      "girl": 0.2886503040790558,
+      "a": 0.26044920086860657
+    },
+    "who": "girl",
+    "actions": "drawing",
+    "scene": "outside",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs",
+    "confidence": "high"
+  }
+}

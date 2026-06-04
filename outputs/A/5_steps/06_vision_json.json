@@ -1,0 +1,47 @@
+{
+  "step": 6,
+  "name": "교차 검증 + 통합",
+  "output": "vision_json",
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "tiger",
+      "cat",
+      "dressed",
+      "house",
+      "children",
+      "at",
+      "happy",
+      "play",
+      "and",
+      "as",
+      "drawing",
+      "witch",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.22348518669605255,
+      "of": 0.26876455545425415,
+      "tiger": 0.30895906686782837,
+      "cat": 0.2685147523880005,
+      "dressed": 0.26649361848831177,
+      "house": 0.2320277839899063,
+      "children": 0.28057098388671875,
+      "at": 0.25033026933670044,
+      "happy": 0.23782265186309814,
+      "play": 0.27636903524398804,
+      "and": 0.26113077998161316,
+      "as": 0.24735794961452484,
+      "drawing": 0.26966938376426697,
+      "witch": 0.27894502878189087,
+      "a": 0.2450156956911087
+    },
+    "who": "tiger",
+    "actions": "house",
+    "scene": "at play",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch",
+    "confidence": "high"
+  }
+}

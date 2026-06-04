@@ -1,0 +1,17 @@
+{
+  "step": 4,
+  "name": "BLIP-VQA 슬롯 질의",
+  "output": "{who, action, scene, mood}",
+  "questions": {
+    "who": "Who is in this picture?",
+    "actions": "What is happening in this picture?",
+    "scene": "Where is this scene?",
+    "mood": "What is the mood of this picture?"
+  },
+  "answers": {
+    "who": "children",
+    "actions": "kite flying",
+    "scene": "outside",
+    "mood": "happy"
+  }
+}

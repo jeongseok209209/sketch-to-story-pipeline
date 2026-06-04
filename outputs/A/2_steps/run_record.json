@@ -1,0 +1,206 @@
+{
+  "image_id": "2.png",
+  "experiment": "A",
+  "story_backend": "gpt2_nllb",
+  "timestamp": "2026-06-03T12:14:05.449415+00:00",
+  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/2_steps",
+  "steps": {
+    "01_image_input": {
+      "step": 1,
+      "name": "손그림 이미지 입력",
+      "image_id": "2.png",
+      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/2.png",
+      "image_mode": "RGB",
+      "image_size": [
+        1408,
+        1117
+      ]
+    },
+    "02_preprocessing": {
+      "step": 2,
+      "name": "전처리",
+      "blip_size": [
+        384,
+        384
+      ],
+      "openclip_size": [
+        224,
+        224
+      ],
+      "white_background_normalization": true,
+      "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+    },
+    "03_blip_captioning": {
+      "step": 3,
+      "name": "BLIP captioning",
+      "output": "자유 캡션",
+      "prefix": "a children's drawing of",
+      "num_beams": 5,
+      "max_length": 50,
+      "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs"
+    },
+    "04_blip_vqa": {
+      "step": 4,
+      "name": "BLIP-VQA 슬롯 질의",
+      "output": "{who, action, scene, mood}",
+      "questions": {
+        "who": "Who is in this picture?",
+        "actions": "What is happening in this picture?",
+        "scene": "Where is this scene?",
+        "mood": "What is the mood of this picture?"
+      },
+      "answers": {
+        "who": "girl",
+        "actions": "drawing",
+        "scene": "outside",
+        "mood": "happy"
+      }
+    },
+    "05_openclip_concept_scoring": {
+      "step": 5,
+      "name": "OpenCLIP 개념 점수화",
+      "output": "{concept: similarity}",
+      "source_text": "a children ' s drawing of a little girl carrying a basket of eggs girl drawing outside happy",
+      "candidate_extraction_regex": "[a-zA-Z]+",
+      "candidate_words": [
+        "s",
+        "of",
+        "little",
+        "basket",
+        "children",
+        "eggs",
+        "happy",
+        "carrying",
+        "outside",
+        "drawing",
+        "girl",
+        "a"
+      ],
+      "prompt_template": "a child's drawing of a {word}",
+      "clip_threshold": 0.22,
+      "scores": {
+        "s": 0.2400810718536377,
+        "of": 0.2768254280090332,
+        "little": 0.2834776043891907,
+        "basket": 0.2829257845878601,
+        "children": 0.3003472089767456,
+        "eggs": 0.2376130074262619,
+        "happy": 0.25588610768318176,
+        "carrying": 0.2954583168029785,
+        "outside": 0.2851819097995758,
+        "drawing": 0.2769652009010315,
+        "girl": 0.2886503040790558,
+        "a": 0.26044920086860657
+      }
+    },
+    "06_vision_json": {
+      "step": 6,
+      "name": "교차 검증 + 통합",
+      "output": "vision_json",
+      "vision": {
+        "objects": [
+          "s",
+          "of",
+          "little",
+          "basket",
+          "children",
+          "eggs",
+          "happy",
+          "carrying",
+          "outside",
+          "drawing",
+          "girl",
+          "a"
+        ],
+        "object_scores": {
+          "s": 0.2400810718536377,
+          "of": 0.2768254280090332,
+          "little": 0.2834776043891907,
+          "basket": 0.2829257845878601,
+          "children": 0.3003472089767456,
+          "eggs": 0.2376130074262619,
+          "happy": 0.25588610768318176,
+          "carrying": 0.2954583168029785,
+          "outside": 0.2851819097995758,
+          "drawing": 0.2769652009010315,
+          "girl": 0.2886503040790558,
+          "a": 0.26044920086860657
+        },
+        "who": "girl",
+        "actions": "drawing",
+        "scene": "outside",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs",
+        "confidence": "high"
+      }
+    },
+    "07_gpt2_story_en": {
+      "step": 7,
+      "name": "GPT-2 영문 동화 생성",
+      "output": "story_en",
+      "max_new_tokens": 200,
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a little girl carrying a basket of eggs. The main character was girl, drawing outside. The mood was happy.\n\nThe story begins:\n\n\n-Girl sitting on the balcony and looking out at all her friends waiting for their arrival when they arrive to meet them in front courtyard (the garden) - Girl has an egg hanging from one shoulder as she stares up through window towards sky where others are gathered watching birds or flowers growing around with red eyes that look like stars but instead of being brighter it is just dark brownish green colour/lighter than water blue color / Bird flying across space; bird appears very high above other trees making him seem small without wings so he must be huge if his body were tall enough"
+    },
+    "08_nllb_translation_ko": {
+      "step": 8,
+      "name": "NLLB 영한 번역",
+      "output": "story_final",
+      "story_final": "어린이들의 이야기. 한때 계란 바구니를 들고 있는 어린 소녀의 어린이들의 그림이 있었다. 주인공은 소녀가 밖에서 그림을 그리는 것이었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다. - 소녀가 발코니에 앉아 있으며, 그들이 정원 (바구) 에 도착했을 때 그들의 도착을 기다리고있는 모든 친구들을 지켜보고 있습니다. - 소녀는 계실을 통해 하늘을 바라보고 다른 사람들이 모여있는 새나 꽃이 둥지를 향해 둥지를 틀어있는 동안 다른 새가 날개를 가지고있는 것처럼 보이지만, 그의 몸은 충분히 크고 큰 것이어야합니다. 그의 몸은 별처럼 보이는 붉은 눈과 함께 자라나는 새가 있습니다. 그러나 밝은 것이 아니라 어두운 갈색 녹색 색 / 푸른 물 색보다 밝은 색 / 새가 우주를 날아갑니다."
+    },
+    "09_evaluation": {
+      "step": 9,
+      "name": "평가 지표 계산",
+      "output": "metrics",
+      "metrics": {
+        "object_coverage": 0.25,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 382,
+        "paragraph_count": 1
+      }
+    }
+  },
+  "vision": {
+    "objects": [
+      "s",
+      "of",
+      "little",
+      "basket",
+      "children",
+      "eggs",
+      "happy",
+      "carrying",
+      "outside",
+      "drawing",
+      "girl",
+      "a"
+    ],
+    "object_scores": {
+      "s": 0.2400810718536377,
+      "of": 0.2768254280090332,
+      "little": 0.2834776043891907,
+      "basket": 0.2829257845878601,
+      "children": 0.3003472089767456,
+      "eggs": 0.2376130074262619,
+      "happy": 0.25588610768318176,
+      "carrying": 0.2954583168029785,
+      "outside": 0.2851819097995758,
+      "drawing": 0.2769652009010315,
+      "girl": 0.2886503040790558,
+      "a": 0.26044920086860657
+    },
+    "who": "girl",
+    "actions": "drawing",
+    "scene": "outside",
+    "mood": "happy",
+    "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs",
+    "confidence": "high"
+  },
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a little girl carrying a basket of eggs. The main character was girl, drawing outside. The mood was happy.\n\nThe story begins:\n\n\n-Girl sitting on the balcony and looking out at all her friends waiting for their arrival when they arrive to meet them in front courtyard (the garden) - Girl has an egg hanging from one shoulder as she stares up through window towards sky where others are gathered watching birds or flowers growing around with red eyes that look like stars but instead of being brighter it is just dark brownish green colour/lighter than water blue color / Bird flying across space; bird appears very high above other trees making him seem small without wings so he must be huge if his body were tall enough",
+  "story_final": "어린이들의 이야기. 한때 계란 바구니를 들고 있는 어린 소녀의 어린이들의 그림이 있었다. 주인공은 소녀가 밖에서 그림을 그리는 것이었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다. - 소녀가 발코니에 앉아 있으며, 그들이 정원 (바구) 에 도착했을 때 그들의 도착을 기다리고있는 모든 친구들을 지켜보고 있습니다. - 소녀는 계실을 통해 하늘을 바라보고 다른 사람들이 모여있는 새나 꽃이 둥지를 향해 둥지를 틀어있는 동안 다른 새가 날개를 가지고있는 것처럼 보이지만, 그의 몸은 충분히 크고 큰 것이어야합니다. 그의 몸은 별처럼 보이는 붉은 눈과 함께 자라나는 새가 있습니다. 그러나 밝은 것이 아니라 어두운 갈색 녹색 색 / 푸른 물 색보다 밝은 색 / 새가 우주를 날아갑니다.",
+  "metrics": {
+    "object_coverage": 0.25,
+    "object_coverage_mode": "nllb_translation",
+    "char_count": 382,
+    "paragraph_count": 1
+  }
+}
