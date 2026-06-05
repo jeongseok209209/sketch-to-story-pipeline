@@ -8,3 +8,19 @@ venv/
 env/
 
 results/
+
+.local_models/**/*.gguf
+.local_models/**/*.bin
+.local_models/
+.local_models/huggingface/
+.local_tools/
+.local_tools/**/llama-cli.exe
+.local_tools/**/llama-cli
+.local_tools/**/downloads/
+.local_tools/**/release/
+.local_tools/**/src/
+.local_tools/**/CMakeFiles/
+.local_tools/**/CMakeCache.txt
+.local_tools/**/*.obj
+.local_tools/**/*.pdb
+.local_tools/**/*.ilk

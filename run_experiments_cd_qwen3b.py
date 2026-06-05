@@ -10,11 +10,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from generators import _run_exaone_gguf_prompt
-from utils import DEFAULT_EXAONE_GGUF_PATH, LLAMA_CLI_PATH
+from generators import _run_exaone_gguf_prompt, get_last_llama_runtime
+from utils import (
+    DEFAULT_EXAONE_GGUF_PATH,
+    LLAMA_CLI_PATH,
+    QWEN25_VL_MODEL,
+    local_huggingface_model_path,
+    ensure_exaone_gguf_model,
+    log_stage,
+    set_step_context,
+    timed_step,
+)
 
 
-VISION_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
+VISION_MODEL_ID = QWEN25_VL_MODEL
 LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 BASE_DIR = Path(__file__).resolve().parent
 INPUT_DIR = BASE_DIR / "inputs"
@@ -22,19 +31,17 @@ OUTPUT_ROOT = BASE_DIR / "outputs"
 COMMON_OUTPUT_DIR = OUTPUT_ROOT / "qwen25_vl_3b_story"
 SHARED_DIR = COMMON_OUTPUT_DIR / "scene_descriptions"
 RESIZED_DIR = COMMON_OUTPUT_DIR / "_resized_input"
-QWEN3B_LOCAL_DIR = (
-    Path.home()
-    / ".cache"
-    / "huggingface"
-    / "hub"
-    / "models--Qwen--Qwen2.5-VL-3B-Instruct"
-)
+QWEN3B_LOCAL_DIR = local_huggingface_model_path(VISION_MODEL_ID)
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 QWEN_IMAGE_MAX_SIDE = 384
 QWEN_MAX_PIXELS = QWEN_IMAGE_MAX_SIDE * QWEN_IMAGE_MAX_SIDE
 
 
-def _snapshot_dir(model_cache: Path) -> Path | str:
+def _snapshot_dir(model_cache: Path | str) -> Path | str:
+    if not isinstance(model_cache, Path):
+        return model_cache
+    if isinstance(model_cache, Path) and model_cache.exists() and (model_cache / "config.json").exists():
+        return model_cache
     snapshots = model_cache / "snapshots"
     if snapshots.exists():
         dirs = sorted([path for path in snapshots.iterdir() if path.is_dir()])
@@ -104,17 +111,60 @@ def _extract_json(text: str) -> dict[str, Any]:
     return value if isinstance(value, dict) else {"scene_summary": text.strip()}
 
 
-def _extract_required_json(text: str) -> dict[str, Any]:
+def _json_object_candidates(text: str) -> list[str]:
+    """Return balanced JSON-object-looking substrings from model text."""
     cleaned = text.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
     cleaned = re.sub(r"\s*```$", "", cleaned)
-    match = re.search(r"\{.*\}", cleaned, flags=re.S)
-    if not match:
+    candidates: list[str] = []
+    start: int | None = None
+    depth = 0
+    in_string = False
+    escape = False
+    for index, char in enumerate(cleaned):
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif char == "}" and depth:
+            depth -= 1
+            if depth == 0 and start is not None:
+                candidates.append(cleaned[start : index + 1])
+                start = None
+    if not candidates:
+        match = re.search(r"\{.*\}", cleaned, flags=re.S)
+        if match:
+            candidates.append(match.group(0))
+    return candidates
+
+
+def _extract_required_json(text: str) -> dict[str, Any]:
+    candidates = _json_object_candidates(text)
+    if not candidates:
         raise ValueError("EXAONE response did not contain a JSON object.")
-    value = json.loads(match.group(0))
-    if not isinstance(value, dict):
-        raise ValueError("EXAONE JSON response was not an object.")
-    return value
+    last_error: Exception | None = None
+    for candidate in candidates:
+        try:
+            value = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            continue
+        if isinstance(value, dict):
+            return value
+        last_error = ValueError("EXAONE JSON response was not an object.")
+    if last_error:
+        raise last_error
+    raise ValueError("EXAONE response did not contain a JSON object.")
 
 
 def _listify(value: Any) -> list[str]:
@@ -199,14 +249,17 @@ def _scene_windows(scenes: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _ensure_exaone_gguf_available() -> None:
-    model_path = Path(os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH).expanduser()
+    model_path = Path(
+        ensure_exaone_gguf_model(os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH)
+    )
     llama_cli = Path(os.environ.get("LLAMA_CLI_PATH") or LLAMA_CLI_PATH).expanduser()
-    if not model_path.exists():
-        raise FileNotFoundError(
-            "EXAONE GGUF model file not found. Set EXAONE_GGUF_MODEL_PATH "
-            f"or place the model at: {model_path}"
-        )
-    if not llama_cli.exists():
+    if not llama_cli.exists() and os.environ.get("AUTO_INSTALL_LLAMA_CPP", "").strip().lower() not in {
+        "",
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
         raise FileNotFoundError(
             "llama.cpp CLI not found. Set LLAMA_CLI_PATH or build it at: "
             f"{llama_cli}"
@@ -215,27 +268,27 @@ def _ensure_exaone_gguf_available() -> None:
 
 def _story_from_payload(payload: dict[str, Any], scene_count: int) -> dict[str, Any]:
     story = payload.get("story") if isinstance(payload.get("story"), dict) else payload
-    title = str(story.get("title") or "그림 속 작은 이야기").strip()
+    title = str(story.get("title") or "").strip()
+    if not title:
+        raise ValueError("EXAONE story.title is required.")
     body = str(story.get("body") or "").strip()
+    if not body:
+        raise ValueError("EXAONE story.body is required.")
     scene_sentences = story.get("scene_sentences")
     if not isinstance(scene_sentences, list):
         scene_sentences = []
     scene_sentences = [str(sentence).strip() for sentence in scene_sentences if str(sentence).strip()]
     if not scene_sentences and body:
         scene_sentences = [part.strip() for part in re.split(r"\n\s*\n", body) if part.strip()]
-    if not body and scene_sentences:
-        body = "\n\n".join(scene_sentences)
     if len(scene_sentences) != scene_count:
         raise ValueError(
             f"EXAONE returned {len(scene_sentences)} scene_sentences for {scene_count} scenes."
         )
-    moral = str(story.get("moral") or "").strip()
     grounding_notes = story.get("grounding_notes")
     return {
         "title": title,
         "body": body,
         "scene_sentences": scene_sentences,
-        "moral": moral,
         "grounding_notes": grounding_notes if grounding_notes is not None else [],
     }
 
@@ -249,25 +302,82 @@ def _run_exaone_experiment(
     context_size: int = 8192,
 ) -> dict[str, Any]:
     _ensure_exaone_gguf_available()
-    raw_response = _run_exaone_gguf_prompt(
-        prompt,
-        max_new_tokens=max_new_tokens,
-        timeout=300,
-        context_size=context_size,
-    )
-    payload = _extract_required_json(raw_response)
-    story = _story_from_payload(payload, len(scenes))
+    with timed_step(
+        "EXAONE",
+        f"{experiment_name} EXAONE GGUF generation",
+        experiment=experiment_name,
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+    ):
+        raw_response = _run_exaone_gguf_prompt(
+            prompt,
+            max_new_tokens=max_new_tokens,
+            timeout=300,
+            context_size=context_size,
+        )
+    llama_runtime = get_last_llama_runtime()
+    json_repair_used = False
+    try:
+        payload = _extract_required_json(raw_response)
+        story = _story_from_payload(payload, len(scenes))
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        repair_prompt = _build_json_repair_prompt(raw_response, len(scenes))
+        with timed_step(
+            "EXAONE-repair",
+            f"{experiment_name} EXAONE JSON repair",
+            experiment=experiment_name,
+            model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        ):
+            repair_response = _run_exaone_gguf_prompt(
+                repair_prompt,
+                max_new_tokens=max_new_tokens,
+                timeout=300,
+                context_size=context_size,
+            )
+        json_repair_used = True
+        try:
+            payload = _extract_required_json(repair_response)
+            story = _story_from_payload(payload, len(scenes))
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            raise RuntimeError(
+                "EXAONE did not return valid required JSON, and JSON repair also failed. "
+                f"initial_error={exc}; repair_error={repair_exc}; "
+                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+            ) from repair_exc
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return {
         "prompt_strategy": prompt_strategy,
         "exaone_prompt": prompt,
         "exaone_raw_response": raw_response,
+        "llama_runtime": llama_runtime,
         "parsed_result": payload,
-        "fallback_used": False,
+        "json_repair_used": json_repair_used,
         "story": story,
         "structure": payload.get("structure", {}),
         "plan": payload.get("plan", {}),
         "experiment_method": experiment_name,
     }
+
+
+def _build_json_repair_prompt(raw_response: str, scene_count: int) -> str:
+    return (
+        "You are a strict JSON repair tool. Convert the model response below into one valid JSON object only.\n"
+        "Do not add markdown. Do not explain. Do not include any text before or after JSON.\n"
+        "All object keys must use double quotes. Remove trailing commas. Escape line breaks inside strings.\n"
+        f"The story.scene_sentences array must contain exactly {scene_count} strings.\n"
+        "Required shape:\n"
+        "{\n"
+        '  "structure": {},\n'
+        '  "plan": {},\n'
+        '  "story": {\n'
+        '    "title": "",\n'
+        '    "body": "",\n'
+        '    "scene_sentences": [],\n'
+        '    "grounding_notes": []\n'
+        "  }\n"
+        "}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
 
 
 def _base_json_instruction() -> str:
@@ -281,7 +391,6 @@ def _base_json_instruction() -> str:
         '    "title": "동화 제목",\n'
         '    "body": "장면 순서대로 이어지는 전체 동화 본문",\n'
         '    "scene_sentences": ["1번 그림에 해당하는 문단", "2번 그림에 해당하는 문단"],\n'
-        '    "moral": "이야기 속 교훈",\n'
         '    "grounding_notes": ["그림 근거를 어떻게 반영했는지"]\n'
         "  }\n"
         "}\n"
@@ -418,7 +527,7 @@ def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str,
     )
     story = result["story"]
     (output_dir / f"{experiment_name.lower()}_story.txt").write_text(
-        f"[제목]\n{story['title']}\n\n[동화]\n{story['body']}\n\n[이야기 속 교훈]\n{story['moral']}\n",
+        f"[제목]\n{story['title']}\n\n[동화]\n{story['body']}\n",
         encoding="utf-8",
     )
     scene_cards = []
@@ -450,7 +559,7 @@ h1 {{ margin:0; font-size:clamp(30px,6vw,60px); letter-spacing:0; }}
 main {{ max-width:1180px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px; }}
 .meta {{ color:#5f574f; }}
 section {{ margin-top:26px; }}
-.book,.moral {{ background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; padding:22px; }}
+.book {{ background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; padding:22px; }}
 .book p {{ font-size:18px; margin:0 0 12px; word-break:keep-all; }}
 .scene {{ display:grid; grid-template-columns:minmax(230px,42%) 1fr; gap:22px; align-items:center; margin:18px 0; padding:18px; background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; }}
 .image-frame {{ aspect-ratio:4/3; border:1px solid #ddcfbd; border-radius:8px; background:white; overflow:hidden; }}
@@ -469,7 +578,6 @@ section {{ margin-top:26px; }}
 <main>
 <section class="book"><h2>[동화]</h2>{story_paragraphs}</section>
 <section><h2>그림 옆 장면 문장</h2>{"".join(scene_cards)}</section>
-<section class="moral"><h2>[이야기 속 교훈]</h2><p>{_html_escape(story['moral'])}</p></section>
 </main>
 </body>
 </html>"""
@@ -482,6 +590,15 @@ def _experiment_dirs(output_root: Path) -> dict[str, Path]:
         "d": output_root / "D",
         "e": output_root / "E",
         "f": output_root / "F",
+    }
+
+
+def _experiment_builders() -> dict[str, tuple[str, Any]]:
+    return {
+        "c": ("Experiment_C", build_experiment_c),
+        "d": ("Experiment_D", build_experiment_d),
+        "e": ("Experiment_E", build_experiment_e),
+        "f": ("Experiment_F", build_experiment_f),
     }
 
 
@@ -505,25 +622,27 @@ def _ensure_scenes(
     import torch
     from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 
-    model_source = _snapshot_dir(QWEN3B_LOCAL_DIR)
-    print(f"loading vision model: {model_source}")
+    model_source = _snapshot_dir(local_huggingface_model_path(VISION_MODEL_ID))
+    log_stage(f"loading vision model from {model_source}", step="Qwen-load", model=VISION_MODEL_ID)
     local_only = isinstance(model_source, Path)
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        model_source,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else "auto",
-        local_files_only=local_only,
-    )
-    if torch.cuda.is_available():
-        model = model.to("cuda")
-    model.eval()
-    processor = AutoProcessor.from_pretrained(
-        model_source,
-        local_files_only=local_only,
-        max_pixels=QWEN_MAX_PIXELS,
-    )
+    with timed_step("Qwen-load", "Qwen2.5-VL model load", model=VISION_MODEL_ID):
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+            model_source,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else "auto",
+            local_files_only=local_only,
+        )
+        if torch.cuda.is_available():
+            model = model.to("cuda")
+        model.eval()
+        processor = AutoProcessor.from_pretrained(
+            model_source,
+            local_files_only=local_only,
+            max_pixels=QWEN_MAX_PIXELS,
+        )
     for index, image_path in enumerate(images, start=1):
-        print(f"[Qwen3B] scene {index}: {image_path.name}", flush=True)
-        scene = _run_qwen_scene(model, processor, image_path, index)
+        log_stage(f"scene {index}: {image_path.name}", step=f"Qwen-{index:02d}", model=VISION_MODEL_ID)
+        with timed_step(f"Qwen-{index:02d}", "Qwen scene JSON recognition", model=VISION_MODEL_ID):
+            scene = _run_qwen_scene(model, processor, image_path, index)
         scenes.append(scene)
         scenes.sort(key=lambda item: int(item["scene_index"]))
         scenes_path.write_text(json.dumps(scenes, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -531,7 +650,7 @@ def _ensure_scenes(
             scene["raw_response"],
             encoding="utf-8",
         )
-        print(scene["scene_summary"][:160], flush=True)
+        log_stage(scene["scene_summary"][:160], step=f"Qwen-{index:02d}", model=VISION_MODEL_ID, event="summary")
 
     scenes.sort(key=lambda item: int(item["scene_index"]))
     common_output_dir.mkdir(parents=True, exist_ok=True)
@@ -542,40 +661,65 @@ def _ensure_scenes(
     return scenes
 
 
+def prepare_qwen_scenes_for_experiment(
+    experiment: str,
+    input_dir: str | Path = INPUT_DIR,
+    output_root: str | Path = OUTPUT_ROOT,
+) -> list[dict[str, Any]]:
+    output_root = Path(output_root)
+    input_dir = Path(input_dir)
+    key = experiment.lower()
+    common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story"
+    shared_dir = common_output_dir / "scene_descriptions"
+    resized_dir = common_output_dir / "_resized_input"
+    return _ensure_scenes(
+        input_dir=input_dir,
+        common_output_dir=common_output_dir,
+        shared_dir=shared_dir,
+        resized_dir=resized_dir,
+    )
+
+
+def run_experiment_with_scenes(
+    experiment: str,
+    scenes: list[dict[str, Any]],
+    output_root: str | Path = OUTPUT_ROOT,
+) -> dict[str, Any]:
+    output_root = Path(output_root)
+    key = experiment.lower()
+    dirs = _experiment_dirs(output_root)
+    builders = _experiment_builders()
+    experiment_name, builder = builders[key]
+    set_step_context(experiment=experiment_name, phase="generation")
+    log_stage(f"building {experiment_name}", step=key.upper(), model="Qwen scenes + EXAONE GGUF")
+    result = builder(scenes)
+    write_outputs(experiment_name, dirs[key], scenes, result)
+    log_stage(f"saved {key.upper()}: {dirs[key]}", step=key.upper(), model="output")
+    return {"output_dir": str(dirs[key]), "result": result}
+
+
 def run_selected_experiments(
     experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f"),
     input_dir: str | Path = INPUT_DIR,
     output_root: str | Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
     output_root = Path(output_root)
-    input_dir = Path(input_dir)
-    common_output_dir = output_root / "qwen25_vl_3b_story"
-    shared_dir = common_output_dir / "scene_descriptions"
-    resized_dir = common_output_dir / "_resized_input"
     selected = [experiment.lower() for experiment in experiments]
     if "all" in selected:
         selected = ["c", "d", "e", "f"]
 
-    scenes = _ensure_scenes(
-        input_dir=input_dir,
-        common_output_dir=common_output_dir,
-        shared_dir=shared_dir,
-        resized_dir=resized_dir,
-    )
-    dirs = _experiment_dirs(output_root)
-    builders = {
-        "c": ("Experiment_C", build_experiment_c),
-        "d": ("Experiment_D", build_experiment_d),
-        "e": ("Experiment_E", build_experiment_e),
-        "f": ("Experiment_F", build_experiment_f),
-    }
     results: dict[str, Any] = {}
     for key in selected:
-        experiment_name, builder = builders[key]
-        result = builder(scenes)
-        write_outputs(experiment_name, dirs[key], scenes, result)
-        results[key] = {"output_dir": str(dirs[key]), "result": result}
-        print(f"saved {key.upper()}: {dirs[key]}")
+        set_step_context(experiment=key.upper(), phase="vision")
+        log_stage(f"start Experiment {key.upper()} Qwen scene generation", step="Qwen", event="start")
+        scenes = prepare_qwen_scenes_for_experiment(
+            key,
+            input_dir=input_dir,
+            output_root=output_root,
+        )
+        set_step_context(experiment=key.upper(), phase="vision")
+        log_stage(f"Experiment {key.upper()} Qwen scene generation succeeded", step="Qwen", event="success")
+        results[key] = run_experiment_with_scenes(key, scenes, output_root=output_root)
     return results
 
 

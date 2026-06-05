@@ -120,7 +120,7 @@ def _recognize_impl(
     steps: dict[str, Any] = {}
     source = Path(image_path)
 
-    with timed_step(1, "image input"):
+    with timed_step(1, "image input", model="input"):
         # 투명 배경이나 낮은 대비의 손그림도 모델이 보기 좋도록 공통 전처리를 적용합니다.
         image = load_and_normalize_image(image_path)
         steps["01_image_input"] = {
@@ -132,7 +132,7 @@ def _recognize_impl(
             "image_size": list(image.size),
         }
 
-    with timed_step(2, "preprocessing for BLIP and OpenCLIP"):
+    with timed_step(2, "preprocessing for BLIP and OpenCLIP", model="BLIP/OpenCLIP"):
         # BLIP과 OpenCLIP은 권장 입력 크기가 달라 모델별 사각 이미지로 따로 맞춥니다.
         blip_image = resize_square(image, 384)
         clip_image = resize_square(image, 224)
@@ -145,7 +145,7 @@ def _recognize_impl(
             "contrast_correction": "ImageOps.autocontrast + contrast 1.15",
         }
 
-    with timed_step(3, "BLIP captioning"):
+    with timed_step(3, "BLIP captioning", model="Salesforce/blip-image-captioning-large"):
         raw_caption = _caption_image(blip_image)
         steps["03_blip_captioning"] = {
             "step": 3,
@@ -157,7 +157,7 @@ def _recognize_impl(
             "raw_caption": raw_caption,
         }
 
-    with timed_step(4, "BLIP-VQA"):
+    with timed_step(4, "BLIP-VQA", model="Salesforce/blip-vqa-base"):
         answers = _answer_vqa(blip_image)
         steps["04_blip_vqa"] = {
             "step": 4,
@@ -167,12 +167,12 @@ def _recognize_impl(
             "answers": answers,
         }
 
-    with timed_step(5, "candidate word extraction"):
+    with timed_step(5, "candidate word extraction", model="BLIP text outputs"):
         # BLIP이 만든 자유 캡션과 VQA 답변을 모두 합쳐 후보 개념의 재료로 사용합니다.
         combined = " ".join([raw_caption, *answers.values()])
         candidates = _extract_candidates(combined)
 
-    with timed_step(6, "OpenCLIP candidate scoring"):
+    with timed_step(6, "OpenCLIP candidate scoring", model="OpenCLIP ViT-H-14/laion2b_s32b_b79k"):
         # 추출된 후보가 실제 이미지와 잘 맞는지 OpenCLIP으로 한 번 더 검증합니다.
         candidate_scores = _score_candidates(clip_image, candidates)
         steps["05_openclip_concept_scoring"] = {
@@ -187,7 +187,7 @@ def _recognize_impl(
             "scores": candidate_scores,
         }
 
-    with timed_step(7, "vision_json creation"):
+    with timed_step(7, "vision_json creation", model="BLIP/OpenCLIP merged vision_json"):
         # threshold 이상인 후보만 최종 object로 채택해 이후 이야기 생성에 넘깁니다.
         object_scores = {
             word: score

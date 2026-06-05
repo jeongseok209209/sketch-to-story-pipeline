@@ -5,17 +5,25 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
+import urllib.error
+import urllib.request
+import zipfile
 from typing import Any
 
 from utils import (
     DEFAULT_EXAONE_GGUF_PATH,
+    LLAMA_CLI_FILENAME,
     LLAMA_CLI_PATH,
+    ensure_exaone_gguf_model,
     get_device,
     get_exaone_components,
     get_gpt2_components,
     get_nllb_components,
+    has_nvidia_gpu,
+    log_stage,
     timed_step,
 )
 
@@ -39,11 +47,18 @@ STOPWORDS = {
     "with",
 }
 
+LAST_LLAMA_RUNTIME: dict[str, Any] = {"mode": "unknown"}
+LLAMA_CPP_WINDOWS_RELEASE_URL = (
+    "https://github.com/ggml-org/llama.cpp/releases/download/b9500/"
+    "llama-b9500-bin-win-vulkan-x64.zip"
+)
+
 CONCEPT_KO = {
     "baby": "아기",
     "bird": "새",
     "boy": "남자아이",
     "car": "자동차",
+    "cactus": "선인장",
     "cat": "고양이",
     "child": "아이",
     "children": "아이들",
@@ -52,6 +67,7 @@ CONCEPT_KO = {
     "drawing": "그림",
     "family": "가족",
     "flower": "꽃",
+    "flying": "나는 모습",
     "girl": "여자아이",
     "grass": "풀밭",
     "happy": "행복한 마음",
@@ -68,7 +84,9 @@ CONCEPT_KO = {
     "star": "별",
     "stars": "별",
     "standing": "서 있는 모습",
+    "stork": "황새",
     "sun": "해",
+    "sunlight": "햇살",
     "tree": "나무",
     "tiger": "호랑이",
     "white ball": "하얀 공",
@@ -94,14 +112,18 @@ PHRASE_KO = {
     "warm and easy": "따뜻하고 편안한",
     "calm and curious": "차분하고 호기심 어린",
     "calm and joyful": "차분하고 즐거운",
+    "calm and magical": "차분하고 신비로운",
     "wonder": "신비로운",
     "park": "공원",
     "in front of house": "집 앞",
     "in front of a house": "집 앞",
+    "house in front": "집 앞",
     "door": "문",
     "friendship under the stars": "별빛 아래 나누는 우정",
     "family bonding under the stars": "별빛 아래 나누는 다정한 마음",
     "family fun under the stars": "별빛 아래 나누는 즐거운 마음",
+    "family joy under the stars": "별빛 아래 가족이 나누는 기쁨",
+    "nature exploration": "자연을 살피는 모험",
 }
 
 
@@ -202,127 +224,16 @@ def _scene_label(index: int) -> str:
     return labels.get(index, f"{index}번째 그림에서는")
 
 
-def build_structured_json(vision: dict[str, Any]) -> dict[str, Any]:
-    """Build structured story information from vision JSON without loading a language model."""
-    concepts = _clean_concepts(vision)
-    concept_words = {concept["source"] for concept in concepts}
-    concept_labels = [concept["label_ko"] for concept in concepts]
-
-    characters = [
-        label
-        for label in concept_labels
-        if label in {"아이", "아이들", "작은 아이", "여자아이", "남자아이", "가족", "엄마", "아기", "호랑이"}
-    ]
-    if not characters:
-        who = str(vision.get("who", "")).lower()
-        if "tiger" in who and "girl" in who:
-            characters = ["여자아이", "호랑이"]
-        elif "tiger" in who:
-            characters = ["아이", "호랑이"]
-        elif "girl" in who:
-            characters = ["여자아이"]
-        elif "family" in who:
-            characters = ["가족"]
-        elif "child" in who or "children" in who:
-            characters = ["아이들"]
-        else:
-            characters = ["아이"]
-    characters = list(dict.fromkeys(characters))
-    if "여자아이" in characters and "아이들" in characters:
-        characters.remove("아이들")
-    if "여자아이" in characters and "작은 아이" in characters:
-        characters.remove("작은 아이")
-    if "호랑이" in characters and "여자아이" in characters:
-        characters = ["여자아이", "호랑이"]
-
-    story_items = [
-        label
-        for label in concept_labels
-        if label not in set(characters) | {"행복한 마음", "서 있는 모습", "그림", "바깥", "놀이"}
-    ]
-    if not story_items:
-        story_items = [
-            label
-            for label in concept_labels
-            if label not in set(characters) | {"행복한 마음", "서 있는 모습", "바깥", "놀이"}
-        ]
-    if not story_items:
-        story_items = ["그림"]
-
-    if "house" in concept_words or "home" in concept_words:
-        place = "집 앞"
-    elif "outside" in concept_words:
-        place = "바깥 길"
-    elif "tree" in concept_words or "grass" in concept_words:
-        place = "바깥 풀밭"
-    elif "sun" in concept_words or "sky" in concept_words:
-        place = "햇살이 비치는 곳"
-    else:
-        scene = str(vision.get("scene", "")).strip()
-        if scene.lower() == "outside":
-            place = "바깥 길"
-        else:
-            place = scene if scene and scene.lower() not in {"unknown", "none"} else "그림 속 마을"
-
-    mood_text = str(vision.get("mood", "")).lower()
-    if "happy" in mood_text or "happy" in concept_words:
-        mood = "따뜻하고 즐거운"
-    elif "sad" in mood_text:
-        mood = "조용하지만 다정한"
-    else:
-        mood = "포근한"
-
-    return {
-        "characters": characters[:3],
-        "place": place,
-        "visible_items": concept_labels,
-        "story_items": story_items[:4],
-        "mood": mood,
-        "theme": "함께 보내는 소중한 하루",
-        "raw_hints": {
-            "caption": vision.get("raw_caption", ""),
-            "who": vision.get("who", ""),
-            "actions": vision.get("actions", ""),
-            "scene": vision.get("scene", ""),
-            "mood": vision.get("mood", ""),
-        },
-    }
-
-
-def build_plan_json(structured: dict[str, Any]) -> dict[str, Any]:
-    """Build a compact children's story plan from structured information."""
-    characters = _join_people(structured.get("characters", ["아이"]))
-    place = structured.get("place", "그림 속 마을")
-    mood = structured.get("mood", "포근한")
-    items = structured.get("story_items") or structured.get("visible_items", ["그림"])
-    item_text = _join_items(items[:4])
-    return {
-        "title": f"{place}의 작은 이야기",
-        "beginning": (
-            f"{_as_subject(characters)} {place}에서 서로를 만난다."
-            if "호랑이" in structured.get("characters", [])
-            else f"{_as_subject(characters)} {place}에서 {_as_object(item_text)} 바라본다."
-        ),
-        "middle": f"모두가 {mood} 마음으로 함께 시간을 보내며 작은 즐거움을 나눈다.",
-        "ending": "서로를 아끼는 마음을 느끼고 행복하게 하루를 마무리한다.",
-        "style": {
-            "audience": "어린이",
-            "tone": "따뜻하고 쉬운 문장",
-            "length": "3~5문장",
-        },
-    }
-
-
-def _coerce_str_list(value: Any, fallback: list[str]) -> list[str]:
+def _coerce_str_list(value: Any, default: list[str]) -> list[str]:
     """Return a clean list of non-empty Korean strings."""
     if isinstance(value, str):
         candidates = [value]
     elif isinstance(value, list):
         candidates = [str(item) for item in value if str(item).strip()]
     else:
-        candidates = fallback
+        candidates = default
     result = [item.strip() for item in candidates if item.strip()]
-    return result or fallback
+    return result or default
 
 
 def _to_korean_hint(value: Any) -> str:
@@ -332,21 +243,21 @@ def _to_korean_hint(value: Any) -> str:
     return PHRASE_KO.get(key) or CONCEPT_KO.get(key) or text
 
 
-def _coerce_ko_list(value: Any, fallback: list[str]) -> list[str]:
+def _coerce_ko_list(value: Any, default: list[str]) -> list[str]:
     """Return a clean list with common English labels normalized to Korean."""
     result: list[str] = []
-    for item in _coerce_str_list(value, fallback):
+    for item in _coerce_str_list(value, default):
         normalized = _to_korean_hint(item)
         if _looks_mostly_english(normalized):
             continue
         if normalized in STOPWORDS:
             continue
         result.append(normalized)
-    return result or fallback
+    return result or default
 
 
 def _looks_mostly_english(text: str) -> bool:
-    """Detect plan text that should be replaced by the Korean fallback plan."""
+    """Detect text that is mostly English instead of Korean story prose."""
     letters = [char for char in text if char.isalpha()]
     if not letters:
         return False
@@ -354,27 +265,84 @@ def _looks_mostly_english(text: str) -> bool:
     return len(ascii_letters) / len(letters) > 0.6
 
 
-def _extract_json_object(text: str) -> dict[str, Any]:
-    """Extract the first JSON object from an EXAONE response."""
+def _has_hangul(text: str) -> bool:
+    return any("\uac00" <= char <= "\ud7a3" for char in text)
+
+
+def _is_placeholder_text(text: str) -> bool:
+    stripped = str(text).strip()
+    return not stripped or stripped in {"...", "…", "\"...\"", "['...']", "[\"...\"]"}
+
+
+def _json_object_candidates(text: str) -> list[str]:
+    """Return balanced JSON object candidates, preserving response order."""
     cleaned = text.strip()
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
     cleaned = re.sub(r"\s*```$", "", cleaned)
-    start = cleaned.find("{")
-    end = cleaned.rfind("}")
-    if start == -1 or end == -1 or end <= start:
+    candidates: list[str] = []
+    start: int | None = None
+    depth = 0
+    in_string = False
+    escape = False
+    for index, char in enumerate(cleaned):
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif char == "}" and depth:
+            depth -= 1
+            if depth == 0 and start is not None:
+                candidates.append(cleaned[start : index + 1])
+                start = None
+    return candidates
+
+
+def _extract_json_object(text: str) -> dict[str, Any]:
+    """Extract the most likely JSON object from an EXAONE response."""
+    candidates = _json_object_candidates(text)
+    if not candidates:
         raise ValueError("EXAONE response did not contain a JSON object.")
-    return json.loads(cleaned[start : end + 1])
+    last_error: Exception | None = None
+    parsed_objects: list[dict[str, Any]] = []
+    for candidate in reversed(candidates):
+        try:
+            payload = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            continue
+        if isinstance(payload, dict):
+            parsed_objects.append(payload)
+            if "structured_json" in payload and "plan_json" in payload:
+                return payload
+        last_error = ValueError("EXAONE JSON response was not an object.")
+    if parsed_objects:
+        return parsed_objects[0]
+    if last_error:
+        raise last_error
+    raise ValueError("EXAONE response did not contain a JSON object.")
 
 
 def _build_structured_plan_prompt(vision: dict[str, Any]) -> str:
     """Build the shared EXAONE prompt for Korean structure and story planning."""
     return (
         "다음 vision_json은 손그림을 BLIP/OpenCLIP으로 분석한 영어 단서입니다.\n"
-        "한국어 동화 생성을 위해 의미를 정리해 주세요.\n"
-        "반드시 JSON 객체만 출력하세요. 설명, 마크다운, 코드블록은 쓰지 마세요.\n"
+        "영어 단서를 한국어로 해석해, 한국어 동화 생성을 위한 구조와 계획을 만드세요.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 설명, 마크다운, 코드블록, 프롬프트 반복은 쓰지 마세요.\n"
+        "모든 문자열 값은 한국어로 쓰세요. children, girl, dog 같은 영어 단어를 그대로 쓰지 마세요.\n"
+        "문장을 길게 늘이지 말고 각 필드는 짧고 완결된 한국어로 쓰세요.\n"
         "보이는 단서에 근거하되, 아이 손그림에서 자연스럽게 추론 가능한 달/별/밤/바구니 같은 요소는 "
         "raw_caption이나 objects에 없더라도 단서가 있으면 story_items에 반영해도 됩니다.\n\n"
-        "출력 형식:\n"
+        "필수 JSON 형식:\n"
         "{\n"
         '  "structured_json": {\n'
         '    "characters": ["..."],\n'
@@ -397,71 +365,99 @@ def _build_structured_plan_prompt(vision: dict[str, Any]) -> str:
     )
 
 
-def _merge_exaone_story_schema(
-    payload: dict[str, Any],
-    fallback_structured: dict[str, Any],
-    fallback_plan: dict[str, Any],
-) -> tuple[dict[str, Any], dict[str, Any]]:
+def _required_text(payload: dict[str, Any], key: str) -> str:
+    raw_value = str(payload.get(key, "")).strip()
+    value = _to_korean_hint(raw_value)
+    if _is_placeholder_text(value):
+        raise ValueError(f"EXAONE JSON missing text field: {key}")
+    if _looks_mostly_english(value):
+        raise ValueError(f"EXAONE JSON field is not Korean enough: {key}")
+    if not _has_hangul(value):
+        raise ValueError(f"EXAONE JSON field does not contain Korean text: {key}")
+    return _to_korean_hint(value)
+
+
+def _required_ko_list(payload: dict[str, Any], key: str, limit: int) -> list[str]:
+    values = [value for value in _coerce_ko_list(payload.get(key), []) if not _is_placeholder_text(value)]
+    if not values:
+        raise ValueError(f"EXAONE JSON missing list field: {key}")
+    if not any(_has_hangul(value) for value in values):
+        raise ValueError(f"EXAONE JSON list does not contain Korean text: {key}")
+    return values[:limit]
+
+
+def _normalize_exaone_story_schema(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     """Normalize EXAONE JSON into the pipeline's structured/plan schema."""
     structured_raw = payload.get("structured_json", payload)
     plan_raw = payload.get("plan_json", {})
     if not isinstance(structured_raw, dict):
-        structured_raw = {}
+        raise ValueError("EXAONE JSON missing structured_json object.")
     if not isinstance(plan_raw, dict):
-        plan_raw = {}
+        raise ValueError("EXAONE JSON missing plan_json object.")
 
-    structured = dict(fallback_structured)
-    structured["characters"] = _coerce_ko_list(
-        structured_raw.get("characters"),
-        fallback_structured.get("characters", ["아이"]),
-    )[:3]
-    structured["place"] = _to_korean_hint(
-        structured_raw.get("place") or fallback_structured.get("place") or "그림 속 마을"
-    )
-    structured["visible_items"] = _coerce_ko_list(
-        structured_raw.get("visible_items"),
-        fallback_structured.get("visible_items", ["그림"]),
-    )[:8]
-    structured["story_items"] = _coerce_ko_list(
-        structured_raw.get("story_items"),
-        fallback_structured.get("story_items", ["그림"]),
-    )[:5]
-    structured["mood"] = _to_korean_hint(
-        structured_raw.get("mood") or fallback_structured.get("mood") or "포근한"
-    )
-    structured["theme"] = _to_korean_hint(
-        structured_raw.get("theme") or fallback_structured.get("theme") or "함께 보내는 소중한 하루"
-    )
-    structured["main_event"] = _to_korean_hint(structured_raw.get("main_event", ""))
-    if _looks_mostly_english(structured["main_event"]):
-        structured["main_event"] = ""
-    structured["source"] = "exaone"
+    structured = {
+        "characters": _required_ko_list(structured_raw, "characters", 3),
+        "place": _required_text(structured_raw, "place"),
+        "visible_items": _required_ko_list(structured_raw, "visible_items", 8),
+        "story_items": _required_ko_list(structured_raw, "story_items", 5),
+        "mood": _required_text(structured_raw, "mood"),
+        "theme": _required_text(structured_raw, "theme"),
+        "main_event": _to_korean_hint(str(structured_raw.get("main_event", "")).strip()),
+        "source": "exaone",
+    }
+    if structured["main_event"] and _looks_mostly_english(structured["main_event"]):
+        raise ValueError("EXAONE JSON field is not Korean enough: main_event")
 
-    normalized_fallback_plan = build_plan_json(structured)
-    plan = dict(normalized_fallback_plan)
-    plan["title"] = str(plan_raw.get("title") or fallback_plan.get("title") or "작은 이야기").strip()
-    plan["beginning"] = str(
-        plan_raw.get("beginning") or normalized_fallback_plan.get("beginning") or ""
-    ).strip()
-    plan["middle"] = str(plan_raw.get("middle") or normalized_fallback_plan.get("middle") or "").strip()
-    plan["ending"] = str(plan_raw.get("ending") or normalized_fallback_plan.get("ending") or "").strip()
-    if any(_looks_mostly_english(str(plan.get(key, ""))) for key in ("title", "beginning", "middle", "ending")):
-        plan = dict(normalized_fallback_plan)
-    plan["style"] = plan_raw.get("style") if isinstance(plan_raw.get("style"), dict) else normalized_fallback_plan.get("style", {})
-    plan["source"] = "exaone"
+    plan = {
+        "title": _required_text(plan_raw, "title"),
+        "beginning": _required_text(plan_raw, "beginning"),
+        "middle": _required_text(plan_raw, "middle"),
+        "ending": _required_text(plan_raw, "ending"),
+        "style": plan_raw.get("style") if isinstance(plan_raw.get("style"), dict) else {},
+        "source": "exaone",
+    }
     return structured, plan
+
+
+def _build_structured_plan_repair_prompt(raw_response: str, vision: dict[str, Any]) -> str:
+    return (
+        "아래 모델 응답을 유효한 JSON 객체 하나로만 고치세요.\n"
+        "설명, 마크다운, 코드블록, 프롬프트 반복은 쓰지 마세요.\n"
+        "모든 문자열 값은 반드시 한국어로 쓰세요. 영어 단어와 영어 문장을 그대로 두지 마세요.\n"
+        "vision_json의 시각 단서에 근거해서 빠진 필드를 채우되, 동화 본문을 길게 쓰지 마세요.\n"
+        "필수 JSON 형식:\n"
+        "{\n"
+        '  "structured_json": {\n'
+        '    "characters": ["..."],\n'
+        '    "place": "...",\n'
+        '    "visible_items": ["..."],\n'
+        '    "story_items": ["..."],\n'
+        '    "mood": "...",\n'
+        '    "theme": "...",\n'
+        '    "main_event": "..."\n'
+        "  },\n"
+        '  "plan_json": {\n'
+        '    "title": "...",\n'
+        '    "beginning": "...",\n'
+        '    "middle": "...",\n'
+        '    "ending": "...",\n'
+        '    "style": {"audience": "어린이", "tone": "따뜻하고 쉬운 문장", "length": "3~5문장"}\n'
+        "  }\n"
+        "}\n\n"
+        f"vision_json:\n{json.dumps(vision, ensure_ascii=False, indent=2)}\n\n"
+        "model_response:\n"
+        f"{raw_response}\n"
+    )
 
 
 def generate_structured_plan_exaone(
     vision: dict[str, Any],
-    max_new_tokens: int = 180,
+    max_new_tokens: int = 700,
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
     """Use EXAONE once to translate vision JSON into Korean structured/plan JSON."""
-    fallback_structured = build_structured_json(vision)
-    fallback_plan = build_plan_json(fallback_structured)
     prompt = _build_structured_plan_prompt(vision)
 
-    with timed_step(8, "EXAONE structured story planning"):
+    with timed_step(8, "EXAONE structured story planning", model="LGAI-EXAONE/EXAONE-4.0-1.2B HF"):
         import torch
 
         tokenizer, model = get_exaone_components()
@@ -488,24 +484,467 @@ def generate_structured_plan_exaone(
 
     try:
         payload = _extract_json_object(raw_response)
-        structured, plan = _merge_exaone_story_schema(payload, fallback_structured, fallback_plan)
+        structured, plan = _normalize_exaone_story_schema(payload)
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        structured = dict(fallback_structured)
-        structured["source"] = "fallback_after_exaone_parse_error"
-        plan = dict(fallback_plan)
-        plan["source"] = "fallback_after_exaone_parse_error"
-        raw_response = f"{raw_response}\n\n[parse_error] {exc}"
+        repair_prompt = _build_structured_plan_repair_prompt(raw_response, vision)
+        with timed_step(9, "EXAONE structured JSON repair", model="LGAI-EXAONE/EXAONE-4.0-1.2B HF"):
+            import torch
+
+            tokenizer, model = get_exaone_components()
+            device = get_device()
+            messages = [{"role": "user", "content": repair_prompt}]
+            inputs = tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_dict=True,
+                return_tensors="pt",
+            ).to(device)
+            with torch.inference_mode():
+                output_ids = model.generate(
+                    **inputs,
+                    eos_token_id=tokenizer.eos_token_id,
+                    pad_token_id=tokenizer.pad_token_id,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    repetition_penalty=1.03,
+                )
+            generated_ids = output_ids[0][inputs["input_ids"].shape[-1] :]
+            repair_response = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+        try:
+            payload = _extract_json_object(repair_response)
+            structured, plan = _normalize_exaone_story_schema(payload)
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            raise RuntimeError(
+                "EXAONE did not return valid structured/plan JSON, and JSON repair also failed. "
+                f"initial_error={exc}; repair_error={repair_exc}; "
+                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+            ) from repair_exc
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return structured, plan, raw_response
+
+
+def _env_flag(name: str, default: bool = True) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+
+def get_last_llama_runtime() -> dict[str, Any]:
+    """Return metadata for the last llama.cpp invocation."""
+    return dict(LAST_LLAMA_RUNTIME)
+
+
+def _clean_llama_output(stdout: str) -> str:
+    raw_response = stdout.split("[ Prompt:", 1)[0]
+    raw_response = raw_response.replace("Exiting...", "").strip()
+    raw_response = re.sub(
+        r"(?s)^.*?available commands:.*?\n\n",
+        "",
+        raw_response,
+    )
+    return raw_response.strip()
+
+
+def _llama_gpu_layers() -> int:
+    raw_value = os.environ.get("LLAMA_GPU_LAYERS")
+    if raw_value is not None:
+        try:
+            return max(int(raw_value), 0)
+        except ValueError:
+            print(f"[llama] Ignoring invalid LLAMA_GPU_LAYERS={raw_value!r}; using auto mode.")
+    return 999 if has_nvidia_gpu() else 0
+
+
+def _copy_llama_cli_candidate(candidate: str, llama_path: str) -> str | None:
+    """Copy a discovered llama-cli binary into the project-local default path."""
+    if not candidate or not os.path.exists(candidate):
+        return None
+    if not _is_llama_cli_usable(candidate):
+        print(f"[llama] Ignoring unusable llama-cli candidate: {candidate}")
+        return None
+    try:
+        os.makedirs(os.path.dirname(llama_path), exist_ok=True)
+        if os.path.abspath(candidate) != os.path.abspath(llama_path):
+            candidate_dir = os.path.dirname(candidate)
+            llama_dir = os.path.dirname(llama_path)
+            for name in os.listdir(candidate_dir):
+                source = os.path.join(candidate_dir, name)
+                if os.path.isfile(source):
+                    shutil.copy2(source, os.path.join(llama_dir, name))
+        print(f"[llama] Prepared llama-cli at {llama_path}")
+        return llama_path
+    except OSError as exc:
+        print(f"[llama] Found llama-cli but could not copy it to project path: {exc}")
+        return candidate
+
+
+def _is_llama_cli_usable(candidate: str) -> bool:
+    """Return whether the discovered llama-cli can actually be executed."""
+    try:
+        completed = subprocess.run(
+            [candidate, "--version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        return completed.returncode in {0, 1}
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _find_llama_cli_installation() -> str | None:
+    """Find llama-cli from PATH or common winget installation locations."""
+    path_hit = shutil.which(LLAMA_CLI_FILENAME)
+    if path_hit:
+        return path_hit
+
+    candidates: list[str] = []
+    if os.name == "nt":
+        roots = [
+            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft", "WinGet", "Packages"),
+            os.path.join(os.environ.get("ProgramFiles", ""), "WinGet", "Packages"),
+            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft", "WindowsApps"),
+        ]
+        for root in roots:
+            if not root or not os.path.isdir(root):
+                continue
+            for current_root, _dirs, files in os.walk(root):
+                if LLAMA_CLI_FILENAME in files:
+                    candidates.append(os.path.join(current_root, LLAMA_CLI_FILENAME))
+                    break
+            if candidates:
+                break
+
+    return candidates[0] if candidates else None
+
+
+def _download_llama_cpp_release(llama_path: str) -> str | None:
+    """Download a portable llama.cpp release and place llama-cli in the default path."""
+    if os.name != "nt":
+        return None
+
+    release_url = os.environ.get("LLAMA_CPP_RELEASE_URL", LLAMA_CPP_WINDOWS_RELEASE_URL)
+    tools_root = os.path.dirname(os.path.dirname(os.path.dirname(llama_path)))
+    download_dir = os.path.join(tools_root, "downloads")
+    extract_dir = os.path.join(tools_root, "release")
+    archive_path = os.path.join(download_dir, os.path.basename(release_url))
+
+    try:
+        os.makedirs(download_dir, exist_ok=True)
+        os.makedirs(extract_dir, exist_ok=True)
+        print(f"[llama] Downloading llama.cpp release: {release_url}")
+        urllib.request.urlretrieve(release_url, archive_path)
+        with zipfile.ZipFile(archive_path) as archive:
+            archive.extractall(extract_dir)
+
+        for current_root, _dirs, files in os.walk(extract_dir):
+            if LLAMA_CLI_FILENAME not in files:
+                continue
+            candidate = os.path.join(current_root, LLAMA_CLI_FILENAME)
+            prepared_cli = _copy_llama_cli_candidate(candidate, llama_path)
+            if prepared_cli:
+                return prepared_cli
+    except (OSError, zipfile.BadZipFile, urllib.error.URLError) as exc:
+        print(f"[llama] llama.cpp release download failed: {exc}")
+    return None
+
+
+def _maybe_prepare_llama_cli(llama_cli: str) -> str:
+    """Find or prepare llama.cpp locally when missing."""
+    llama_path = os.path.abspath(os.path.expanduser(llama_cli))
+    if os.path.exists(llama_path):
+        if _is_llama_cli_usable(llama_path):
+            return llama_path
+        print(f"[llama] Ignoring unusable project-local llama-cli: {llama_path}")
+
+    installed_cli = _find_llama_cli_installation()
+    prepared_cli = _copy_llama_cli_candidate(installed_cli or "", llama_path)
+    if prepared_cli:
+        return prepared_cli
+
+    if not _env_flag("AUTO_INSTALL_LLAMA_CPP", True):
+        return llama_path
+
+    if os.name == "nt":
+        winget_exe = shutil.which("winget")
+        if winget_exe:
+            try:
+                print("[llama] llama-cli not found; installing llama.cpp with winget...")
+                subprocess.run(
+                    [
+                        winget_exe,
+                        "install",
+                        "--id",
+                        "ggml.llamacpp",
+                        "--exact",
+                        "--silent",
+                        "--accept-package-agreements",
+                        "--accept-source-agreements",
+                    ],
+                    check=True,
+                )
+                installed_cli = _find_llama_cli_installation()
+                prepared_cli = _copy_llama_cli_candidate(installed_cli or "", llama_path)
+                if prepared_cli:
+                    return prepared_cli
+            except (OSError, subprocess.CalledProcessError) as exc:
+                print(f"[llama] winget llama.cpp install failed; trying source build if possible: {exc}")
+
+        prepared_cli = _download_llama_cpp_release(llama_path)
+        if prepared_cli:
+            return prepared_cli
+
+    source_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(llama_path))), "src")
+    build_dir = os.path.join(source_dir, "build")
+    git_exe = shutil.which("git")
+    cmake_exe = shutil.which("cmake")
+    if not git_exe or not cmake_exe:
+        print("[llama] git or cmake was not found; skipping llama.cpp source build.")
+        return llama_path
+
+    try:
+        os.makedirs(os.path.dirname(source_dir), exist_ok=True)
+        if not os.path.exists(source_dir):
+            subprocess.run(
+                [git_exe, "clone", "--depth", "1", "https://github.com/ggerganov/llama.cpp", source_dir],
+                check=True,
+            )
+        cmake_args = [cmake_exe, "-S", source_dir, "-B", build_dir]
+        if has_nvidia_gpu():
+            cmake_args.append("-DGGML_CUDA=ON")
+        subprocess.run(cmake_args, check=True)
+        subprocess.run([cmake_exe, "--build", build_dir, "--config", "Release", "-j"], check=True)
+
+        candidates = [
+            os.path.join(build_dir, "bin", "Release", "llama-cli.exe"),
+            os.path.join(build_dir, "bin", "llama-cli.exe"),
+            os.path.join(build_dir, "bin", "llama-cli"),
+        ]
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                os.makedirs(os.path.dirname(llama_path), exist_ok=True)
+                shutil.copy2(candidate, llama_path)
+                print(f"[llama] Prepared llama-cli at {llama_path}")
+                return llama_path
+    except (OSError, subprocess.CalledProcessError) as exc:
+        print(f"[llama] llama.cpp auto-build failed; use an existing llama-cli if available: {exc}")
+    return llama_path
+
+
+def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -> dict[str, Any]:
+    """Prepare and verify EXAONE GGUF + llama.cpp before story generation starts."""
+    log_stage("ensuring EXAONE GGUF runtime", step="preflight", model="EXAONE GGUF + llama.cpp")
+    resolved_model_path = ensure_exaone_gguf_model(
+        model_path or os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH
+    )
+    llama_cli = _maybe_prepare_llama_cli(llama_cli_path or os.environ.get("LLAMA_CLI_PATH", LLAMA_CLI_PATH))
+    setup_error = _llama_path_error(llama_cli, resolved_model_path)
+    if setup_error:
+        raise FileNotFoundError(setup_error)
+    if not _is_llama_cli_usable(llama_cli):
+        raise FileNotFoundError(f"llama.cpp CLI exists but is not executable: {llama_cli}")
+
+    runtime = {
+        "model_path": resolved_model_path,
+        "llama_cli": llama_cli,
+        "gpu_layers": _llama_gpu_layers(),
+        "cuda_cpu_retry": _env_flag("LLAMA_CUDA_RETRY_CPU", True),
+    }
+    log_stage(f"EXAONE GGUF ready: {resolved_model_path}", step="preflight", model="EXAONE-4.0-1.2B-IQ4_XS.gguf")
+    log_stage(f"llama-cli ready: {llama_cli}", step="preflight", model="llama.cpp")
+    return runtime
+
+
+def _llama_path_error(llama_cli: str, model_path: str) -> str | None:
+    """Return a clear setup error before invoking llama.cpp."""
+    missing: list[str] = []
+    if not os.path.exists(llama_cli):
+        if _env_flag("AUTO_INSTALL_LLAMA_CPP", True):
+            auto_install_hint = (
+                " Automatic install/build was attempted but did not produce llama-cli; "
+                "install winget/git/cmake or set LLAMA_CLI_PATH."
+            )
+        else:
+            auto_install_hint = " AUTO_INSTALL_LLAMA_CPP=0 is set; enable it or set LLAMA_CLI_PATH."
+        missing.append(
+            "llama.cpp CLI not found. Set LLAMA_CLI_PATH or build/place it at: "
+            f"{llama_cli}.{auto_install_hint}"
+        )
+    if not os.path.exists(model_path):
+        missing.append(
+            "EXAONE GGUF model file not found. Set EXAONE_GGUF_MODEL_PATH "
+            f"or place the model at: {model_path}."
+        )
+    if missing:
+        return " ".join(missing)
+    return None
+
+
+def _build_llama_command(
+    llama_cli: str,
+    model_path: str,
+    prompt_path: str,
+    max_new_tokens: int,
+    context_size: int,
+    temperature: str,
+    top_p: str | None,
+    gpu_layers: int,
+    force_cpu: bool = False,
+) -> list[str]:
+    command = [
+        llama_cli,
+        "-m",
+        model_path,
+        "-f",
+        prompt_path,
+        "-n",
+        str(max_new_tokens),
+        "-c",
+        str(context_size),
+        "--temp",
+        temperature,
+    ]
+    if top_p is not None:
+        command.extend(["--top-p", top_p])
+    if force_cpu or gpu_layers <= 0:
+        command.extend(["-ngl", "0", "--device", "none"])
+    else:
+        command.extend(["-ngl", str(gpu_layers)])
+        llama_device = os.environ.get("LLAMA_DEVICE")
+        if llama_device:
+            command.extend(["--device", llama_device])
+    command.extend(
+        [
+            "--single-turn",
+            "--log-disable",
+            "--no-warmup",
+            "--simple-io",
+            "--no-display-prompt",
+        ]
+    )
+    return command
+
+
+def _run_llama_prompt(
+    prompt: str,
+    max_new_tokens: int,
+    model_path: str = "",
+    timeout: int = 180,
+    context_size: int = 4096,
+    temperature: str = "0.55",
+    top_p: str | None = "0.9",
+) -> tuple[str, dict[str, Any]]:
+    """Run llama.cpp with GPU offload when available and CPU retry when needed."""
+    resolved_model_path = ensure_exaone_gguf_model(
+        model_path or os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH
+    )
+    llama_cli = _maybe_prepare_llama_cli(os.environ.get("LLAMA_CLI_PATH", LLAMA_CLI_PATH))
+    setup_error = _llama_path_error(llama_cli, resolved_model_path)
+    if setup_error:
+        runtime = {
+            "mode": "unavailable",
+            "cpu_retry_used": False,
+            "llama_cli": llama_cli,
+            "model_path": resolved_model_path,
+            "error": setup_error,
+        }
+        LAST_LLAMA_RUNTIME.clear()
+        LAST_LLAMA_RUNTIME.update(runtime)
+        raise FileNotFoundError(setup_error)
+
+    gpu_layers = _llama_gpu_layers()
+    cpu_retry_enabled = _env_flag("LLAMA_CUDA_RETRY_CPU", True)
+    force_cpu = gpu_layers <= 0
+
+    with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as prompt_file:
+        prompt_file.write(prompt)
+        prompt_path = prompt_file.name
+    try:
+        command = _build_llama_command(
+            llama_cli,
+            resolved_model_path,
+            prompt_path,
+            max_new_tokens,
+            context_size,
+            temperature,
+            top_p,
+            gpu_layers,
+            force_cpu=force_cpu,
+        )
+        mode = "cpu_forced" if os.environ.get("LLAMA_GPU_LAYERS") == "0" else "cpu_only" if force_cpu else "gpu"
+        try:
+            completed = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=timeout,
+            )
+            runtime = {
+                "mode": mode,
+                "gpu_layers": 0 if force_cpu else gpu_layers,
+                "cpu_retry_used": False,
+            }
+            LAST_LLAMA_RUNTIME.clear()
+            LAST_LLAMA_RUNTIME.update(runtime)
+            return _clean_llama_output(completed.stdout), runtime
+        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            if force_cpu or not cpu_retry_enabled:
+                LAST_LLAMA_RUNTIME.clear()
+                LAST_LLAMA_RUNTIME.update(
+                    {
+                        "mode": mode,
+                        "gpu_layers": 0 if force_cpu else gpu_layers,
+                        "cpu_retry_used": False,
+                        "error": str(exc),
+                    }
+                )
+                raise
+            print(f"[llama] GPU run failed; retrying on CPU: {exc}")
+            cpu_command = _build_llama_command(
+                llama_cli,
+                resolved_model_path,
+                prompt_path,
+                max_new_tokens,
+                context_size,
+                temperature,
+                top_p,
+                gpu_layers=0,
+                force_cpu=True,
+            )
+            completed = subprocess.run(
+                cpu_command,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=timeout,
+            )
+            runtime = {
+                "mode": "cpu_retry",
+                "gpu_layers": 0,
+                "cpu_retry_used": True,
+                "gpu_error": str(exc),
+            }
+            LAST_LLAMA_RUNTIME.clear()
+            LAST_LLAMA_RUNTIME.update(runtime)
+            return _clean_llama_output(completed.stdout), runtime
+    finally:
+        os.unlink(prompt_path)
 
 
 def generate_structured_plan_exaone_gguf(
     vision: dict[str, Any],
-    max_new_tokens: int = 180,
+    max_new_tokens: int = 700,
     model_path: str = "",
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
     """Use EXAONE GGUF through llama.cpp for Korean structured/plan JSON."""
-    fallback_structured = build_structured_json(vision)
-    fallback_plan = build_plan_json(fallback_structured)
     marker = "__EXAONE_RESPONSE_START__"
     prompt = _build_structured_plan_prompt(vision)
     prompt = (
@@ -514,62 +953,42 @@ def generate_structured_plan_exaone_gguf(
         f"{marker}\n"
     )
 
-    with timed_step(8, "EXAONE GGUF structured story planning"):
-        resolved_model_path = model_path or os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH
-        llama_cli = os.environ.get("LLAMA_CLI_PATH", LLAMA_CLI_PATH)
-        with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as prompt_file:
-            prompt_file.write(prompt)
-            prompt_path = prompt_file.name
-        try:
-            completed = subprocess.run(
-                [
-                    llama_cli,
-                    "-m",
-                    resolved_model_path,
-                    "-f",
-                    prompt_path,
-                    "-n",
-                    str(max_new_tokens),
-                    "-c",
-                    "2048",
-                    "--temp",
-                    "0",
-                    "--single-turn",
-                    "--device",
-                    "none",
-                    "--log-disable",
-                    "--no-warmup",
-                    "--simple-io",
-                    "--no-display-prompt",
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=180,
-            )
-        finally:
-            os.unlink(prompt_path)
-        raw_response = completed.stdout
+    with timed_step(8, "EXAONE GGUF structured story planning", model="EXAONE-4.0-1.2B-IQ4_XS.gguf"):
+        raw_response, _runtime = _run_llama_prompt(
+            prompt,
+            max_new_tokens=max_new_tokens,
+            model_path=model_path,
+            timeout=240,
+            context_size=4096,
+            temperature="0",
+            top_p=None,
+        )
         if marker in raw_response:
             raw_response = raw_response.rsplit(marker, 1)[-1]
-        raw_response = raw_response.split("[ Prompt:", 1)[0]
-        raw_response = raw_response.replace("Exiting...", "").strip()
-        raw_response = re.sub(
-            r"(?s)^.*?available commands:.*?\n\n",
-            "",
-            raw_response,
-        )
         raw_response = raw_response.strip()
 
     try:
         payload = _extract_json_object(raw_response)
-        structured, plan = _merge_exaone_story_schema(payload, fallback_structured, fallback_plan)
+        structured, plan = _normalize_exaone_story_schema(payload)
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        structured = dict(fallback_structured)
-        structured["source"] = "fallback_after_exaone_gguf_parse_error"
-        plan = dict(fallback_plan)
-        plan["source"] = "fallback_after_exaone_gguf_parse_error"
-        raw_response = f"{raw_response}\n\n[parse_error] {exc}"
+        repair_prompt = _build_structured_plan_repair_prompt(raw_response, vision)
+        repair_response = _run_exaone_gguf_prompt(
+            repair_prompt,
+            max_new_tokens=max(max_new_tokens, 700),
+            model_path=model_path,
+            timeout=240,
+            context_size=4096,
+        )
+        try:
+            payload = _extract_json_object(repair_response)
+            structured, plan = _normalize_exaone_story_schema(payload)
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            raise RuntimeError(
+                "EXAONE GGUF did not return valid structured/plan JSON, and JSON repair also failed. "
+                f"initial_error={exc}; repair_error={repair_exc}; "
+                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+            ) from repair_exc
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return structured, plan, raw_response
 
 
@@ -581,50 +1000,14 @@ def _run_exaone_gguf_prompt(
     context_size: int = 4096,
 ) -> str:
     """Run an EXAONE GGUF prompt through the local llama.cpp CLI."""
-    resolved_model_path = model_path or os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH
-    llama_cli = os.environ.get("LLAMA_CLI_PATH", LLAMA_CLI_PATH)
-    with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as prompt_file:
-        prompt_file.write(prompt)
-        prompt_path = prompt_file.name
-    try:
-        completed = subprocess.run(
-            [
-                llama_cli,
-                "-m",
-                resolved_model_path,
-                "-f",
-                prompt_path,
-                "-n",
-                str(max_new_tokens),
-                "-c",
-                str(context_size),
-                "--temp",
-                "0.55",
-                "--top-p",
-                "0.9",
-                "--single-turn",
-                "--device",
-                "none",
-                "--log-disable",
-                "--no-warmup",
-                "--simple-io",
-                "--no-display-prompt",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-        )
-    finally:
-        os.unlink(prompt_path)
-    raw_response = completed.stdout.split("[ Prompt:", 1)[0]
-    raw_response = raw_response.replace("Exiting...", "").strip()
-    raw_response = re.sub(
-        r"(?s)^.*?available commands:.*?\n\n",
-        "",
-        raw_response,
+    raw_response, _runtime = _run_llama_prompt(
+        prompt,
+        max_new_tokens=max_new_tokens,
+        model_path=model_path,
+        timeout=timeout,
+        context_size=context_size,
+        temperature="0.55",
+        top_p="0.9",
     )
     return raw_response.strip()
 
@@ -637,273 +1020,25 @@ def _short_text(value: Any, limit: int = 120) -> str:
     return f"{text[:limit].rstrip()}..."
 
 
-def generate_story_draft(structured: dict[str, Any], plan: dict[str, Any]) -> str:
-    """Generate a deterministic Korean fairy-tale draft from a plan."""
-    characters = _join_people(structured.get("characters", ["아이"]))
-    place = structured.get("place", "그림 속 마을")
-    mood = structured.get("mood", "포근한")
-    items = structured.get("story_items") or structured.get("visible_items", ["그림"])
-    item_text = _join_items(items[:4])
-    main_event = str(structured.get("main_event", "")).strip()
-    plan_middle = str(plan.get("middle", "")).strip()
-    if main_event:
-        item_sentence = f"그림 속에서는 {main_event}."
-    elif "호랑이" in structured.get("characters", []):
-        if any(item in {"밤하늘", "달", "별"} for item in items):
-            sky_items = [item for item in items if item in {"밤하늘", "달", "별"}]
-            item_sentence = (
-                f"{_join_items(sky_items[:3])} 아래에서 처음에는 조금 놀랐지만, "
-                "둘은 곧 서로를 바라보며 마음을 열었어요."
-            )
-        else:
-            item_sentence = "처음에는 조금 놀랐지만, 둘은 곧 서로를 바라보며 마음을 열었어요."
-    elif item_text == "집":
-        item_sentence = "따뜻한 집은 모두를 반겨 주는 것처럼 환하게 서 있었어요."
-    else:
-        item_sentence = f"곁에는 {item_text}도 함께 있어 그림 속 세상이 더 환해 보였어요."
-    if plan_middle and not plan_middle.endswith(("다.", "요.", "요", ".")):
-        plan_middle = f"{plan_middle}."
-    middle_sentence = (
-        plan_middle.replace("나눈다.", "나누었어요.").replace("보낸다.", "보냈어요.")
-        if plan_middle
-        else f"{_as_topic(characters)} 오늘 본 것들을 함께 이야기하며 활짝 웃었답니다."
-    )
-    return (
-        f"어느 {mood} 날, {_as_topic(characters)} {place}에 모였어요. "
-        f"{item_sentence} "
-        f"{middle_sentence} "
-        "그날의 작은 그림은 모두에게 오래 기억될 따뜻한 이야기가 되었어요."
-    )
-
-
-def generate_sequence_story_draft(scene_records: list[dict[str, Any]]) -> str:
-    """Generate one connected Korean story from ordered scene records."""
-    if not scene_records:
-        return ""
-
-    paragraphs: list[str] = []
-    for index, record in enumerate(scene_records, start=1):
-        structured = record["structured_json"]
-        characters = _join_people(structured.get("characters", ["아이"]))
-        place = _to_korean_hint(structured.get("place", "그림 속 마을"))
-        mood = _to_korean_hint(structured.get("mood", "포근한"))
-        raw_items = structured.get("story_items") or structured.get("visible_items") or ["그림"]
-        items = [_to_korean_hint(item) for item in raw_items[:4]]
-        item_text = _join_items(items[:3])
-        main_event = _to_korean_hint(str(structured.get("main_event", "")).strip())
-        if main_event:
-            event_sentence = f"그림 속에서는 {main_event}."
-        elif "호랑이" in structured.get("characters", []):
-            event_sentence = f"{_as_topic(characters)} {_as_object(item_text)} 보며 조금씩 마음을 열었어요."
-        else:
-            event_sentence = f"{_as_topic(characters)} {_as_object(item_text)} 발견하고 다음 일을 궁금해했어요."
-
-        label = _scene_label(index)
-        if index == 1:
-            bridge = "이 작은 발견은 앞으로 이어질 모험의 첫 약속이 되었어요."
-        elif index == len(scene_records):
-            bridge = "마지막에는 모든 그림이 하나로 이어지며 다정한 마음을 남겼어요."
-        else:
-            bridge = "그래서 다음 그림으로 넘어갈 때마다 이야기는 조금 더 깊어졌어요."
-
-        paragraph_sentences = [
-            f"{label} {_as_topic(characters)} {place}에 있었어요.",
-            f"{mood} 분위기 속에서 {item_text}도 함께 보여서 그림이 더 또렷하게 느껴졌어요.",
-            event_sentence,
-            "처음에는 무엇이 일어날지 몰라 조심스러웠지만, 모두는 서로를 바라보며 용기를 냈어요.",
-            bridge,
-        ]
-        paragraphs.append(" ".join(paragraph_sentences))
-
-    return "\n\n".join(paragraphs)
-
-
-def _caption_line(record: dict[str, Any]) -> str:
-    """Build one compact Korean-readable caption line from a scene record."""
-    vision = record["vision"]
-    structured = record["structured_json"]
-    scene_index = record.get("scene_index", 0)
-    raw_caption = str(vision.get("raw_caption", "")).strip()
-    characters = _join_people(structured.get("characters", ["아이"]))
-    place = _to_korean_hint(structured.get("place") or vision.get("scene") or "그림 속 장소")
-    mood = _to_korean_hint(structured.get("mood") or vision.get("mood") or "알 수 없는")
-    items = structured.get("story_items") or structured.get("visible_items") or vision.get("objects", [])
-    item_text = _join_items([_to_korean_hint(item) for item in items[:3]])
-    return (
-        f"{scene_index}번: {characters} / 장소: {place} / 보이는 것: {item_text} / "
-        f"분위기: {mood} / 원본 캡션: {raw_caption}"
-    )
-
-
-def build_image_captions(scene_records: list[dict[str, Any]]) -> str:
-    """Return ordered image-caption text for the user's first prompt."""
-    return "\n".join(_caption_line(record) for record in scene_records)
-
-
-def build_story_structure_prompt(image_captions: str) -> str:
-    """Fill the first user-provided prompt with image captions."""
-    return f"""당신은 아이가 그린 여러 장의 그림을 보고 이야기 구조를 정리하는 보조 작가입니다.
-
-아래 그림 설명 목록을 보고, 동화를 만들기 위한 이야기 흐름을 먼저 정리하세요.
-
-[그림 설명 목록]
-{image_captions}
-
-[분석 조건]
-
-1. 그림의 순서를 유지하세요.
-2. 각 그림을 하나의 장면으로 정리하세요.
-3. 각 장면의 분위기와 감정을 함께 적으세요.
-4. 장면 사이가 자연스럽게 이어지도록 원인과 결과를 만들어 주세요.
-5. 전체 이야기가 처음-중간-끝 구조를 가지도록 정리하세요.
-6. 무조건 밝은 방향으로만 해석하지 말고, 그림의 분위기에 따라 쓸쓸함, 무서움, 신비로움, 외로움도 반영하세요.
-
-[출력 형식]
-전체 분위기:
-주인공:
-이야기의 핵심 감정 변화:
-
-장면별 정리:
-1번 장면:
-
-* 그림 내용:
-* 분위기:
-* 감정:
-* 다음 장면으로 이어지는 이유:
-
-2번 장면:
-
-* 그림 내용:
-* 분위기:
-* 감정:
-* 다음 장면으로 이어지는 이유:
-
-마지막 장면:
-
-* 그림 내용:
-* 분위기:
-* 감정:
-* 결말 방향:"""
-
-
-def build_story_writing_prompt(story_structure: str) -> str:
-    """Fill the second user-provided prompt with the generated story structure."""
-    return f"""당신은 아이들이 그린 여러 장의 그림을 바탕으로 하나의 동화를 쓰는 작가입니다.
-
-아래 이야기 구조를 바탕으로 자연스럽고 동화 같은 이야기를 작성하세요.
-
-[이야기 구조]
-{story_structure}
-
-[작성 조건]
-
-1. 장면 순서를 유지하세요.
-2. 모든 장면이 하나의 이야기처럼 자연스럽게 이어지게 하세요.
-3. 장면 전환은 인물의 행동, 감정, 사건의 결과로 이어지게 하세요.
-4. 동화적인 표현을 사용하세요. 예: 살금살금, 반짝반짝, 조그만 마음, 구름 이불, 달님이 속삭였어요
-5. 그림의 분위기가 밝으면 밝게, 어두우면 조심스럽게, 쓸쓸하면 잔잔하게, 이상하면 신비롭게 표현하세요.
-6. 무조건 행복한 이야기로 만들지 말고, 그림에 맞는 감정과 결말을 사용하세요.
-7. 아이들이 이해할 수 있는 쉬운 문장으로 작성하세요.
-8. 하지만 단순한 설명문처럼 쓰지 말고, 동화처럼 장면이 떠오르게 작성하세요.
-9. 주인공의 감정 변화가 분명히 드러나게 하세요.
-10. 그림 개수가 적으면 짧게, 많으면 길게 작성하세요.
-11. 그림 1장당 1~3문장 정도로 작성하세요.
-12. 지금 출력은 너무 길지 않게 제목 1줄과 이야기 3줄 정도로만 작성하세요.
-
-[출력 형식]
-제목:
-
-이야기:"""
-
-
-def generate_prompt_story_structure(scene_records: list[dict[str, Any]]) -> str:
-    """Generate a story structure in the shape requested by the first prompt."""
-    if not scene_records:
-        return ""
-
-    first = scene_records[0]["structured_json"]
-    last = scene_records[-1]["structured_json"]
-    first_characters = _join_people(first.get("characters", ["아이"]))
-    last_place = _to_korean_hint(last.get("place", "마지막 그림"))
-    scene_lines = []
-    for index, record in enumerate(scene_records, start=1):
-        structured = record["structured_json"]
-        characters = _join_people(structured.get("characters", ["아이"]))
-        place = _to_korean_hint(structured.get("place", "그림 속 장소"))
-        mood = _to_korean_hint(structured.get("mood", "알 수 없는"))
-        items = structured.get("story_items") or structured.get("visible_items") or ["그림"]
-        item_text = _join_items([_to_korean_hint(item) for item in items[:3]])
-        if "호랑이" in structured.get("characters", []):
-            feeling = "낯설지만 궁금한 마음"
-        elif index == 1:
-            feeling = "조심스러운 기대"
-        elif index == len(scene_records):
-            feeling = "잔잔한 안도감"
-        else:
-            feeling = "조금씩 커지는 호기심"
-        if index == len(scene_records):
-            bridge = f"{last_place}에서 지나온 장면들을 떠올리며 마음을 정리한다."
-        else:
-            bridge = "방금 본 것이 다음 그림의 길잡이가 되어 발걸음이 이어진다."
-        scene_lines.append(
-            f"{index}번 장면:\n\n"
-            f"* 그림 내용: {characters}이/가 {place}에서 {item_text}을/를 본다.\n"
-            f"* 분위기: {mood}\n"
-            f"* 감정: {feeling}\n"
-            f"* 다음 장면으로 이어지는 이유: {bridge}"
-        )
-    return (
-        "전체 분위기: 따뜻함 속에 낯섦과 신비로움이 조금 섞인 모험\n"
-        f"주인공: {first_characters}\n"
-        "이야기의 핵심 감정 변화: 조심스러운 기대에서 낯선 만남을 지나 잔잔한 안도감으로 이동\n\n"
-        "장면별 정리:\n"
-        + "\n\n".join(scene_lines)
-    )
-
-
-def generate_short_story_from_structure(story_structure: str, scene_records: list[dict[str, Any]]) -> str:
-    """Generate a short three-line fairy tale from the first prompt's structure."""
-    if not scene_records:
-        return "제목:\n\n이야기:"
-
-    first = scene_records[0]["structured_json"]
-    middle = scene_records[len(scene_records) // 2]["structured_json"]
-    last = scene_records[-1]["structured_json"]
-    characters = _join_people(first.get("characters", ["아이"]))
-    first_place = _to_korean_hint(first.get("place", "그림 속 마을"))
-    middle_items = middle.get("story_items") or middle.get("visible_items") or ["그림"]
-    middle_item_text = _join_items([_to_korean_hint(item) for item in middle_items[:2]])
-    last_place = _to_korean_hint(last.get("place", "하늘 아래"))
-    return (
-        "제목: 그림들이 속삭인 작은 길\n\n"
-        "이야기:\n"
-        f"{_as_topic(characters)} {first_place}에서 반짝반짝 빛나는 첫 그림을 따라 살금살금 걸어갔어요.\n"
-        f"길 위에서 {_as_object(middle_item_text)} 만나자 조그만 마음은 조금 낯설고 신비롭게 두근거렸어요.\n"
-        f"마지막에 {last_place}에 닿은 아이들은 모든 그림이 이어 준 마음을 조용히 품고 돌아섰어요."
-    )
-
-
-def generate_prompt_twostep_short_story(
-    scene_records: list[dict[str, Any]],
-) -> dict[str, str]:
-    """Run the user's two-prompt flow with a compact deterministic writer."""
-    image_captions = build_image_captions(scene_records)
-    structure_prompt = build_story_structure_prompt(image_captions)
-    story_structure = generate_prompt_story_structure(scene_records)
-    writing_prompt = build_story_writing_prompt(story_structure)
-    story_final = generate_short_story_from_structure(story_structure, scene_records)
-    return {
-        "image_captions": image_captions,
-        "structure_prompt": structure_prompt,
-        "story_structure": story_structure,
-        "writing_prompt": writing_prompt,
-        "story_final": story_final,
-    }
-
-
 def _count_story_sentences(story: str) -> int:
     """Count simple sentence endings in generated Korean story text."""
     return len([part for part in re.split(r"(?<=[.!?。])\s+", story.strip()) if part.strip()])
+
+
+def _build_sequence_story_rewrite_prompt(
+    raw_story: str,
+    compact_scenes: list[dict[str, Any]],
+    required_story_sentences: int,
+) -> str:
+    return (
+        "아래 모델 응답은 최종 동화 본문으로 쓰기에 부족합니다.\n"
+        "ordered_scenes의 순서와 시각 근거만 사용해서 한국어 동화 본문만 다시 작성하세요.\n"
+        "제목, JSON, 마크다운, 설명, 프롬프트 반복 없이 본문만 출력하세요.\n"
+        f"최소 {required_story_sentences}문장 이상으로 쓰고, 각 장면의 사건이 자연스럽게 이어져야 합니다.\n\n"
+        f"ordered_scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n\n"
+        "previous_model_response:\n"
+        f"{raw_story}\n"
+    )
 
 
 def generate_sequence_story_exaone_gguf(
@@ -911,7 +1046,6 @@ def generate_sequence_story_exaone_gguf(
     max_new_tokens: int = 420,
 ) -> tuple[str, str]:
     """Ask EXAONE GGUF to write one non-repetitive story from ordered scenes."""
-    fallback_story = generate_sequence_story_draft(scene_records)
     marker = "__STORY_BODY_START__"
     compact_scenes = []
     for record in scene_records:
@@ -946,7 +1080,7 @@ def generate_sequence_story_exaone_gguf(
         f"ordered_scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n\n"
         f"{marker}\n"
     )
-    with timed_step(12, "EXAONE GGUF sequence story writing"):
+    with timed_step(12, "EXAONE GGUF sequence story writing", model="EXAONE-4.0-1.2B-IQ4_XS.gguf"):
         raw_story = _run_exaone_gguf_prompt(
             prompt,
             max_new_tokens=max_new_tokens,
@@ -964,6 +1098,7 @@ def generate_sequence_story_exaone_gguf(
     story = re.sub(r"^>\s*", "", story).strip()
     story = re.sub(r"^동화 본문:\s*", "", story).strip()
     story = re.sub(r"^```(?:text)?\s*|\s*```$", "", story).strip()
+    required_story_sentences = len(scene_records) * 5
     if (
         not story
         or _looks_mostly_english(story)
@@ -971,59 +1106,34 @@ def generate_sequence_story_exaone_gguf(
         or story.startswith("Error:")
         or story.startswith("아래는 순서가 있는")
         or "ordered_scenes:" in story
-        or _count_story_sentences(story) < len(scene_records) * 5
+        or _count_story_sentences(story) < required_story_sentences
     ):
-        return fallback_story, f"{raw_story}\n\n[fallback] invalid_context_or_too_short_output"
-    return story, raw_story
-
-
-def polish_story_ko_exaone(
-    story_draft: str,
-    structured: dict[str, Any],
-    plan: dict[str, Any],
-    max_new_tokens: int = 60,
-) -> str:
-    """Polish a Korean draft into a child-friendly story using one EXAONE call."""
-    prompt = (
-        "아래 초안을 어린이가 읽기 좋은 한국어 동화 문체로 다듬어 주세요.\n"
-        "조건:\n"
-        "- 초안의 사건과 등장 요소를 크게 바꾸지 않기\n"
-        "- 3~5문장으로 자연스럽게 쓰기\n"
-        "- 따뜻한 결말 유지하기\n"
-        "- 동화 본문만 출력하기\n\n"
-        f"구조화 정보: {structured}\n"
-        f"이야기 기획: {plan}\n"
-        f"초안: {story_draft}\n"
-    )
-
-    with timed_step(10, "EXAONE Korean story polishing"):
-        import torch
-
-        tokenizer, model = get_exaone_components()
-        device = get_device()
-        messages = [{"role": "user", "content": prompt}]
-        inputs = tokenizer.apply_chat_template(
-            messages,
-            tokenize=True,
-            add_generation_prompt=True,
-            return_dict=True,
-            return_tensors="pt",
-        ).to(device)
-        with torch.inference_mode():
-            output_ids = model.generate(
-                **inputs,
-                eos_token_id=tokenizer.eos_token_id,
-                pad_token_id=tokenizer.pad_token_id,
+        rewrite_prompt = _build_sequence_story_rewrite_prompt(
+            raw_story,
+            compact_scenes,
+            required_story_sentences,
+        )
+        with timed_step(13, "EXAONE GGUF sequence story rewrite", model="EXAONE-4.0-1.2B-IQ4_XS.gguf"):
+            rewrite_story = _run_exaone_gguf_prompt(
+                rewrite_prompt,
                 max_new_tokens=max_new_tokens,
-                do_sample=True,
-                top_p=0.9,
-                temperature=0.65,
-                repetition_penalty=1.08,
+                timeout=240,
+                context_size=8192,
             )
-        generated_ids = output_ids[0][inputs["input_ids"].shape[-1] :]
-        story = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
-
-    return story or story_draft
+        rewritten = re.sub(r"^```(?:text)?\s*|\s*```$", "", rewrite_story.strip()).strip()
+        if (
+            not rewritten
+            or _looks_mostly_english(rewritten)
+            or "ordered_scenes:" in rewritten
+            or rewritten.startswith("Error:")
+            or _count_story_sentences(rewritten) < required_story_sentences
+        ):
+            raise RuntimeError(
+                "EXAONE GGUF did not return a valid sequence story after rewrite. "
+                f"raw_response_head={raw_story[:800]!r}; rewrite_response_head={rewrite_story[:800]!r}"
+            )
+        return rewritten, f"{raw_story}\n\n[rewrite_response]\n{rewrite_story}"
+    return story, raw_story
 
 
 def generate_story_en(vision: dict, max_new_tokens: int = 200) -> str:
@@ -1037,7 +1147,7 @@ def generate_story_en(vision: dict, max_new_tokens: int = 200) -> str:
         f"The story begins:\n"
     )
 
-    with timed_step(8, "GPT-2 English story generation"):
+    with timed_step(8, "GPT-2 English story generation", model="gpt2-medium"):
         import torch
 
         # GPT-2 모델과 토크나이저는 캐시로 재사용해 반복 실행 비용을 줄입니다.
@@ -1063,7 +1173,7 @@ def generate_story_en(vision: dict, max_new_tokens: int = 200) -> str:
 
 def translate_en_ko(text_en: str) -> str:
     """Translate English text into Korean using NLLB only."""
-    with timed_step(9, "NLLB English-to-Korean translation"):
+    with timed_step(9, "NLLB English-to-Korean translation", model="facebook/nllb-200-distilled-600M"):
         import torch
 
         # NLLB는 명시적인 source/target 언어 코드가 있어야 원하는 방향으로 번역됩니다.
@@ -1102,7 +1212,7 @@ def generate_story_ko_exaone(vision: dict, max_new_tokens: int = 60) -> str:
         f"분위기: {vision.get('mood', '')}\n"
     )
 
-    with timed_step(8, "EXAONE Korean story generation"):
+    with timed_step(8, "EXAONE Korean story generation", model="LGAI-EXAONE/EXAONE-4.0-1.2B HF"):
         import torch
 
         tokenizer, model = get_exaone_components()

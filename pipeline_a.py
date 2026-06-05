@@ -12,20 +12,14 @@ from typing import Any
 
 from evaluate import evaluate
 from generators import (
-    build_plan_json,
-    build_structured_json,
     generate_sequence_story_exaone_gguf,
-    generate_sequence_story_draft,
-    generate_story_draft,
     generate_story_en,
     generate_story_ko_exaone,
-    generate_prompt_twostep_short_story,
-    generate_structured_plan_exaone,
     generate_structured_plan_exaone_gguf,
-    polish_story_ko_exaone,
+    get_last_llama_runtime,
     translate_en_ko,
 )
-from utils import clear_vision_model_caches, timed_step
+from utils import clear_vision_model_caches, log_stage, timed_step
 from vision import recognize_with_steps
 
 
@@ -110,85 +104,7 @@ def run_experiment_a(
             "max_new_tokens": token_budget,
             "story_final": story_final,
         }
-    elif story_backend in {
-        "structured_template",
-        "structured_exaone",
-        "exaone_structured",
-        "exaone_gguf_structured",
-    }:
-        # 로컬 실행에 맞춰 구조화/기획/초안은 규칙 기반으로 만들고,
-        # exaone_structured 모드에서는 EXAONE을 BLIP 다음 구조화/기획에 한 번만 사용합니다.
-        # structured_exaone 모드에서는 마지막 문체 보정을 EXAONE에 맡깁니다.
-        story_en = ""
-        if story_backend == "exaone_structured":
-            token_budget = story_max_new_tokens or 180
-            clear_vision_model_caches()
-            structured_json, plan_json, exaone_structuring_raw = generate_structured_plan_exaone(
-                vision,
-                max_new_tokens=token_budget,
-            )
-            structuring_source = "EXAONE 구조화/기획"
-        elif story_backend == "exaone_gguf_structured":
-            token_budget = story_max_new_tokens or 180
-            clear_vision_model_caches()
-            structured_json, plan_json, exaone_structuring_raw = generate_structured_plan_exaone_gguf(
-                vision,
-                max_new_tokens=token_budget,
-            )
-            structuring_source = "EXAONE GGUF 구조화/기획"
-        else:
-            token_budget = 0
-            structured_json = build_structured_json(vision)
-            plan_json = build_plan_json(structured_json)
-            exaone_structuring_raw = ""
-            structuring_source = "규칙 기반 구조화"
-        steps["07_structured_json"] = {
-            "step": 7,
-            "name": structuring_source,
-            "output": "structured_json",
-            "max_new_tokens": token_budget,
-            "structured_json": structured_json,
-            "exaone_raw_response": exaone_structuring_raw,
-        }
-        steps["08_plan_json"] = {
-            "step": 8,
-            "name": (
-                "EXAONE 이야기 기획 생성"
-                if story_backend in {"exaone_structured", "exaone_gguf_structured"}
-                else "이야기 기획 생성"
-            ),
-            "output": "plan_json",
-            "plan_json": plan_json,
-        }
-        story_draft = generate_story_draft(structured_json, plan_json)
-        steps["09_story_draft"] = {
-            "step": 9,
-            "name": "한국어 동화 초안 생성",
-            "output": "story_draft",
-            "story_draft": story_draft,
-        }
-        if story_backend == "structured_exaone":
-            token_budget = story_max_new_tokens or 60
-            clear_vision_model_caches()
-            story_final = polish_story_ko_exaone(
-                story_draft,
-                structured_json,
-                plan_json,
-                max_new_tokens=token_budget,
-            )
-            finalizer = "EXAONE 문체 보정"
-        else:
-            token_budget = 0
-            story_final = story_draft
-            finalizer = "템플릿 초안 사용"
-        steps["10_story_final"] = {
-            "step": 10,
-            "name": finalizer,
-            "output": "story_final",
-            "max_new_tokens": token_budget,
-            "story_final": story_final,
-        }
-    else:
+    elif story_backend == "gpt2_nllb":
         # 2단계: vision 정보를 바탕으로 먼저 영어 동화를 생성합니다.
         token_budget = story_max_new_tokens or 200
         story_en = generate_story_en(vision, max_new_tokens=token_budget)
@@ -208,6 +124,9 @@ def run_experiment_a(
             "story_final": story_final,
         }
 
+    else:
+        raise ValueError(f"Unsupported Experiment A story backend: {story_backend}")
+
     with timed_step(10, "evaluation and JSON save"):
         # object 반영률과 기본 분량 지표를 계산해 실험 결과 비교에 사용합니다.
         metrics = evaluate(
@@ -215,19 +134,9 @@ def run_experiment_a(
             story_final,
             translate_objects=story_backend == "gpt2_nllb",
         )
-        evaluation_key = "11_evaluation" if story_backend in {
-            "structured_template",
-            "structured_exaone",
-            "exaone_structured",
-            "exaone_gguf_structured",
-        } else "09_evaluation"
+        evaluation_key = "09_evaluation"
         steps[evaluation_key] = {
-            "step": 11 if story_backend in {
-                "structured_template",
-                "structured_exaone",
-                "exaone_structured",
-                "exaone_gguf_structured",
-            } else 9,
+            "step": 9,
             "name": "평가 지표 계산",
             "output": "metrics",
             "metrics": metrics,
@@ -249,8 +158,8 @@ def run_experiment_a(
         _save_step_records(stage_dir, steps)
         _write_json(stage_dir / "run_record.json", run_record)
         _write_json(output_path, run_record)
-        print(f"[10] saved: {output_path}")
-        print(f"[10] step records saved: {stage_dir}")
+        log_stage(f"saved JSON: {output_path}", step=10, model="output")
+        log_stage(f"saved step records: {stage_dir}", step=10, model="output")
 
     return run_record
 
@@ -260,28 +169,16 @@ def _build_structured_for_backend(
     story_backend: str,
     story_max_new_tokens: int | None,
 ) -> tuple[dict[str, Any], dict[str, Any], str, int, str]:
-    """Build structured and plan JSON for one scene with the selected backend."""
-    if story_backend == "exaone_structured":
-        token_budget = story_max_new_tokens or 180
-        clear_vision_model_caches()
-        structured_json, plan_json, raw_response = generate_structured_plan_exaone(
-            vision,
-            max_new_tokens=token_budget,
-        )
-        return structured_json, plan_json, raw_response, token_budget, "EXAONE 구조화/기획"
-    if story_backend == "exaone_gguf_structured":
-        token_budget = story_max_new_tokens or 180
-        clear_vision_model_caches()
-        structured_json, plan_json, raw_response = generate_structured_plan_exaone_gguf(
-            vision,
-            max_new_tokens=token_budget,
-        )
-        return structured_json, plan_json, raw_response, token_budget, "EXAONE GGUF 구조화/기획"
-
-    structured_json = build_structured_json(vision)
-    plan_json = build_plan_json(structured_json)
-    return structured_json, plan_json, "", 0, "규칙 기반 구조화"
-
+    """Build structured and plan JSON for one scene with EXAONE GGUF."""
+    if story_backend != "exaone_gguf_structured":
+        raise ValueError(f"Experiment B requires EXAONE GGUF backend, got: {story_backend}")
+    token_budget = story_max_new_tokens or 700
+    clear_vision_model_caches()
+    structured_json, plan_json, raw_response = generate_structured_plan_exaone_gguf(
+        vision,
+        max_new_tokens=token_budget,
+    )
+    return structured_json, plan_json, raw_response, token_budget, "EXAONE GGUF ???/??"
 
 def run_sequence_story(
     image_dir: str = DEFAULT_SEQUENCE_DIR,
@@ -304,7 +201,7 @@ def run_sequence_story(
     scene_records: list[dict[str, Any]] = []
     sequence_steps: dict[str, Any] = {}
     for index, image_path in enumerate(image_paths, start=1):
-        print(f"[sequence] scene {index:02d}: {image_path.name}")
+        log_stage(f"scene {index:02d}: {image_path.name}", step=f"B-{index:02d}", model="BLIP/OpenCLIP")
         vision, vision_steps = recognize_with_steps(str(image_path), clip_threshold=clip_threshold)
         structured_json, plan_json, raw_response, token_budget, source = _build_structured_for_backend(
             vision,
@@ -317,7 +214,6 @@ def run_sequence_story(
             "vision": vision,
             "structured_json": structured_json,
             "plan_json": plan_json,
-            "story_draft": generate_story_draft(structured_json, plan_json),
             "structuring_source": source,
             "max_new_tokens": token_budget,
             "exaone_raw_response": raw_response,
@@ -329,24 +225,13 @@ def run_sequence_story(
             "scene_record": scene_record,
         }
 
-    story_draft = generate_sequence_story_draft(scene_records)
-    prompt_twostep: dict[str, str] = {}
-    if story_backend == "prompt_twostep_short":
-        prompt_twostep = generate_prompt_twostep_short_story(scene_records)
-        story_final = prompt_twostep["story_final"]
-        sequence_raw_response = ""
-        finalizer = "사용자 2단계 프롬프트 기반 3줄 동화"
-    elif story_backend == "exaone_gguf_structured":
-        story_final, sequence_raw_response = generate_sequence_story_exaone_gguf(
-            scene_records,
-            max_new_tokens=story_max_new_tokens
-            or min(3600, max(1200, len(scene_records) * 360)),
-        )
-        finalizer = "EXAONE GGUF 순서형 동화 작성"
-    else:
-        story_final = story_draft
-        sequence_raw_response = ""
-        finalizer = "순서형 템플릿 초안 사용"
+    story_final, sequence_raw_response = generate_sequence_story_exaone_gguf(
+        scene_records,
+        max_new_tokens=story_max_new_tokens
+        or min(3600, max(1200, len(scene_records) * 360)),
+    )
+    sequence_llama_runtime = get_last_llama_runtime()
+    finalizer = "EXAONE GGUF ?? ?? ??"
     output_path = out_dir / "sequence_story.json"
     text_output_path = out_dir / "sequence_story.txt"
     run_record = {
@@ -357,20 +242,19 @@ def run_sequence_story(
         "step_output_dir": str(stage_dir),
         "story_text_output": str(text_output_path),
         "scenes": scene_records,
-        "story_draft": story_draft,
         "story_final": story_final,
         "finalizer": finalizer,
         "sequence_exaone_raw_response": sequence_raw_response,
-        "prompt_twostep": prompt_twostep,
+        "sequence_llama_runtime": sequence_llama_runtime,
     }
 
     _save_step_records(stage_dir, sequence_steps)
     _write_json(stage_dir / "run_record.json", run_record)
     _write_json(output_path, run_record)
     _write_text(text_output_path, story_final)
-    print(f"[sequence] saved: {output_path}")
-    print(f"[sequence] story text saved: {text_output_path}")
-    print(f"[sequence] step records saved: {stage_dir}")
+    log_stage(f"saved JSON: {output_path}", step="B-save", model="output")
+    log_stage(f"saved story text: {text_output_path}", step="B-save", model="output")
+    log_stage(f"saved step records: {stage_dir}", step="B-save", model="output")
     return run_record
 
 
@@ -469,26 +353,16 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=(
             "gpt2_nllb",
             "exaone",
-            "structured_template",
-            "structured_exaone",
-            "exaone_structured",
-            "exaone_gguf_structured",
-            "prompt_twostep_short",
         ),
         default="gpt2_nllb",
-        help=(
-            "Story generator to use: GPT-2 + NLLB, direct EXAONE, "
-            "structured template, structured template + EXAONE polishing, "
-            "EXAONE structured planning + template, EXAONE GGUF structured planning + template, "
-            "or the user's two-step short prompt flow."
-        ),
+        help="Story generator to use: GPT-2 + NLLB or direct EXAONE.",
     )
     parser.add_argument(
         "--story-max-new-tokens",
         type=int,
         help=(
             "Override story generation token budget. Defaults: 200 for gpt2_nllb, "
-            "60 for exaone/structured_exaone, 180 for exaone_structured/exaone_gguf_structured."
+            "60 for exaone."
         ),
     )
     return parser

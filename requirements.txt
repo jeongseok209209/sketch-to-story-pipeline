@@ -1,5 +1,5 @@
-torch
-transformers>=4.54.0
+torch>=2.6
+transformers>=4.54.0,<5
 open_clip_torch
 Pillow
 sentencepiece
