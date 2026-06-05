@@ -8,7 +8,7 @@ import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from generators import _run_exaone_gguf_prompt, get_last_llama_runtime
 from utils import (
@@ -83,6 +83,31 @@ def _prompt(index: int) -> str:
         "반드시 한국어 JSON만 출력하세요. 마크다운과 영어 설명은 쓰지 마세요.\n"
         "확실하지 않은 대상은 '~처럼 보임'이라고 적고 억지로 단정하지 마세요.\n"
         "그림 속 인물, 동물, 사물, 위치, 색감, 표정, 분위기를 근거로 설명하세요.\n"
+        f"이 이미지는 전체 이야기의 {index}번째 그림입니다.\n\n"
+        "{\n"
+        '  "scene_summary": "그림에 보이는 내용을 아이도 이해할 수 있게 2문장으로 설명",\n'
+        '  "characters": ["사람/동물/말하는 사물"],\n'
+        '  "objects": ["중요한 사물"],\n'
+        '  "setting": "장소 또는 배경",\n'
+        '  "mood": "밝음/쓸쓸함/신비로움/조심스러움 등",\n'
+        '  "emotion": "주인공이 느낄 법한 감정",\n'
+        '  "story_role": "이 그림이 이야기에서 맡을 역할",\n'
+        '  "uncertain": "확실하지 않은 부분"\n'
+        "}"
+    )
+
+
+def _prompt_e_visual_cot(index: int) -> str:
+    return (
+        "당신은 아이 손그림을 동화 장면으로 읽는 시각 인식 모델입니다.\n"
+        "반드시 한국어 JSON만 출력하세요. 마크다운과 영어 설명은 쓰지 마세요.\n"
+        "먼저 내부적으로 인물/동물/사물, 색/위치/행동, 확실한 단서와 불확실한 단서를 점검하세요.\n"
+        "단, 이 점검 과정은 출력하지 말고 최종 JSON 필드에만 반영하세요.\n"
+        "확실하지 않은 대상은 '~처럼 보임'이라고 적고 억지로 단정하지 마세요.\n"
+        "동물의 종류가 확실하지 않으면 토끼, 새, 뱀처럼 단정하지 말고 '동물'이라고 쓰세요.\n"
+        "그림 속 인물, 동물, 사물, 위치, 색감, 표정, 분위기를 근거로 설명하세요.\n"
+        "scene_summary는 보이는 내용만 짧게 1~2문장으로 설명하세요.\n"
+        "최종 출력은 한국어 JSON 객체 하나만 출력하세요.\n"
         f"이 이미지는 전체 이야기의 {index}번째 그림입니다.\n\n"
         "{\n"
         '  "scene_summary": "그림에 보이는 내용을 아이도 이해할 수 있게 2문장으로 설명",\n'
@@ -191,7 +216,14 @@ def _normalize_scene(index: int, image_path: Path, payload: dict[str, Any], raw:
     }
 
 
-def _run_qwen_scene(model: Any, processor: Any, image_path: Path, index: int) -> dict[str, Any]:
+def _run_qwen_scene(
+    model: Any,
+    processor: Any,
+    image_path: Path,
+    index: int,
+    prompt_builder: Callable[[int], str] = _prompt,
+    max_new_tokens: int = 220,
+) -> dict[str, Any]:
     import torch
     from qwen_vl_utils import process_vision_info
 
@@ -201,7 +233,7 @@ def _run_qwen_scene(model: Any, processor: Any, image_path: Path, index: int) ->
             "role": "user",
             "content": [
                 {"type": "image", "image": str(qwen_image_path.resolve())},
-                {"type": "text", "text": _prompt(index)},
+                {"type": "text", "text": prompt_builder(index)},
             ],
         }
     ]
@@ -211,7 +243,7 @@ def _run_qwen_scene(model: Any, processor: Any, image_path: Path, index: int) ->
     if torch.cuda.is_available():
         inputs = inputs.to("cuda")
     with torch.inference_mode():
-        generated = model.generate(**inputs, max_new_tokens=220, do_sample=False)
+        generated = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
     trimmed = [out[len(inp) :] for inp, out in zip(inputs.input_ids, generated)]
     raw = processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
     return _normalize_scene(index, image_path, _extract_json(raw), raw)
@@ -358,6 +390,282 @@ def _run_exaone_experiment(
     }
 
 
+def _build_e_scene_prompt(scene: dict[str, Any]) -> str:
+    scene_index = int(scene.get("scene_index", 0))
+    return (
+        "실험 E: 아래 Qwen 장면 JSON 하나만 보고, 해당 그림에 맞는 한국어 동화 문단을 작성하세요.\n"
+        "이전 장면이나 다음 장면은 추측하지 마세요. 현재 장면에 보이는 단서만 사용하세요.\n"
+        "story_sentence는 아이가 읽기 쉬운 한국어 3~5문장으로 쓰세요. 가능하면 정확히 3문장으로 쓰세요.\n"
+        "\"해당하는 문단\", \"동화 문장\", \"...\" 같은 placeholder나 형식 설명 문구를 쓰지 마세요.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        f"출력 JSON은 scene_index와 story_sentence 두 키만 포함하고, scene_index 값은 {scene_index}이어야 합니다.\n\n"
+        f"scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _build_e_scene_repair_prompt(raw_response: str, scene: dict[str, Any]) -> str:
+    scene_index = int(scene["scene_index"])
+    return (
+        "You are a strict JSON repair tool. Convert the model response below into one valid JSON object only.\n"
+        "Do not add markdown. Do not explain. Do not include any text before or after JSON.\n"
+        "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
+        f"scene_index must be {scene_index}.\n"
+        "story_sentence must be real Korean fairy-tale prose with exactly 3 short sentences.\n"
+        "If the original response has fewer than 3 sentences, expand it to exactly 3 sentences using only the scene context.\n"
+        "Do not use placeholders such as 해당하는 문단, 동화 문장, or ....\n"
+        "Required shape:\n"
+        "{\n"
+        f'  "scene_index": {scene_index},\n'
+        '  "story_sentence": ""\n'
+        "}\n\n"
+        f"SCENE_CONTEXT:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
+
+
+def _looks_like_placeholder(value: str) -> bool:
+    text = value.strip()
+    if not text:
+        return True
+    placeholder_patterns = (
+        "해당하는 문단",
+        "동화 문장",
+        "실제 동화 문단",
+        "짧은 한국어 동화 제목",
+        "story_sentence",
+        "placeholder",
+        "...",
+    )
+    return any(pattern in text for pattern in placeholder_patterns)
+
+
+def _sentence_mark_count(value: str) -> int:
+    return len(re.findall(r"[.!?。！？]", value))
+
+
+def _scene_story_from_payload(
+    payload: dict[str, Any],
+    expected_index: int,
+    *,
+    enforce_sentence_count: bool = True,
+) -> dict[str, Any]:
+    scene_index = int(payload.get("scene_index") or expected_index)
+    if scene_index != expected_index:
+        raise ValueError(f"EXAONE scene_index mismatch: expected {expected_index}, got {scene_index}")
+    story_sentence = str(payload.get("story_sentence") or "").strip()
+    if _looks_like_placeholder(story_sentence):
+        raise ValueError(f"EXAONE scene {expected_index} returned placeholder or empty story_sentence.")
+    if enforce_sentence_count:
+        sentence_count = _sentence_mark_count(story_sentence)
+        if not 3 <= sentence_count <= 5:
+            raise ValueError(
+                f"EXAONE scene {expected_index} story_sentence must contain 3 to 5 sentences, got {sentence_count}."
+            )
+    return {"scene_index": scene_index, "story_sentence": story_sentence}
+
+
+def _extract_scene_story_json(
+    text: str,
+    expected_index: int,
+    *,
+    enforce_sentence_count: bool = True,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    candidates = _json_object_candidates(text)
+    if not candidates:
+        raise ValueError("EXAONE response did not contain a JSON object.")
+    last_error: Exception | None = None
+    for candidate in reversed(candidates):
+        try:
+            payload = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            continue
+        if not isinstance(payload, dict):
+            last_error = ValueError("EXAONE JSON response was not an object.")
+            continue
+        try:
+            parsed = _scene_story_from_payload(
+                payload,
+                expected_index,
+                enforce_sentence_count=enforce_sentence_count,
+            )
+        except (ValueError, TypeError) as exc:
+            last_error = exc
+            continue
+        return payload, parsed
+    if last_error:
+        raise last_error
+    raise ValueError("EXAONE response did not contain valid scene JSON.")
+
+
+def _extract_title_json(text: str) -> tuple[dict[str, Any], str]:
+    candidates = _json_object_candidates(text)
+    if not candidates:
+        raise ValueError("EXAONE response did not contain a JSON object.")
+    last_error: Exception | None = None
+    for candidate in reversed(candidates):
+        try:
+            payload = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            continue
+        if not isinstance(payload, dict):
+            last_error = ValueError("EXAONE JSON response was not an object.")
+            continue
+        title = str(payload.get("title") or "").strip()
+        if title and not _looks_like_placeholder(title):
+            return payload, title
+        last_error = ValueError("EXAONE title JSON had no usable title.")
+    if last_error:
+        raise last_error
+    raise ValueError("EXAONE response did not contain valid title JSON.")
+
+
+def _run_exaone_scene_story(scene: dict[str, Any], max_new_tokens: int = 350) -> dict[str, Any]:
+    scene_index = int(scene["scene_index"])
+    prompt = _build_e_scene_prompt(scene)
+    with timed_step(
+        f"EXAONE-{scene_index:02d}",
+        f"Experiment_E scene {scene_index} EXAONE GGUF generation",
+        experiment="Experiment_E",
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+    ):
+        raw_response = _run_exaone_gguf_prompt(
+            prompt,
+            max_new_tokens=max_new_tokens,
+            timeout=300,
+            context_size=4096,
+        )
+    json_repair_used = False
+    try:
+        payload, parsed = _extract_scene_story_json(raw_response, scene_index)
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        repair_prompt = _build_e_scene_repair_prompt(raw_response, scene)
+        with timed_step(
+            f"EXAONE-{scene_index:02d}-repair",
+            f"Experiment_E scene {scene_index} EXAONE JSON repair",
+            experiment="Experiment_E",
+            model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        ):
+            repair_response = _run_exaone_gguf_prompt(
+                repair_prompt,
+                max_new_tokens=max_new_tokens,
+                timeout=300,
+                context_size=4096,
+            )
+        json_repair_used = True
+        try:
+            payload, parsed = _extract_scene_story_json(
+                repair_response,
+                scene_index,
+                enforce_sentence_count=False,
+            )
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            raise RuntimeError(
+                f"EXAONE scene {scene_index} did not return valid scene JSON, and JSON repair also failed. "
+                f"initial_error={exc}; repair_error={repair_exc}; "
+                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+            ) from repair_exc
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
+    return {
+        "scene_index": scene_index,
+        "prompt": prompt,
+        "raw_response": raw_response,
+        "parsed_result": parsed,
+        "json_repair_used": json_repair_used,
+        "llama_runtime": get_last_llama_runtime(),
+    }
+
+
+def _build_e_title_prompt(body: str) -> str:
+    return (
+        "아래 한국어 동화 전체 본문을 읽고 짧은 한국어 제목 하나를 만드세요.\n"
+        "제목은 15자 이내가 좋고, 따뜻한 어린이 동화 느낌이어야 합니다.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        "{\n"
+        '  "title": "짧은 한국어 동화 제목"\n'
+        "}\n\n"
+        f"story_body:\n{body}\n"
+    )
+
+
+def _generate_e_title(body: str, default_title: str = "그림 속 작은 이야기") -> dict[str, Any]:
+    prompt = _build_e_title_prompt(body)
+    with timed_step(
+        "EXAONE-title",
+        "Experiment_E EXAONE title generation",
+        experiment="Experiment_E",
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+    ):
+        raw_response = _run_exaone_gguf_prompt(
+            prompt,
+            max_new_tokens=120,
+            timeout=120,
+            context_size=4096,
+        )
+    title = default_title
+    parse_error = ""
+    try:
+        payload, title = _extract_title_json(raw_response)
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        parse_error = str(exc)
+        payload = {}
+    return {
+        "prompt": prompt,
+        "raw_response": raw_response,
+        "parsed_result": payload,
+        "title": title,
+        "fallback_used": title == default_title,
+        "parse_error": parse_error,
+        "llama_runtime": get_last_llama_runtime(),
+    }
+
+
+def _run_exaone_per_scene_experiment(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+    _ensure_exaone_gguf_available()
+    ordered_scenes = sorted(scenes, key=lambda item: int(item["scene_index"]))
+    scene_results = [_run_exaone_scene_story(scene) for scene in ordered_scenes]
+    scene_sentences = [item["parsed_result"]["story_sentence"] for item in scene_results]
+    body = "\n\n".join(scene_sentences)
+    title_result = _generate_e_title(body)
+    json_repair_used = any(item["json_repair_used"] for item in scene_results)
+    return {
+        "prompt_strategy": "per_scene_exaone_then_title",
+        "exaone_prompt": [item["prompt"] for item in scene_results],
+        "exaone_raw_response": "\n\n".join(
+            f"[scene {item['scene_index']}]\n{item['raw_response']}" for item in scene_results
+        )
+        + f"\n\n[title]\n{title_result['raw_response']}",
+        "llama_runtime": title_result.get("llama_runtime") or get_last_llama_runtime(),
+        "parsed_result": {
+            "scene_results": [item["parsed_result"] for item in scene_results],
+            "title_result": title_result["parsed_result"],
+            "title_fallback_used": title_result["fallback_used"],
+        },
+        "json_repair_used": json_repair_used,
+        "story": {
+            "title": title_result["title"],
+            "body": body,
+            "scene_sentences": scene_sentences,
+            "grounding_notes": [],
+        },
+        "structure": {
+            "mode": "per_scene_exaone",
+            "scene_count": len(ordered_scenes),
+            "exaone_scene_calls": len(scene_results),
+            "exaone_title_calls": 1,
+        },
+        "plan": {
+            "method": "Qwen scene JSON -> EXAONE per-scene paragraphs -> code joins body -> EXAONE title",
+            "scene_order": [scene["image_id"] for scene in ordered_scenes],
+            "scene_max_new_tokens": 350,
+            "title_max_new_tokens": 120,
+        },
+        "experiment_method": "Experiment_E",
+    }
+
+
 def _build_json_repair_prompt(raw_response: str, scene_count: int) -> str:
     return (
         "You are a strict JSON repair tool. Convert the model response below into one valid JSON object only.\n"
@@ -428,9 +736,14 @@ def _prompt_d(scenes: list[dict[str, Any]]) -> str:
 def _prompt_e(scenes: list[dict[str, Any]]) -> str:
     compact_scenes = [_compact_scene(scene) for scene in scenes]
     return (
-        "실험 E: 전체 장면을 처음부터 하나의 이야기 맥락으로 강하게 연결하세요.\n"
-        "전략: 장면별 묘사보다 전체 감정 흐름, 원인-결과 연결, 반복되는 등장 요소의 일관성을 먼저 설계한 뒤 씁니다.\n"
-        "다만 현재 그림에 없는 내용을 과하게 꾸며 넣지 말고 Qwen scene 단서를 우선하세요.\n"
+        "실험 E: 먼저 내부적으로 다음 단계를 수행하세요. 단, 이 단계별 생각은 출력하지 마세요.\n"
+        "1) 각 scene_index별 핵심 시각 단서 1개를 고르세요.\n"
+        "2) 10개 장면의 이야기 흐름을 정하세요.\n"
+        "3) 각 장면마다 scene_sentences를 정확히 1개씩 작성하세요.\n"
+        "4) scene_sentences가 정확히 10개인지 확인하세요.\n"
+        "5) 제목, 본문, 장면 문장에 \"해당하는 문단\" 같은 placeholder가 없는지 확인하세요.\n"
+        "최종 출력은 JSON 객체 하나만 출력하세요.\n"
+        "현재 그림에 없는 내용을 과하게 꾸며 넣지 말고 Qwen scene 단서를 우선하세요.\n"
         "어떤 이전 실험 결과도 참조하지 마세요.\n\n"
         f"{_base_json_instruction()}\n"
         f"scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n"
@@ -474,13 +787,8 @@ def build_experiment_d(scenes: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def build_experiment_e(scenes: list[dict[str, Any]]) -> dict[str, Any]:
-    """Experiment E: independent global coherence-first prompting."""
-    return _run_exaone_experiment(
-        "Experiment_E",
-        "global_context_emotion_flow_first",
-        _prompt_e(scenes),
-        scenes,
-    )
+    """Experiment E: generate each scene paragraph independently, then title the joined story."""
+    return _run_exaone_per_scene_experiment(scenes)
 
 
 def build_experiment_f(scenes: list[dict[str, Any]]) -> dict[str, Any]:
@@ -607,6 +915,8 @@ def _ensure_scenes(
     common_output_dir: Path = COMMON_OUTPUT_DIR,
     shared_dir: Path = SHARED_DIR,
     resized_dir: Path = RESIZED_DIR,
+    prompt_builder: Callable[[int], str] = _prompt,
+    qwen_max_new_tokens: int = 220,
 ) -> list[dict[str, Any]]:
     global RESIZED_DIR
 
@@ -642,7 +952,14 @@ def _ensure_scenes(
     for index, image_path in enumerate(images, start=1):
         log_stage(f"scene {index}: {image_path.name}", step=f"Qwen-{index:02d}", model=VISION_MODEL_ID)
         with timed_step(f"Qwen-{index:02d}", "Qwen scene JSON recognition", model=VISION_MODEL_ID):
-            scene = _run_qwen_scene(model, processor, image_path, index)
+            scene = _run_qwen_scene(
+                model,
+                processor,
+                image_path,
+                index,
+                prompt_builder=prompt_builder,
+                max_new_tokens=qwen_max_new_tokens,
+            )
         scenes.append(scene)
         scenes.sort(key=lambda item: int(item["scene_index"]))
         scenes_path.write_text(json.dumps(scenes, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -672,11 +989,15 @@ def prepare_qwen_scenes_for_experiment(
     common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story"
     shared_dir = common_output_dir / "scene_descriptions"
     resized_dir = common_output_dir / "_resized_input"
+    prompt_builder = _prompt_e_visual_cot if key == "e" else _prompt
+    qwen_max_new_tokens = 240 if key == "e" else 220
     return _ensure_scenes(
         input_dir=input_dir,
         common_output_dir=common_output_dir,
         shared_dir=shared_dir,
         resized_dir=resized_dir,
+        prompt_builder=prompt_builder,
+        qwen_max_new_tokens=qwen_max_new_tokens,
     )
 
 
