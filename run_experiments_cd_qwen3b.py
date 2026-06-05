@@ -41,7 +41,14 @@ H_REFINEMENT_MAX_NEW_TOKENS = 450
 I_REFINEMENT_MAX_NEW_TOKENS = 500
 I_ENDING_MAX_NEW_TOKENS = 500
 I_CLEANUP_MAX_NEW_TOKENS = 300
-I_QUALITY_GATES = ("english", "meta_language", "caption_repetition", "ending")
+I_QUALITY_GATES = (
+    "repetition",
+    "caption_overuse",
+    "english",
+    "meta_language",
+    "sentence_count",
+    "ending",
+)
 
 
 def _snapshot_dir(model_cache: Path | str) -> Path | str:
@@ -633,6 +640,52 @@ def _story_caption_from_scene(scene: dict[str, Any]) -> str:
     return str(scene.get("_story_caption") or "").strip()
 
 
+def _i_scene_position_role(scene_index: int) -> str:
+    if scene_index == 1:
+        return (
+            "opening: introduce the main presence, place, and mood. "
+            "Do not rush into a large event."
+        )
+    if scene_index in (2, 3):
+        return (
+            "early story: show a small interest, action, meeting, or situation beginning. "
+            "Keep it grounded in this drawing."
+        )
+    if 4 <= scene_index <= 6:
+        return (
+            "middle story: let something already noticed or started move, grow, or change a little. "
+            "Do not force a specific plot."
+        )
+    if 7 <= scene_index <= 9:
+        return (
+            "late story: show a result, response, or movement toward closure. "
+            "Avoid starting a brand-new problem."
+        )
+    if scene_index == 10:
+        return (
+            "ending: close the story warmly without starting a new event. "
+            "Leave calm afterglow."
+        )
+    return "middle story: keep the scene connected but grounded in the current drawing."
+
+
+def _weak_story_direction(story_caption: str) -> str:
+    text = story_caption.strip()
+    hints: list[str] = []
+    if re.search(r"어두|무서|길\s*잃|외롭|슬프|걱정", text):
+        hints.append("A gentle movement from uncertainty toward comfort may fit the whole story.")
+    if re.search(r"도와|함께|친구|나누|구해|돌봐", text):
+        hints.append("Kindness or togetherness may matter if the current drawing supports it.")
+    if re.search(r"찾|발견|만나|얻", text):
+        hints.append("A small discovery or meeting may feel meaningful if it is visible or naturally implied.")
+    if re.search(r"자라|키우|만들|변하|커지", text):
+        hints.append("A small change may gradually grow across the story if the drawings support it.")
+    if not hints:
+        hints.append("Keep a gentle, coherent picture-book arc across the ten scenes.")
+    hints.append("Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.")
+    return " ".join(hints[:3])
+
+
 def _build_h_scene_prompt(scene: dict[str, Any]) -> str:
     scene_index = int(scene.get("scene_index", 0))
     return (
@@ -740,7 +793,8 @@ def _build_h_refinement_repair_prompt(raw_response: str, scene: dict[str, Any]) 
 
 def _build_i_caption_initial_scene_prompt(scene: dict[str, Any]) -> str:
     scene_index = int(scene.get("scene_index", 0))
-    story_caption = _story_caption_from_scene(scene)
+    weak_direction = str(scene.get("_weak_story_direction") or _weak_story_direction(_story_caption_from_scene(scene)))
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = ""
     if scene_index == 10:
         ending_instruction = (
@@ -750,27 +804,28 @@ def _build_i_caption_initial_scene_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\n"
         "Write one Korean fairy-tale paragraph for the current scene JSON.\n"
-        "Use optional_story_hint only as a very weak whole-story direction check.\n"
-        "optional_story_hint is not scene content, not required vocabulary, and not a plot checklist.\n"
-        "Do not use optional_story_hint's main nouns or expressions unless the current scene JSON directly supports them.\n"
-        "A good paragraph may contain none of the optional_story_hint words.\n"
-        "Priority: current scene JSON > scene position nuance > optional_story_hint.\n"
+        "Use scene_position_role only to control the story rhythm, not to force plot events.\n"
+        "Use weak_story_direction only as a broad consistency hint.\n"
+        "weak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\n"
+        "Do not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\n"
+        "A good paragraph may contain none of the caption words.\n"
+        "Priority: current scene JSON > scene_position_role > weak_story_direction.\n"
         f"{ending_instruction}"
-        "Use only the current scene JSON, scene position nuance, and very weak optional_story_hint direction.\n"
+        "Use scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\n"
         "Internally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\n"
-        f"Scene position nuance: {_g_scene_position_hint(scene_index)}\n"
-        "Scene 1 should feel like a beginning. Scene 10 should feel like a warm ending. Scenes 2-9 should read as middle scenes in order.\n"
-        "story_sentence must be Korean fairy-tale prose with 3 to 5 short sentences, preferably exactly 3 sentences.\n"
+        f"scene_position_role:\n{position_role}\n\n"
+        f"weak_story_direction:\n{weak_direction}\n\n"
+        "story_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\n"
         "Do not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\n"
         "Output exactly one JSON object only. Do not add markdown, explanations, or code fences.\n"
         f"The JSON must contain only scene_index and story_sentence, and scene_index must be {scene_index}.\n\n"
-        f"optional_story_hint:\n{story_caption}\n\n"
         f"scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
     )
 
 
 def _build_i_caption_initial_scene_repair_prompt(raw_response: str, scene: dict[str, Any]) -> str:
     scene_index = int(scene["scene_index"])
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = ""
     if scene_index == 10:
         ending_instruction = "This is the last scene. Make story_sentence feel like a warm ending, not a new event.\n"
@@ -782,8 +837,9 @@ def _build_i_caption_initial_scene_repair_prompt(raw_response: str, scene: dict[
         f"scene_index must be {scene_index}.\n"
         f"{ending_instruction}"
         "Do not use story_caption or any external caption in this repair.\n"
+        f"scene_position_role: {position_role}\n"
         "Use the current scene context as the main evidence.\n"
-        "If possible, make story_sentence exactly 3 short Korean fairy-tale sentences.\n"
+        "If possible, make story_sentence exactly 3 short Korean fairy-tale sentences. At minimum, avoid a one-sentence result.\n"
         "Do not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\n"
         "Required shape:\n"
         "{\n"
@@ -800,6 +856,7 @@ def _build_i_sequential_refinement_prompt(scene: dict[str, Any]) -> str:
     scene_index = int(scene["scene_index"])
     previous_sentence = str(scene.get("_g_previous_sentence") or "").strip()
     initial_sentence = str(scene.get("_g_initial_sentence") or "").strip()
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = ""
     if scene_index == 10:
         ending_instruction = (
@@ -810,16 +867,20 @@ def _build_i_sequential_refinement_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\n"
         "Rewrite only the current scene paragraph as gentle Korean fairy-tale prose.\n"
-        "Use the previous final paragraph, the current initial paragraph, and the current scene JSON.\n"
+        "Use the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\n"
         "Do not use story_caption in this second pass.\n"
         f"{ending_instruction}"
-        "Connect naturally after the previous final paragraph while staying grounded in the current drawing.\n"
+        "The previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\n"
+        "Connect naturally after it while staying grounded in the current drawing.\n"
+        "Reflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\n"
+        "Use scene_position_role only for rhythm and story function, not to force a plot event.\n"
         "Use soft sensory details, natural emotional flow, and short rhythmic sentences.\n"
         "Avoid report-like, explanatory, evaluative, or stiff wording.\n"
         "Do not add events or objects that are not supported by the current scene JSON.\n"
-        "story_sentence must be Korean fairy-tale prose with 3 to 5 short sentences, preferably exactly 3 sentences.\n"
+        "story_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\n"
         "Output exactly one JSON object only. Do not add markdown, explanations, or code fences.\n"
         f"The JSON must contain only scene_index and story_sentence, and scene_index must be {scene_index}.\n\n"
+        f"scene_position_role:\n{position_role}\n\n"
         f"previous_final_story_sentence:\n{previous_sentence}\n\n"
         f"current_initial_story_sentence:\n{initial_sentence}\n\n"
         f"current_scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
@@ -830,6 +891,7 @@ def _build_i_sequential_refinement_repair_prompt(raw_response: str, scene: dict[
     scene_index = int(scene["scene_index"])
     previous_sentence = str(scene.get("_g_previous_sentence") or "").strip()
     initial_sentence = str(scene.get("_g_initial_sentence") or "").strip()
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = ""
     if scene_index == 10:
         ending_instruction = (
@@ -844,8 +906,11 @@ def _build_i_sequential_refinement_repair_prompt(raw_response: str, scene: dict[
         f"scene_index must be {scene_index}.\n"
         f"{ending_instruction}"
         "Do not use story_caption in this repair.\n"
+        f"scene_position_role: {position_role}\n"
         "The revised story_sentence should connect naturally after the previous final sentence while staying grounded in the current scene.\n"
-        "If possible, make story_sentence exactly 3 short, warm Korean fairy-tale sentences.\n"
+        "Do not copy the previous sentence's expressions, motifs, sentence shape, or visual details.\n"
+        "Include at least one current-scene visual clue.\n"
+        "If possible, make story_sentence exactly 3 short, warm Korean fairy-tale sentences. At minimum, avoid a one-sentence result.\n"
         "Required shape:\n"
         "{\n"
         f'  "scene_index": {scene_index},\n'
@@ -1162,6 +1227,7 @@ def _build_i_captionless_cleanup_prompt(scene: dict[str, Any]) -> str:
     current_sentence = str(scene.get("_i_current_sentence") or "").strip()
     reasons = scene.get("_i_quality_reasons") or []
     reason_text = ", ".join(str(reason) for reason in reasons)
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = ""
     if bool(scene.get("_i_ending_scene")):
         ending_instruction = (
@@ -1177,9 +1243,13 @@ def _build_i_captionless_cleanup_prompt(scene: dict[str, Any]) -> str:
         "Remove meta or analysis language such as '이 장면은', '그림에는', scene, mood, emotion, story_role, or story_sentence.\n"
         "Do not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\n"
         "The current scene JSON and previous final sentence are the main sources.\n"
+        "Do not copy the previous final sentence. Use at least one concrete visual clue from the current scene JSON.\n"
+        "Use scene_position_role only for story rhythm, not as a plot requirement.\n"
         "Keep the paragraph warm, concrete, and easy for a child to read.\n"
+        "story_sentence must contain 2 to 5 short Korean sentences, preferably exactly 3.\n"
         "Output exactly one JSON object only with scene_index and story_sentence.\n"
         f"scene_index must be {scene_index}.\n\n"
+        f"scene_position_role:\n{position_role}\n\n"
         f"previous_final_story_sentence:\n{previous_sentence}\n\n"
         f"current_story_sentence:\n{current_sentence}\n\n"
         f"current_scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
@@ -1192,6 +1262,7 @@ def _build_i_captionless_cleanup_repair_prompt(raw_response: str, scene: dict[st
     previous_sentence = str(scene.get("_i_previous_sentence") or "").strip()
     reasons = scene.get("_i_quality_reasons") or []
     reason_text = ", ".join(str(reason) for reason in reasons)
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
     ending_instruction = "If this is scene 10, make it a warm ending with afterglow.\n" if bool(scene.get("_i_ending_scene")) else ""
     return (
         "You are a strict JSON repair tool and Korean fairy-tale cleanup writer.\n"
@@ -1202,6 +1273,9 @@ def _build_i_captionless_cleanup_repair_prompt(raw_response: str, scene: dict[st
         f"{ending_instruction}"
         "story_sentence must be Korean only, with no English words or meta/analysis language.\n"
         "Do not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\n"
+        f"scene_position_role: {position_role}\n"
+        "Do not copy the previous final sentence. Use current-scene visual clues.\n"
+        "Avoid a one-sentence result.\n"
         "Required shape:\n"
         "{\n"
         f'  "scene_index": {scene_index},\n'
@@ -1209,6 +1283,60 @@ def _build_i_captionless_cleanup_repair_prompt(raw_response: str, scene: dict[st
         "}\n\n"
         f"PREVIOUS_FINAL_STORY_SENTENCE:\n{previous_sentence}\n\n"
         f"CURRENT_STORY_SENTENCE:\n{current_sentence}\n\n"
+        f"CURRENT_SCENE_CONTEXT:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
+
+
+def _build_i_ending_cleanup_prompt(scene: dict[str, Any]) -> str:
+    scene_index = int(scene["scene_index"])
+    previous_sentence = str(scene.get("_i_previous_sentence") or "").strip()
+    current_sentence = str(scene.get("_i_current_sentence") or "").strip()
+    reasons = scene.get("_i_quality_reasons") or []
+    reason_text = ", ".join(str(reason) for reason in reasons)
+    position_role = str(scene.get("_scene_position_role") or _i_scene_position_role(scene_index))
+    return (
+        "Experiment I ending cleanup: You are a warm Korean children's fairy-tale writer.\n"
+        "Rewrite only scene 10 as the ending paragraph of the whole story.\n"
+        f"Ending cleanup reasons: {reason_text}\n"
+        "Do not use story_caption in this ending cleanup.\n"
+        "Do not start a new event, new goal, new discovery, or new problem.\n"
+        "Close the flow from the previous final paragraph with warmth, comfort, and afterglow.\n"
+        "Show that at least one person, place, or nearby being has become calm or safe.\n"
+        "Do not list visible objects one by one. Use the current scene JSON as grounding.\n"
+        "The last sentence should feel like a gentle closing line.\n"
+        "story_sentence must contain 2 to 5 short Korean sentences, preferably exactly 3.\n"
+        "Output exactly one JSON object only with scene_index and story_sentence.\n"
+        "scene_index must be 10.\n\n"
+        f"scene_position_role:\n{position_role}\n\n"
+        f"previous_final_story_sentence:\n{previous_sentence}\n\n"
+        f"current_scene_10_story_sentence:\n{current_sentence}\n\n"
+        f"current_scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _build_i_ending_cleanup_repair_prompt(raw_response: str, scene: dict[str, Any]) -> str:
+    previous_sentence = str(scene.get("_i_previous_sentence") or "").strip()
+    current_sentence = str(scene.get("_i_current_sentence") or "").strip()
+    reasons = scene.get("_i_quality_reasons") or []
+    reason_text = ", ".join(str(reason) for reason in reasons)
+    return (
+        "You are a strict JSON repair tool and Korean fairy-tale ending editor.\n"
+        "Return one valid JSON object only. No markdown. No explanation.\n"
+        "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
+        "scene_index must be 10.\n"
+        f"Ending cleanup reasons: {reason_text}\n"
+        "Do not use story_caption in this repair.\n"
+        "story_sentence must close the story warmly without starting a new event.\n"
+        "Avoid a one-sentence result. Use Korean only, with no meta/analysis language.\n"
+        "Required shape:\n"
+        "{\n"
+        '  "scene_index": 10,\n'
+        '  "story_sentence": ""\n'
+        "}\n\n"
+        f"PREVIOUS_FINAL_STORY_SENTENCE:\n{previous_sentence}\n\n"
+        f"CURRENT_SCENE_10_STORY_SENTENCE:\n{current_sentence}\n\n"
         f"CURRENT_SCENE_CONTEXT:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n\n"
         "MODEL_RESPONSE_TO_REPAIR:\n"
         f"{raw_response}\n"
@@ -1427,6 +1555,76 @@ def _quality_gate_reasons(
     if _has_meta_language(value) or _looks_like_placeholder(value):
         reasons.append("meta_language")
     reasons.extend(_caption_repetition_reasons(value, scene, story_caption, caption_usage_counts))
+    if check_ending:
+        reasons.extend(_ending_quality_reasons_for_gate(value))
+    return list(dict.fromkeys(reasons))
+
+
+def _similarity_tokens(value: str) -> set[str]:
+    return set(re.findall(r"[가-힣A-Za-z0-9]{2,}", value.lower()))
+
+
+def _i_repetition_reasons(value: str, previous_sentence: str) -> list[str]:
+    if not previous_sentence:
+        return []
+    current = re.sub(r"\s+", " ", value).strip()
+    previous = re.sub(r"\s+", " ", previous_sentence).strip()
+    if not current or not previous:
+        return []
+    if current == previous:
+        return ["repetition"]
+    if len(current) > 24 and (current in previous or previous in current):
+        return ["repetition"]
+    current_tokens = _similarity_tokens(current)
+    previous_tokens = _similarity_tokens(previous)
+    if len(current_tokens) < 5 or len(previous_tokens) < 5:
+        return []
+    overlap = len(current_tokens & previous_tokens) / max(1, min(len(current_tokens), len(previous_tokens)))
+    if overlap >= 0.7:
+        return ["repetition"]
+    return []
+
+
+def _i_sentence_count_reasons(value: str) -> list[str]:
+    sentence_count = _sentence_mark_count(value)
+    if sentence_count < 2:
+        return ["sentence_count"]
+    return []
+
+
+def _i_caption_overuse_reasons(
+    value: str,
+    scene: dict[str, Any],
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+) -> list[str]:
+    for keyword in _caption_keywords_for_gate(story_caption):
+        if keyword not in value:
+            continue
+        if not _scene_supports_keyword(scene, keyword):
+            return ["caption_overuse"]
+        if caption_usage_counts.get(keyword, 0) >= 2:
+            return ["caption_overuse"]
+    return []
+
+
+def _i_quality_gate_reasons(
+    value: str,
+    scene: dict[str, Any],
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+    *,
+    previous_sentence: str = "",
+    check_ending: bool = False,
+) -> list[str]:
+    reasons: list[str] = []
+    reasons.extend(_i_repetition_reasons(value, previous_sentence))
+    reasons.extend(_i_caption_overuse_reasons(value, scene, story_caption, caption_usage_counts))
+    if _english_words(value):
+        reasons.append("english")
+    if _has_meta_language(value) or _looks_like_placeholder(value):
+        reasons.append("meta_language")
+    reasons.extend(_i_sentence_count_reasons(value))
     if check_ending:
         reasons.extend(_ending_quality_reasons_for_gate(value))
     return list(dict.fromkeys(reasons))
@@ -2249,6 +2447,123 @@ def _maybe_run_i_cleanup(
     return cleaned, cleanup_record
 
 
+def _maybe_run_i_quality_cleanup(
+    scene: dict[str, Any],
+    parsed_result: dict[str, Any],
+    *,
+    experiment_name: str,
+    stage: str,
+    previous_final_sentence: str,
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    sentence = str(parsed_result.get("story_sentence") or "")
+    reasons = _i_quality_gate_reasons(
+        sentence,
+        scene,
+        story_caption,
+        caption_usage_counts,
+        previous_sentence=previous_final_sentence,
+        check_ending=False,
+    )
+    if not reasons:
+        return parsed_result, None
+
+    cleanup_scene = {
+        **scene,
+        "_i_previous_sentence": previous_final_sentence,
+        "_i_current_sentence": sentence,
+        "_i_quality_reasons": reasons,
+        "_i_ending_scene": False,
+    }
+    cleanup_result = _run_exaone_scene_story(
+        cleanup_scene,
+        experiment_name=experiment_name,
+        scene_prompt_builder=_build_i_captionless_cleanup_prompt,
+        repair_prompt_builder=_build_i_captionless_cleanup_repair_prompt,
+        max_new_tokens=I_CLEANUP_MAX_NEW_TOKENS,
+        step_prefix=f"EXAONE-cleanup-{stage}",
+        step_label=f"{stage} cleanup",
+    )
+    cleaned = cleanup_result["parsed_result"]
+    remaining_reasons = _i_quality_gate_reasons(
+        str(cleaned.get("story_sentence") or ""),
+        scene,
+        story_caption,
+        caption_usage_counts,
+        previous_sentence=previous_final_sentence,
+        check_ending=False,
+    )
+    cleanup_record = {
+        "stage": stage,
+        "scene_index": int(scene["scene_index"]),
+        "reasons": reasons,
+        "remaining_reasons": remaining_reasons,
+        "prompt": cleanup_result["prompt"],
+        "raw_response": cleanup_result["raw_response"],
+        "parsed_result": cleaned,
+        "json_repair_used": cleanup_result["json_repair_used"],
+        "fallback_used": cleanup_result.get("fallback_used", False),
+        "fallback_error": cleanup_result.get("fallback_error", ""),
+    }
+    return cleaned, cleanup_record
+
+
+def _maybe_run_i_ending_cleanup(
+    scene: dict[str, Any],
+    parsed_result: dict[str, Any],
+    *,
+    experiment_name: str,
+    previous_final_sentence: str,
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    sentence = str(parsed_result.get("story_sentence") or "")
+    reasons = _i_quality_gate_reasons(
+        sentence,
+        scene,
+        story_caption,
+        caption_usage_counts,
+        previous_sentence=previous_final_sentence,
+        check_ending=True,
+    )
+    ending_reasons = [reason for reason in reasons if reason == "ending"]
+    if not ending_reasons:
+        return parsed_result, None
+
+    cleanup_scene = {
+        **scene,
+        "_i_previous_sentence": previous_final_sentence,
+        "_i_current_sentence": sentence,
+        "_i_quality_reasons": ending_reasons,
+        "_i_ending_scene": True,
+    }
+    cleanup_result = _run_exaone_scene_story(
+        cleanup_scene,
+        experiment_name=experiment_name,
+        scene_prompt_builder=_build_i_ending_cleanup_prompt,
+        repair_prompt_builder=_build_i_ending_cleanup_repair_prompt,
+        max_new_tokens=I_CLEANUP_MAX_NEW_TOKENS,
+        step_prefix="EXAONE-ending-cleanup",
+        step_label="ending cleanup",
+    )
+    cleaned = cleanup_result["parsed_result"]
+    remaining_reasons = _ending_quality_reasons_for_gate(str(cleaned.get("story_sentence") or ""))
+    cleanup_record = {
+        "stage": "ending",
+        "scene_index": int(scene["scene_index"]),
+        "reasons": ending_reasons,
+        "remaining_reasons": remaining_reasons,
+        "prompt": cleanup_result["prompt"],
+        "raw_response": cleanup_result["raw_response"],
+        "parsed_result": cleaned,
+        "json_repair_used": cleanup_result["json_repair_used"],
+        "fallback_used": cleanup_result.get("fallback_used", False),
+        "fallback_error": cleanup_result.get("fallback_error", ""),
+    }
+    return cleaned, cleanup_record
+
+
 def _i_refinement_builder_for_scene(scene_index: int) -> Callable[[dict[str, Any]], str]:
     if scene_index == 1:
         return _build_i_opening_refinement_prompt
@@ -2510,15 +2825,21 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
     }
 
 
-def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption: str) -> dict[str, Any]:
+def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_caption: str) -> dict[str, Any]:
     _ensure_exaone_gguf_available()
     experiment_name = "Experiment_I"
     story_caption = story_caption.strip()
     if not story_caption:
         raise ValueError("Experiment I requires a non-empty story caption.")
 
+    weak_story_direction = _weak_story_direction(story_caption)
     ordered_scenes = [
-        {**scene, "_story_caption": story_caption}
+        {
+            **scene,
+            "_story_caption": story_caption,
+            "_weak_story_direction": weak_story_direction,
+            "_scene_position_role": _i_scene_position_role(int(scene["scene_index"])),
+        }
         for scene in sorted(scenes, key=lambda item: int(item["scene_index"]))
     ]
     initial_results = [
@@ -2534,9 +2855,24 @@ def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption:
     ]
 
     initial_by_index = {int(item["scene_index"]): item for item in initial_results}
-    final_scene_results = [initial_results[0]["parsed_result"]]
+    cleanup_results: list[dict[str, Any]] = []
+    caption_usage_counts: dict[str, int] = {}
+    first_scene = ordered_scenes[0]
+    first_final, first_cleanup = _maybe_run_i_quality_cleanup(
+        first_scene,
+        initial_results[0]["parsed_result"],
+        experiment_name=experiment_name,
+        stage="initial",
+        previous_final_sentence="",
+        story_caption=story_caption,
+        caption_usage_counts=caption_usage_counts,
+    )
+    if first_cleanup:
+        cleanup_results.append(first_cleanup)
+    final_scene_results = [first_final]
+    _record_caption_usage(first_final["story_sentence"], story_caption, caption_usage_counts)
     refined_results: list[dict[str, Any]] = []
-    previous_final_sentence = initial_results[0]["parsed_result"]["story_sentence"]
+    previous_final_sentence = first_final["story_sentence"]
 
     for scene in ordered_scenes[1:]:
         scene_index = int(scene["scene_index"])
@@ -2551,41 +2887,44 @@ def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption:
             experiment_name=experiment_name,
             scene_prompt_builder=_build_i_sequential_refinement_prompt,
             repair_prompt_builder=_build_i_sequential_refinement_repair_prompt,
-            max_new_tokens=H_REFINEMENT_MAX_NEW_TOKENS,
+            max_new_tokens=I_REFINEMENT_MAX_NEW_TOKENS,
             step_prefix="EXAONE-refine",
             step_label="refinement scene",
         )
         refined_results.append(refined_result)
-        final_scene_results.append(refined_result["parsed_result"])
-        previous_final_sentence = refined_result["parsed_result"]["story_sentence"]
-
-    translation_cleanup_results: list[dict[str, Any]] = []
-    final_scene_results_by_index = {int(item["scene_index"]): item for item in final_scene_results}
-    for scene in ordered_scenes:
-        scene_index = int(scene["scene_index"])
-        current_result = final_scene_results_by_index[scene_index]
-        if not _english_words(current_result["story_sentence"]):
-            continue
-        cleanup_scene = {
-            **scene,
-            "_i_current_sentence": current_result["story_sentence"],
-        }
-        cleanup_result = _run_exaone_scene_story(
-            cleanup_scene,
+        cleaned_refined, cleanup_record = _maybe_run_i_quality_cleanup(
+            scene,
+            refined_result["parsed_result"],
             experiment_name=experiment_name,
-            scene_prompt_builder=_build_i_english_translation_prompt,
-            repair_prompt_builder=_build_i_english_translation_repair_prompt,
-            max_new_tokens=I_CLEANUP_MAX_NEW_TOKENS,
-            step_prefix="EXAONE-translate",
-            step_label="English translation cleanup",
+            stage="refinement",
+            previous_final_sentence=previous_final_sentence,
+            story_caption=story_caption,
+            caption_usage_counts=caption_usage_counts,
         )
-        translation_cleanup_results.append(cleanup_result)
-        final_scene_results_by_index[scene_index] = cleanup_result["parsed_result"]
+        if cleanup_record:
+            cleanup_results.append(cleanup_record)
+        final_scene_results.append(cleaned_refined)
+        previous_final_sentence = cleaned_refined["story_sentence"]
+        if scene_index != 10:
+            _record_caption_usage(previous_final_sentence, story_caption, caption_usage_counts)
 
-    final_scene_results = [
-        final_scene_results_by_index[int(scene["scene_index"])]
-        for scene in ordered_scenes
-    ]
+    ending_cleanup_result: dict[str, Any] | None = None
+    if len(final_scene_results) >= 2:
+        ending_scene = ordered_scenes[-1]
+        ending_previous_sentence = final_scene_results[-2]["story_sentence"]
+        ending_cleaned, ending_cleanup_result = _maybe_run_i_ending_cleanup(
+            ending_scene,
+            final_scene_results[-1],
+            experiment_name=experiment_name,
+            previous_final_sentence=ending_previous_sentence,
+            story_caption=story_caption,
+            caption_usage_counts=caption_usage_counts,
+        )
+        if ending_cleanup_result:
+            final_scene_results[-1] = ending_cleaned
+    if final_scene_results:
+        _record_caption_usage(final_scene_results[-1]["story_sentence"], story_caption, caption_usage_counts)
+
     scene_sentences = [item["story_sentence"] for item in final_scene_results]
     body = "\n\n".join(scene_sentences)
     title_result = _generate_e_title(
@@ -2595,16 +2934,22 @@ def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption:
     )
     json_repair_used = any(
         item["json_repair_used"]
-        for item in initial_results + refined_results + translation_cleanup_results
+        for item in initial_results + refined_results
     )
+    json_repair_used = json_repair_used or any(item["json_repair_used"] for item in cleanup_results)
+    if ending_cleanup_result:
+        json_repair_used = json_repair_used or bool(ending_cleanup_result["json_repair_used"])
+    json_repair_used = json_repair_used or bool(title_result.get("json_repair_used", False))
     return {
-        "prompt_strategy": "weak_initial_hint_sequential_refinement_english_cleanup",
+        "prompt_strategy": "generic_position_quality_gated_sequential_refinement",
         "story_caption": story_caption,
+        "weak_story_direction": weak_story_direction,
         "exaone_prompt": {
-            "story_caption": story_caption,
+            "weak_story_direction": weak_story_direction,
             "initial_scene_prompts": [item["prompt"] for item in initial_results],
             "refinement_prompts": [item["prompt"] for item in refined_results],
-            "translation_cleanup_prompts": [item["prompt"] for item in translation_cleanup_results],
+            "cleanup_prompts": [item["prompt"] for item in cleanup_results],
+            "ending_cleanup_prompt": ending_cleanup_result["prompt"] if ending_cleanup_result else "",
             "title_prompt": title_result["prompt"],
         },
         "exaone_raw_response": "\n\n".join(
@@ -2616,18 +2961,28 @@ def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption:
         )
         + "\n\n"
         + "\n\n".join(
-            f"[translation cleanup scene {item['scene_index']}]\n{item['raw_response']}"
-            for item in translation_cleanup_results
+            f"[cleanup {item['stage']} scene {item['scene_index']}]\n{item['raw_response']}"
+            for item in cleanup_results
         )
+        + (f"\n\n[ending cleanup]\n{ending_cleanup_result['raw_response']}" if ending_cleanup_result else "")
         + f"\n\n[title]\n{title_result['raw_response']}",
         "llama_runtime": title_result.get("llama_runtime") or get_last_llama_runtime(),
         "parsed_result": {
             "story_caption": story_caption,
+            "weak_story_direction": weak_story_direction,
             "initial_scene_results": [item["parsed_result"] for item in initial_results],
             "refined_scene_results": [item["parsed_result"] for item in refined_results],
-            "translation_cleanup_results": [
-                item["parsed_result"] for item in translation_cleanup_results
+            "cleanup_results": [
+                {
+                    "stage": item["stage"],
+                    "scene_index": item["scene_index"],
+                    "reasons": item["reasons"],
+                    "remaining_reasons": item["remaining_reasons"],
+                    "parsed_result": item["parsed_result"],
+                }
+                for item in cleanup_results
             ],
+            "ending_cleanup_result": ending_cleanup_result["parsed_result"] if ending_cleanup_result else {},
             "final_scene_results": final_scene_results,
             "title_result": title_result["parsed_result"],
             "title_fallback_used": title_result["fallback_used"],
@@ -2640,32 +2995,52 @@ def _run_exaone_i_simple_experiment(scenes: list[dict[str, Any]], story_caption:
             "grounding_notes": [],
         },
         "structure": {
-            "mode": "weak_initial_hint_sequential_refinement_english_cleanup",
+            "mode": "generic_position_quality_gated_sequential_refinement",
             "scene_count": len(ordered_scenes),
             "story_caption_used": True,
-            "story_caption_stage": "initial_hint_only",
-            "story_caption_policy": "optional_hint_not_required_content",
+            "story_caption_stage": "initial_weak_direction_only",
+            "story_caption_policy": "weak_direction_not_verbatim_caption",
+            "scene_position_roles_used": True,
+            "quality_gates": [
+                "repetition",
+                "caption_overuse",
+                "english",
+                "meta_language",
+                "sentence_count",
+                "ending",
+            ],
             "exaone_initial_scene_calls": len(initial_results),
             "exaone_refinement_calls": len(refined_results),
-            "exaone_translation_cleanup_calls": len(translation_cleanup_results),
+            "cleanup_calls": len(cleanup_results),
+            "ending_cleanup_calls": 1 if ending_cleanup_result else 0,
             "exaone_title_calls": 1,
             "exaone_total_calls": (
-                len(initial_results) + len(refined_results) + len(translation_cleanup_results) + 1
+                len(initial_results)
+                + len(refined_results)
+                + len(cleanup_results)
+                + (1 if ending_cleanup_result else 0)
+                + 1
             ),
         },
         "plan": {
             "method": (
-                "Qwen scene JSON -> EXAONE initial per-scene paragraphs with optional story hint -> "
-                "EXAONE sequential refinement without story_caption -> conditional English translation cleanup -> "
+                "Qwen scene JSON -> EXAONE initial per-scene paragraphs with generic scene_position_role "
+                "and weak_story_direction -> EXAONE sequential refinement without story_caption -> "
+                "quality-gated cleanup -> optional ending cleanup -> "
                 "code joins body -> EXAONE title"
             ),
             "story_caption": story_caption,
-            "story_caption_stage": "initial_hint_only",
-            "story_caption_policy": "optional_hint_not_required_content",
+            "weak_story_direction": weak_story_direction,
+            "story_caption_stage": "initial_weak_direction_only",
+            "story_caption_policy": "weak_direction_not_verbatim_caption",
+            "scene_position_roles": {
+                str(scene["scene_index"]): scene["_scene_position_role"]
+                for scene in ordered_scenes
+            },
             "scene_order": [scene["image_id"] for scene in ordered_scenes],
             "scene_max_new_tokens": 350,
-            "refinement_max_new_tokens": H_REFINEMENT_MAX_NEW_TOKENS,
-            "translation_cleanup_max_new_tokens": I_CLEANUP_MAX_NEW_TOKENS,
+            "refinement_max_new_tokens": I_REFINEMENT_MAX_NEW_TOKENS,
+            "cleanup_max_new_tokens": I_CLEANUP_MAX_NEW_TOKENS,
             "title_max_new_tokens": 120,
         },
         "experiment_method": experiment_name,
@@ -2820,8 +3195,8 @@ def build_experiment_h(scenes: list[dict[str, Any]], story_caption: str) -> dict
 
 
 def build_experiment_i(scenes: list[dict[str, Any]], story_caption: str) -> dict[str, Any]:
-    """Experiment I: H-style pipeline with caption in initial writing and English cleanup only."""
-    return _run_exaone_i_simple_experiment(scenes, story_caption)
+    """Experiment I: generic scene-position roles with quality-gated refinement."""
+    return _run_exaone_i_quality_gated_experiment(scenes, story_caption)
 
 
 def _html_escape(value: Any) -> str:
