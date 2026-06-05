@@ -55,7 +55,7 @@ def _build_parser() -> argparse.ArgumentParser:
     b_parser.add_argument(
         "--story-backend",
         choices=("structured_template", "prompt_twostep_short", "exaone_gguf_structured"),
-        default="structured_template",
+        default="exaone_gguf_structured",
     )
     b_parser.add_argument("--story-max-new-tokens", type=int)
 
@@ -69,7 +69,7 @@ def _build_parser() -> argparse.ArgumentParser:
     all_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
     all_parser.add_argument("--clip-threshold", type=float, default=0.22)
     all_parser.add_argument("--a-backend", default="gpt2_nllb")
-    all_parser.add_argument("--b-backend", default="structured_template")
+    all_parser.add_argument("--b-backend", default="exaone_gguf_structured")
 
     evaluate_parser = subparsers.add_parser("evaluate", help="Run the blind evaluation dashboard.")
     evaluate_parser.add_argument("--port", type=int, default=8501, help="Streamlit server port.")

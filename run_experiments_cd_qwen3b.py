@@ -1,17 +1,21 @@
-"""Run experiments C/D/E with Qwen2.5-VL-3B scene understanding."""
+"""Run independent C/D/E/F experiments with Qwen vision and EXAONE GGUF writing."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from generators import _run_exaone_gguf_prompt
+from utils import DEFAULT_EXAONE_GGUF_PATH, LLAMA_CLI_PATH
+
 
 VISION_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
-LLM_MODEL_NOTE = "EXAONE 2.4B target; local fallback uses deterministic Korean writer when unavailable"
+LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 BASE_DIR = Path(__file__).resolve().parent
 INPUT_DIR = BASE_DIR / "inputs"
 OUTPUT_ROOT = BASE_DIR / "outputs"
@@ -28,99 +32,6 @@ QWEN3B_LOCAL_DIR = (
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 QWEN_IMAGE_MAX_SIDE = 384
 QWEN_MAX_PIXELS = QWEN_IMAGE_MAX_SIDE * QWEN_IMAGE_MAX_SIDE
-
-CANONICAL_SCENES = {
-    1: {
-        "characters": ["아이들", "가족"],
-        "objects": ["집"],
-        "setting": "집 앞",
-        "action": "아이들과 가족이 집 앞에 모여 있다",
-        "mood": "밝고 평온함",
-        "sentence_c": "옛날 옛적에 작은 집 앞에 아이들과 가족이 옹기종기 모여 살고 있었어요.",
-        "sentence_d": "아주 먼 옛날 어느 작은 마을에, 파란 지붕 집 앞에서 아이들이 오순도순 모여 살고 있었어요.",
-    },
-    2: {
-        "characters": ["소녀"],
-        "objects": ["계란 바구니"],
-        "setting": "별이 보이는 밤길",
-        "action": "소녀가 계란이 든 바구니를 들고 걷는다",
-        "mood": "조심스럽고 신비로움",
-        "sentence_c": "어느 밤, 한 소녀가 계란 바구니를 품에 안고 반짝반짝 별빛 길을 걸어갔어요.",
-        "sentence_d": "그런데 말입니다, 소녀가 계란 바구니를 들고 밤길을 사뿐사뿐 걷자 바구니가 살짝 흔들렸습니다.",
-    },
-    3: {
-        "characters": ["소녀", "호랑이"],
-        "objects": ["공처럼 보이는 물건"],
-        "setting": "달과 별이 있는 바깥",
-        "action": "소녀가 호랑이를 만난다",
-        "mood": "놀랍지만 밝음",
-        "sentence_c": "길모퉁이에서 커다란 호랑이가 나타나자 소녀의 마음이 쿵쾅쿵쾅 뛰었어요.",
-        "sentence_d": "글쎄, 달빛 아래에서 호랑이 한 마리가 쫑긋쫑긋 귀를 세우고 소녀 앞에 나타났습니다.",
-    },
-    4: {
-        "characters": ["소녀", "호랑이"],
-        "objects": ["바구니", "공처럼 보이는 물건"],
-        "setting": "밤하늘 아래 풀밭",
-        "action": "소녀와 호랑이가 바구니를 사이에 두고 마주 본다",
-        "mood": "조심스럽고 궁금함",
-        "sentence_c": "호랑이는 바구니를 바라보며 조심조심 다가왔고, 소녀는 한 걸음 물러섰어요.",
-        "sentence_d": "호랑이는 바구니를 가리키며 말했어요. “그 안에 든 반짝 씨앗을 나도 보고 싶단다.”",
-    },
-    5: {
-        "characters": ["호랑이", "아이"],
-        "objects": ["집", "달", "별"],
-        "setting": "밤의 집 앞",
-        "action": "호랑이가 집 가까이에 서 있다",
-        "mood": "낯설고 조심스러움",
-        "sentence_c": "집 앞까지 따라온 호랑이는 무서운 척했지만, 사실은 친구가 되고 싶어 보였어요.",
-        "sentence_d": "욕심 많은 척하던 호랑이는 집 앞 달빛 아래에서 고개를 푹 숙였어요.",
-    },
-    6: {
-        "characters": ["아이들", "고양이"],
-        "objects": ["창문"],
-        "setting": "창문이 있는 집",
-        "action": "아이들이 창문 밖을 바라보고 고양이가 곁에 있다",
-        "mood": "기대와 조심스러움",
-        "sentence_c": "아이들은 창문 너머를 바라보며 호랑이가 정말 나쁜 친구인지 가만히 생각했어요.",
-        "sentence_d": "창가의 고양이는 야옹 하고 울며 말했어요. “겉모습만 보고 마음을 닫으면 안 된단다.”",
-    },
-    7: {
-        "characters": ["아이들", "고양이"],
-        "objects": ["문", "달", "별"],
-        "setting": "문 앞",
-        "action": "아이들이 문 옆에서 고양이에게 손을 흔든다",
-        "mood": "기대감과 따뜻함",
-        "sentence_c": "문 앞의 고양이가 꼬리를 살랑살랑 흔들자 아이들은 용기를 내어 밖으로 나갔어요.",
-        "sentence_d": "그러자 아이들은 문을 빼꼼 열고, 달님이 비춰 주는 길로 한 걸음 나섰습니다.",
-    },
-    8: {
-        "characters": ["아이들", "호랑이"],
-        "objects": ["나무", "집", "달"],
-        "setting": "나무가 있는 밤길",
-        "action": "아이들이 나무 위에 있고 호랑이가 아래에 서 있다",
-        "mood": "불안하지만 신비로움",
-        "sentence_c": "나무 위에 오른 아이들은 아래의 호랑이를 내려다보며 아직 조금 무서웠어요.",
-        "sentence_d": "아이들이 나무 위로 올라가자 호랑이는 아래에서 말했습니다. “겁내지 마, 나는 길을 잃었을 뿐이야.”",
-    },
-    9: {
-        "characters": ["아이들", "호랑이"],
-        "objects": ["나무 의자"],
-        "setting": "바깥 공터",
-        "action": "아이들과 호랑이가 가까이 앉아 있다",
-        "mood": "즐겁고 들뜸",
-        "sentence_c": "잠시 뒤 아이들과 호랑이는 나무 의자 곁에 함께 앉아 데굴데굴 웃음을 나누었어요.",
-        "sentence_d": "마침내 아이들과 호랑이는 나무 의자 곁에 앉아 바구니 속 씨앗을 하나씩 나누었습니다.",
-    },
-    10: {
-        "characters": ["고양이", "해", "달"],
-        "objects": ["해", "달"],
-        "setting": "해와 달이 함께 뜬 하늘 아래",
-        "action": "고양이가 해와 달 아래에서 논다",
-        "mood": "밝고 따뜻함",
-        "sentence_c": "마지막에는 해와 달이 함께 떠오르고, 고양이가 냐옹 하고 웃으며 모두를 배웅했어요.",
-        "sentence_d": "그날부터 해와 달은 함께 반짝였고, 고양이는 마을 아이들에게 이 이야기를 오래오래 들려주었답니다.",
-    },
-}
 
 
 def _snapshot_dir(model_cache: Path) -> Path | str:
@@ -193,6 +104,19 @@ def _extract_json(text: str) -> dict[str, Any]:
     return value if isinstance(value, dict) else {"scene_summary": text.strip()}
 
 
+def _extract_required_json(text: str) -> dict[str, Any]:
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    match = re.search(r"\{.*\}", cleaned, flags=re.S)
+    if not match:
+        raise ValueError("EXAONE response did not contain a JSON object.")
+    value = json.loads(match.group(0))
+    if not isinstance(value, dict):
+        raise ValueError("EXAONE JSON response was not an object.")
+    return value
+
+
 def _listify(value: Any) -> list[str]:
     if isinstance(value, list):
         return [str(item).strip() for item in value if str(item).strip()]
@@ -243,302 +167,224 @@ def _run_qwen_scene(model: Any, processor: Any, image_path: Path, index: int) ->
     return _normalize_scene(index, image_path, _extract_json(raw), raw)
 
 
-def _join(items: list[str], fallback: str) -> str:
-    clean = [item for item in items if item]
-    if not clean:
-        return fallback
-    if len(clean) == 1:
-        return clean[0]
-    return ", ".join(clean[:-1]) + "와 " + clean[-1]
+def _compact_scene(scene: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "scene_index": scene.get("scene_index"),
+        "image_id": scene.get("image_id"),
+        "scene_summary": scene.get("scene_summary", ""),
+        "characters": scene.get("characters", []),
+        "objects": scene.get("objects", []),
+        "setting": scene.get("setting", ""),
+        "mood": scene.get("mood", ""),
+        "emotion": scene.get("emotion", ""),
+        "story_role": scene.get("story_role", ""),
+        "uncertain": scene.get("uncertain", ""),
+    }
 
 
-def _subject(text: str) -> str:
-    return f"{text}은" if text[-1:] in "가나다라마바사아자차카타파하이우으오요유애에" else f"{text}은"
+def _scene_windows(scenes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_index = {int(scene["scene_index"]): _compact_scene(scene) for scene in scenes}
+    windows = []
+    for scene in scenes:
+        index = int(scene["scene_index"])
+        windows.append(
+            {
+                "target_scene_index": index,
+                "previous_scene": by_index.get(index - 1),
+                "current_scene": by_index[index],
+                "next_scene": by_index.get(index + 1),
+            }
+        )
+    return windows
+
+
+def _ensure_exaone_gguf_available() -> None:
+    model_path = Path(os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH).expanduser()
+    llama_cli = Path(os.environ.get("LLAMA_CLI_PATH") or LLAMA_CLI_PATH).expanduser()
+    if not model_path.exists():
+        raise FileNotFoundError(
+            "EXAONE GGUF model file not found. Set EXAONE_GGUF_MODEL_PATH "
+            f"or place the model at: {model_path}"
+        )
+    if not llama_cli.exists():
+        raise FileNotFoundError(
+            "llama.cpp CLI not found. Set LLAMA_CLI_PATH or build it at: "
+            f"{llama_cli}"
+        )
+
+
+def _story_from_payload(payload: dict[str, Any], scene_count: int) -> dict[str, Any]:
+    story = payload.get("story") if isinstance(payload.get("story"), dict) else payload
+    title = str(story.get("title") or "그림 속 작은 이야기").strip()
+    body = str(story.get("body") or "").strip()
+    scene_sentences = story.get("scene_sentences")
+    if not isinstance(scene_sentences, list):
+        scene_sentences = []
+    scene_sentences = [str(sentence).strip() for sentence in scene_sentences if str(sentence).strip()]
+    if not scene_sentences and body:
+        scene_sentences = [part.strip() for part in re.split(r"\n\s*\n", body) if part.strip()]
+    if not body and scene_sentences:
+        body = "\n\n".join(scene_sentences)
+    if len(scene_sentences) != scene_count:
+        raise ValueError(
+            f"EXAONE returned {len(scene_sentences)} scene_sentences for {scene_count} scenes."
+        )
+    moral = str(story.get("moral") or "").strip()
+    grounding_notes = story.get("grounding_notes")
+    return {
+        "title": title,
+        "body": body,
+        "scene_sentences": scene_sentences,
+        "moral": moral,
+        "grounding_notes": grounding_notes if grounding_notes is not None else [],
+    }
+
+
+def _run_exaone_experiment(
+    experiment_name: str,
+    prompt_strategy: str,
+    prompt: str,
+    scenes: list[dict[str, Any]],
+    max_new_tokens: int = 2200,
+    context_size: int = 8192,
+) -> dict[str, Any]:
+    _ensure_exaone_gguf_available()
+    raw_response = _run_exaone_gguf_prompt(
+        prompt,
+        max_new_tokens=max_new_tokens,
+        timeout=300,
+        context_size=context_size,
+    )
+    payload = _extract_required_json(raw_response)
+    story = _story_from_payload(payload, len(scenes))
+    return {
+        "prompt_strategy": prompt_strategy,
+        "exaone_prompt": prompt,
+        "exaone_raw_response": raw_response,
+        "parsed_result": payload,
+        "fallback_used": False,
+        "story": story,
+        "structure": payload.get("structure", {}),
+        "plan": payload.get("plan", {}),
+        "experiment_method": experiment_name,
+    }
+
+
+def _base_json_instruction() -> str:
+    return (
+        "반드시 아래 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        "JSON 필드:\n"
+        "{\n"
+        '  "structure": {...},\n'
+        '  "plan": {...},\n'
+        '  "story": {\n'
+        '    "title": "동화 제목",\n'
+        '    "body": "장면 순서대로 이어지는 전체 동화 본문",\n'
+        '    "scene_sentences": ["1번 그림에 해당하는 문단", "2번 그림에 해당하는 문단"],\n'
+        '    "moral": "이야기 속 교훈",\n'
+        '    "grounding_notes": ["그림 근거를 어떻게 반영했는지"]\n'
+        "  }\n"
+        "}\n"
+        "scene_sentences 배열 길이는 입력 장면 수와 정확히 같아야 합니다.\n"
+    )
+
+
+def _prompt_c(scenes: list[dict[str, Any]]) -> str:
+    compact_scenes = [_compact_scene(scene) for scene in scenes]
+    return (
+        "실험 C: Qwen이 읽은 아이 손그림 장면 목록을 보고 간단히 구조를 잡은 뒤 "
+        "하나의 한국어 동화를 작성하세요.\n"
+        "전략: 전체 장면을 한 번에 보고, 단순한 처음-중간-끝 구조로 정리합니다.\n"
+        "하드코딩된 줄거리나 외부 지식 없이 scenes 안의 시각 단서만 사용하세요.\n\n"
+        f"{_base_json_instruction()}\n"
+        f"scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _prompt_d(scenes: list[dict[str, Any]]) -> str:
+    compact_scenes = [_compact_scene(scene) for scene in scenes]
+    return (
+        "실험 D: 같은 Qwen 장면 목록을 사용하되, 한 프롬프트 안에서 4단계로 사고하세요.\n"
+        "1) 장면별 시각 단서 구조화\n"
+        "2) 전체 이야기 계획 수립\n"
+        "3) 장면 순서대로 초안 작성\n"
+        "4) 초안을 자체 점검해 시각 근거와 장면 연결을 보정\n"
+        "최종 JSON에는 보정된 이야기만 story에 넣고, structure/plan에는 4단계 요약을 담으세요.\n"
+        "어떤 이전 실험 결과도 참조하지 마세요.\n\n"
+        f"{_base_json_instruction()}\n"
+        f"scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _prompt_e(scenes: list[dict[str, Any]]) -> str:
+    compact_scenes = [_compact_scene(scene) for scene in scenes]
+    return (
+        "실험 E: 전체 장면을 처음부터 하나의 이야기 맥락으로 강하게 연결하세요.\n"
+        "전략: 장면별 묘사보다 전체 감정 흐름, 원인-결과 연결, 반복되는 등장 요소의 일관성을 먼저 설계한 뒤 씁니다.\n"
+        "다만 현재 그림에 없는 내용을 과하게 꾸며 넣지 말고 Qwen scene 단서를 우선하세요.\n"
+        "어떤 이전 실험 결과도 참조하지 마세요.\n\n"
+        f"{_base_json_instruction()}\n"
+        f"scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _prompt_f(scenes: list[dict[str, Any]]) -> str:
+    compact_scenes = [_compact_scene(scene) for scene in scenes]
+    windows = _scene_windows(scenes)
+    return (
+        "실험 F: 먼저 전체 장면 목록을 보고 전역 흐름을 이해한 뒤, 각 target_scene_index의 문단을 작성하세요.\n"
+        "각 문단은 current_scene의 시각 근거를 중심으로 써야 합니다.\n"
+        "previous_scene은 앞 문단에서 자연스럽게 이어지도록 참고하세요.\n"
+        "next_scene은 다음 문단으로 넘어갈 여지를 만드는 데만 참고하세요.\n"
+        "앞뒤 장면 때문에 current_scene에 보이지 않는 사건이나 사물을 과하게 넣지 마세요.\n"
+        "어떤 이전 실험 결과도 참조하지 마세요.\n\n"
+        f"{_base_json_instruction()}\n"
+        f"all_scenes:\n{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n\n"
+        f"scene_generation_windows:\n{json.dumps(windows, ensure_ascii=False, indent=2)}\n"
+    )
 
 
 def build_experiment_c(scenes: list[dict[str, Any]]) -> dict[str, Any]:
-    """Experiment C: 2 calls conceptually, structure + generation without feedback."""
-    canonical = [CANONICAL_SCENES[int(scene["scene_index"])] for scene in scenes]
-    structure = {
-        "overall_mood": "낯선 만남이 있지만 따뜻하게 이어지는 손그림 모험",
-        "main_character": "소녀와 호랑이처럼 보이는 친구",
-        "call_structure": "2 calls: Qwen scene structuring + Korean story generation",
-        "flow": [
-            {
-                "scene_index": scene["scene_index"],
-                "summary": canon["action"],
-                "mood": canon["mood"],
-                "setting": canon["setting"],
-                "must_include": canon["characters"] + canon["objects"],
-            }
-            for scene, canon in zip(scenes, canonical)
-        ],
-    }
-    sentences = [canon["sentence_c"] for canon in canonical]
-    story = {
-        "title": "살금살금 그림길",
-        "body": "\n\n".join(sentences),
-        "moral": "낯선 것을 바로 무서워하기보다 천천히 바라보면, 마음을 나눌 길이 보입니다.",
-        "scene_sentences": sentences,
-    }
-    return {"structure": structure, "story": story}
+    """Experiment C: independent simple structure and story generation."""
+    return _run_exaone_experiment(
+        "Experiment_C",
+        "simple_global_structure_then_story",
+        _prompt_c(scenes),
+        scenes,
+    )
 
 
 def build_experiment_d(scenes: list[dict[str, Any]]) -> dict[str, Any]:
-    """Experiment D: 4 calls conceptually, structure + plan + generation + correction."""
-    canonical = [CANONICAL_SCENES[int(scene["scene_index"])] for scene in scenes]
-    structure = {
-        "call_structure": "4 calls: Qwen scene structuring + story plan + generation + correction",
-        "characters": sorted({item for scene in canonical for item in scene["characters"]}),
-        "important_objects": sorted({item for scene in canonical for item in scene["objects"]}),
-        "scene_order": [
-            {
-                "scene_index": scene["scene_index"],
-                "image_id": scene["image_id"],
-                "qwen_summary": scene["scene_summary"],
-                "corrected_summary": canon["action"],
-                "mood": canon["mood"],
-                "must_include": canon["characters"] + canon["objects"],
-                "uncertain": scene["uncertain"] or "아동 손그림이라 일부 대상은 '~처럼 보임'으로 처리",
-            }
-            for scene, canon in zip(scenes, canonical)
-        ],
-    }
-    plan = {
-        "beginning": "집 앞에서 아이들이 이상한 그림길을 발견한다.",
-        "conflict": "호랑이처럼 보이는 낯선 친구가 나타나 아이들이 겁을 내지만, 그 친구도 도움이 필요하다.",
-        "choice": "아이들은 도망가지 않고 말을 걸며 함께 길을 찾아간다.",
-        "ending": "마지막 장면에서 모두가 서로를 이해하고 따뜻한 여운을 얻는다.",
-        "tone": "이솝우화와 한국전래동화가 섞인 짧고 부드러운 말투",
-    }
-    draft_sentences = [canon["sentence_c"] for canon in canonical]
-    corrected_sentences = [canon["sentence_d"] for canon in canonical]
-    corrected = "\n\n".join(corrected_sentences)
-    story = {
-        "title": "호랑이 친구와 그림길",
-        "body": corrected,
-        "moral": "겁나는 마음이 찾아와도 다정하게 물어보면, 무서운 길도 함께 걷는 길이 됩니다.",
-        "scene_sentences": corrected.split("\n\n"),
-        "draft_before_correction": "\n\n".join(draft_sentences),
-    }
-    return {"structure": structure, "plan": plan, "draft": "\n\n".join(draft_sentences), "story": story}
+    """Experiment D: independent four-step prompting in one EXAONE call."""
+    return _run_exaone_experiment(
+        "Experiment_D",
+        "structure_plan_draft_self_check",
+        _prompt_d(scenes),
+        scenes,
+    )
 
 
-def build_experiment_e(scenes: list[dict[str, Any]], d_result: dict[str, Any]) -> dict[str, Any]:
-    """Experiment E: global context review and final coherence correction after D."""
-    canonical = [CANONICAL_SCENES[int(scene["scene_index"])] for scene in scenes]
-    context_review = {
-        "input_stage": "Experiment_D",
-        "problem_found": [
-            "D 단계 문장은 장면별로는 맞지만 전체 목표가 약함",
-            "바구니와 호랑이의 역할이 중간에 충분히 연결되지 않음",
-            "마지막 해와 달 장면이 결말로 자연스럽게 이어질 이유가 더 필요함",
-        ],
-        "global_story_goal": "소녀가 밤길에서 떨어뜨린 계란 바구니를 호랑이와 아이들이 함께 찾아 집으로 돌아오는 이야기",
-        "consistency_rules": [
-            "계란 바구니는 2번부터 마지막까지 이야기의 중심 물건으로 유지",
-            "호랑이는 겁주는 존재가 아니라 도와주고 싶은데 서툰 친구로 유지",
-            "고양이는 판단하지 말고 먼저 물어보라는 조언자 역할",
-            "해와 달은 길을 밝혀 주는 결말 상징으로 사용",
-        ],
-    }
-    plan = {
-        "beginning": "집 앞의 평온한 장면 뒤, 소녀가 밤길에서 계란 바구니를 들고 나간다.",
-        "conflict": "호랑이가 나타나 소녀가 놀라고, 바구니 속 계란이 데굴데굴 굴러간다.",
-        "development": "아이들, 고양이, 호랑이가 서로를 오해하다가 함께 계란을 찾기로 한다.",
-        "climax": "아이들이 나무 위에서 겁을 내지만 호랑이가 진심을 말한다.",
-        "ending": "모두가 바구니를 되찾고 해와 달 아래에서 서로를 길동무로 받아들인다.",
-        "lesson": "무서워 보이는 친구도 이야기를 들어 보면 함께 도울 수 있다.",
-    }
-    scene_sentences = [
-        "아주 먼 옛날, 파란 지붕 집 앞에 아이들과 가족이 오순도순 살고 있었어요.",
-        "어느 밤 소녀는 계란 바구니를 품에 안고 별빛 길을 사뿐사뿐 걸어갔습니다.",
-        "그때 호랑이 한 마리가 쫑긋쫑긋 나타나자, 놀란 소녀의 바구니에서 계란 하나가 데굴데굴 굴러갔어요.",
-        "호랑이는 얼른 계란을 주워 주려 했지만, 소녀는 호랑이가 빼앗으려는 줄 알고 한 걸음 물러섰습니다.",
-        "호랑이는 집 앞 달빛 아래에서 바구니를 조심히 내려놓고 말했어요. “나는 도와주고 싶었을 뿐이야.”",
-        "창가의 아이들과 고양이는 그 말을 듣고, 먼저 물어보지 않고 겁낸 마음을 조용히 돌아보았어요.",
-        "문 앞의 고양이가 꼬리를 살랑살랑 흔들며 말했습니다. “마음을 알고 싶으면 문을 열어 보렴.”",
-        "그래서 아이들이 나무 위에서 내려다보자, 호랑이는 잃어버린 계란을 발밑에 얌전히 모아 두고 있었어요.",
-        "아이들과 호랑이는 나무 의자 곁에 앉아 계란을 바구니에 하나씩 담으며 데굴데굴 웃음을 나누었습니다.",
-        "마지막에는 해와 달이 함께 길을 밝혔고, 고양이는 계란 바구니를 든 새 길동무들을 집으로 데려다주었답니다.",
-    ]
-    story = {
-        "title": "데굴데굴 계란 바구니",
-        "body": "\n\n".join(scene_sentences),
-        "moral": "무서운 마음이 먼저 찾아와도, 차분히 물어보면 다정한 뜻을 발견할 수 있어요. 함께 찾은 길은 혼자 걷는 길보다 훨씬 따뜻합니다.",
-        "scene_sentences": scene_sentences,
-        "source_d_story": d_result["story"]["body"],
-    }
-    structure = {
-        "call_structure": "5th stage: global context review + coherence correction",
-        "scene_order": [
-            {
-                "scene_index": scene["scene_index"],
-                "image_id": scene["image_id"],
-                "qwen_summary": scene["scene_summary"],
-                "context_role": role,
-                "must_include": canon["characters"] + canon["objects"],
-            }
-            for scene, canon, role in zip(
-                scenes,
-                canonical,
-                [
-                    "평온한 시작",
-                    "중심 물건 등장",
-                    "갈등 발생",
-                    "오해 심화",
-                    "호랑이의 의도 암시",
-                    "조언자 등장",
-                    "선택과 행동",
-                    "진심 확인",
-                    "갈등 해결",
-                    "따뜻한 여운",
-                ],
-            )
-        ],
-    }
-    return {
-        "context_review": context_review,
-        "plan": plan,
-        "structure": structure,
-        "story": story,
-    }
+def build_experiment_e(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+    """Experiment E: independent global coherence-first prompting."""
+    return _run_exaone_experiment(
+        "Experiment_E",
+        "global_context_emotion_flow_first",
+        _prompt_e(scenes),
+        scenes,
+    )
 
 
-def _scene_context(scenes_by_index: dict[int, dict[str, Any]], index: int) -> dict[str, Any]:
-    current = scenes_by_index[index]
-    previous = scenes_by_index.get(index - 1)
-    next_scene = scenes_by_index.get(index + 1)
-    return {
-        "scene_index": index,
-        "previous_scene_summary": previous["scene_summary"] if previous else "",
-        "current_scene_summary": current["scene_summary"],
-        "next_scene_summary": next_scene["scene_summary"] if next_scene else "",
-        "usage_rule": "이전/다음 장면은 흐름 참고용이며, 최종 문장은 현재 그림에 보이는 대상만 중심으로 작성",
-    }
-
-
-def _compact_text(value: Any) -> str:
-    return re.sub(r"\s+", " ", str(value or "")).strip()
-
-
-def _grounded_sentence_from_scene(scene: dict[str, Any]) -> str:
-    summary = _compact_text(scene.get("scene_summary"))
-    if summary:
-        return summary
-
-    characters = _join(_listify(scene.get("characters")), "그림 속 인물")
-    objects = _join(_listify(scene.get("objects")), "그림 속 사물")
-    setting = _compact_text(scene.get("setting")) or "그림 속 장소"
-    mood = _compact_text(scene.get("mood")) or "그림의 분위기"
-    return f"{setting}에서 {characters}이/가 {objects}와 함께 보이며, 전체 분위기는 {mood}처럼 느껴집니다."
-
-
-def _grounded_report(scene: dict[str, Any], draft_sentence: str) -> dict[str, Any]:
-    final_sentence = _grounded_sentence_from_scene(scene)
-    return {
-        "scene_index": scene["scene_index"],
-        "image_id": scene["image_id"],
-        "qwen_grounding_basis": {
-            "scene_summary": scene.get("scene_summary", ""),
-            "characters": scene.get("characters", []),
-            "objects": scene.get("objects", []),
-            "setting": scene.get("setting", ""),
-            "mood": scene.get("mood", ""),
-            "emotion": scene.get("emotion", ""),
-            "uncertain": scene.get("uncertain", ""),
-        },
-        "draft_sentence": draft_sentence,
-        "review_result": "rewritten_from_qwen_scene_description",
-        "review_reason": "사전 장면별 단어 제한 목록을 쓰지 않고, Qwen이 현재 그림에서 추출한 장면 설명으로 재작성함",
-        "final_sentence": final_sentence,
-    }
-
-
-def build_experiment_f(
-    scenes: list[dict[str, Any]], e_result: dict[str, Any]
-) -> dict[str, Any]:
-    """Experiment F: ground Experiment E with current-image checks and neighbor context."""
-    scenes_by_index = {int(scene["scene_index"]): scene for scene in scenes}
-    e_sentences = e_result["story"].get("scene_sentences", [])
-    window_contexts = []
-    grounding_reviews = []
-    revisions = []
-    final_sentences = []
-
-    for scene in scenes:
-        index = int(scene["scene_index"])
-        draft_sentence = e_sentences[index - 1] if index - 1 < len(e_sentences) else ""
-        context = _scene_context(scenes_by_index, index)
-        report = _grounded_report(scene, draft_sentence)
-        window_contexts.append(context)
-        grounding_reviews.append(report)
-        final_sentences.append(report["final_sentence"])
-        revisions.append(
-            {
-                "scene_index": index,
-                "action": report["review_result"],
-                "from": draft_sentence,
-                "to": report["final_sentence"],
-                "reason": report["review_reason"],
-            }
-        )
-
-    story = {
-        "title": "달빛 아래 호랑이 손님",
-        "body": "\n\n".join(final_sentences),
-        "moral": "무서워 보이는 장면도 그림을 찬찬히 보면 마음을 더 잘 알 수 있어요. 보이지 않는 것을 억지로 넣기보다, 보이는 것에서 이야기를 시작해야 합니다.",
-        "scene_sentences": final_sentences,
-        "source_e_story": e_result["story"]["body"],
-    }
-    structure = {
-        "call_structure": "F grounded: previous/current/next context + current-image grounding check",
-        "emotion_flow": ["만남", "조심스러움", "놀람", "불안", "확인", "여운"],
-        "grounding_priority": "현재 그림에 보이는 대상과 분위기 > 이전/다음 장면 맥락 > 전체 이야기 목표",
-        "scene_order": [
-            {
-                "scene_index": report["scene_index"],
-                "image_id": report["image_id"],
-                "grounding_source": "Qwen scene description generated after image recognition",
-                "qwen_grounding_basis": report["qwen_grounding_basis"],
-            }
-            for report in grounding_reviews
-        ],
-    }
-    context_review = {
-        "input_stage": "Experiment_E",
-        "method": "f_grounded_generation",
-        "problem_found": [
-            "E는 전체 이야기 일관성을 위해 앞뒤 장면의 소재를 현재 장면 문장에 끌고 올 수 있음",
-            "F는 사전 장면별 단어 목록 없이 Qwen이 현재 그림을 본 뒤 만든 장면 설명을 grounding 기준으로 사용함",
-            "앞뒤 장면은 예고가 아니라 흐름 참고용으로만 사용해야 함",
-        ],
-        "consistency_rules": [
-            "현재 장면 문장은 Qwen의 현재 그림 장면 설명을 우선함",
-            "사전에 입력한 장면별 단어 제한 목록이나 최종 문장을 사용하지 않음",
-            "이전/다음 장면의 대상은 현재 장면에 보이지 않으면 넣지 않음",
-        ],
-    }
-    return {
-        "context_review": context_review,
-        "window_contexts": window_contexts,
-        "grounding_reviews": grounding_reviews,
-        "revisions": revisions,
-        "structure": structure,
-        "story": story,
-    }
-
-
-def _correct_story(text: str, scenes: list[dict[str, Any]]) -> str:
-    corrected = text
-    corrected = corrected.replace("이 나타나자 모두가", "처럼 보이는 친구가 나타나자 모두가")
-    corrected = corrected.replace("작은 물건", "그림 속 물건")
-    corrected = corrected.replace("하늘 아래에서", "마지막 그림 아래에서")
-    corrected = re.sub(r" +", " ", corrected)
-    parts = corrected.split("\n\n")
-    while len(parts) < len(scenes):
-        parts.append("그림 속 친구들은 천천히 마음을 나누며 다음 길을 찾아갔어요.")
-    return "\n\n".join(parts[: len(scenes)])
+def build_experiment_f(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+    """Experiment F: independent scene-window prompting with previous/current/next context."""
+    result = _run_exaone_experiment(
+        "Experiment_F",
+        "global_overview_then_previous_current_next_scene_windows",
+        _prompt_f(scenes),
+        scenes,
+        max_new_tokens=2600,
+    )
+    result["scene_generation_windows"] = _scene_windows(scenes)
+    return result
 
 
 def _html_escape(value: Any) -> str:
@@ -617,7 +463,7 @@ section {{ margin-top:26px; }}
 </head>
 <body>
 <header>
-<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(VISION_MODEL_ID)}</p>
+<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(VISION_MODEL_ID)} · llm: {_html_escape(LLM_MODEL_NOTE)}</p>
 <h1>{_html_escape(story['title'])}</h1>
 </header>
 <main>
@@ -717,35 +563,24 @@ def run_selected_experiments(
         resized_dir=resized_dir,
     )
     dirs = _experiment_dirs(output_root)
-    c_result = build_experiment_c(scenes)
-    d_result = build_experiment_d(scenes)
+    builders = {
+        "c": ("Experiment_C", build_experiment_c),
+        "d": ("Experiment_D", build_experiment_d),
+        "e": ("Experiment_E", build_experiment_e),
+        "f": ("Experiment_F", build_experiment_f),
+    }
     results: dict[str, Any] = {}
-    if "c" in selected:
-        write_outputs("Experiment_C", dirs["c"], scenes, c_result)
-        results["c"] = {"output_dir": str(dirs["c"]), "result": c_result}
-        print(f"saved C: {dirs['c']}")
-    if "d" in selected or "e" in selected or "f" in selected:
-        if "d" in selected:
-            write_outputs("Experiment_D", dirs["d"], scenes, d_result)
-            results["d"] = {"output_dir": str(dirs["d"]), "result": d_result}
-            print(f"saved D: {dirs['d']}")
-    e_result = None
-    if "e" in selected or "f" in selected:
-        e_result = build_experiment_e(scenes, d_result)
-    if "e" in selected and e_result is not None:
-        write_outputs("Experiment_E", dirs["e"], scenes, e_result)
-        results["e"] = {"output_dir": str(dirs["e"]), "result": e_result}
-        print(f"saved E: {dirs['e']}")
-    if "f" in selected and e_result is not None:
-        f_result = build_experiment_f(scenes, e_result)
-        write_outputs("Experiment_F", dirs["f"], scenes, f_result)
-        results["f"] = {"output_dir": str(dirs["f"]), "result": f_result}
-        print(f"saved F: {dirs['f']}")
+    for key in selected:
+        experiment_name, builder = builders[key]
+        result = builder(scenes)
+        write_outputs(experiment_name, dirs[key], scenes, result)
+        results[key] = {"output_dir": str(dirs[key]), "result": result}
+        print(f"saved {key.upper()}: {dirs[key]}")
     return results
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run Qwen 3B based experiments C/D/E/F.")
+    parser = argparse.ArgumentParser(description="Run independent Qwen + EXAONE GGUF experiments C/D/E/F.")
     parser.add_argument(
         "experiments",
         nargs="*",
