@@ -25,28 +25,33 @@ IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg")
 EXPERIMENTS = ("A", "B", "C", "D", "E", "F")
 
 QUANTITATIVE_METRICS = {
-    "image_fidelity": "이미지 충실도",
-    "emotion_reflection": "감정 반영도",
+    "visual_groundedness": "그림 근거 충실도",
+    "object_action_accuracy": "핵심 대상/행동 정확도",
     "low_hallucination": "환각 적음",
-    "sentence_naturalness": "장면 문장 자연성",
+    "emotion_tone_alignment": "감정/분위기 반영도",
+    "scene_linguistic_quality": "장면 문장 언어 품질",
 }
 
 QUALITATIVE_OPTIONS = {
-    "story_structure": {
-        "label": "이야기 구조",
+    "story_coherence": {
+        "label": "전개 구조",
         "options": ("처음-중간-끝 명확", "부분적으로 명확", "구조 약함"),
     },
-    "connection_style": {
+    "logical_flow": {
+        "label": "논리 일관성",
+        "options": ("자연스럽게 이어짐", "일부 어색함", "흐름이 끊김"),
+    },
+    "scene_connection": {
         "label": "장면 연결 방식",
-        "options": ("원인-결과 중심", "나열식", "불연속적"),
+        "options": ("원인-결과 중심", "느슨한 연결", "나열식", "불연속적"),
     },
-    "emotion_flow": {
-        "label": "감정 흐름",
-        "options": ("자연스러움", "부분적으로 자연스러움", "부자연스러움"),
+    "groundedness_pattern": {
+        "label": "사실 기반성/그림 기반성",
+        "options": ("대부분 그림 기반", "일부 과한 상상", "그림과 무관한 내용 많음"),
     },
-    "tone_alignment": {
-        "label": "이야기 톤",
-        "options": ("그림 분위기와 일치", "일부 장면만 일치", "전체적으로 불일치"),
+    "fairy_tale_suitability": {
+        "label": "동화 적합성",
+        "options": ("적합", "부분적으로 적합", "부적합"),
     },
     "main_failure_type": {
         "label": "주요 실패 유형",
@@ -57,11 +62,8 @@ QUALITATIVE_OPTIONS = {
             "과한 상상",
             "장면 간 모순",
             "감정 흐름 약함",
+            "언어 품질 문제",
         ),
-    },
-    "fairy_tale_suitability": {
-        "label": "동화 적합성",
-        "options": ("적합", "부분적으로 적합", "부적합"),
     },
 }
 
@@ -542,10 +544,11 @@ def _render_summary(summary: dict[str, Any]) -> None:
         quantitative_rows.append(
             {
                 "실험": experiment,
-                "이미지 충실도": metrics.get("image_fidelity", ""),
-                "감정 반영도": metrics.get("emotion_reflection", ""),
+                "그림 근거 충실도": metrics.get("visual_groundedness", ""),
+                "핵심 대상/행동 정확도": metrics.get("object_action_accuracy", ""),
                 "환각 적음": metrics.get("low_hallucination", ""),
-                "장면 문장 자연성": metrics.get("sentence_naturalness", ""),
+                "감정/분위기 반영도": metrics.get("emotion_tone_alignment", ""),
+                "장면 문장 언어 품질": metrics.get("scene_linguistic_quality", ""),
                 "전체 장면 평균": metrics.get("scene_average_score", ""),
             }
         )
