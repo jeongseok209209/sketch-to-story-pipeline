@@ -17,11 +17,14 @@ NLLB_MODEL = "facebook/nllb-200-distilled-600M"
 OPENCLIP_MODEL = "ViT-H-14"
 OPENCLIP_PRETRAINED = "laion2b_s32b_b79k"
 EXAONE_MODEL = "LGAI-EXAONE/EXAONE-4.0-1.2B"
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_EXAONE_GGUF_PATH = str(
     PROJECT_ROOT / ".local_models" / "exaone" / "EXAONE-4.0-1.2B-IQ4_XS.gguf"
 )
-LLAMA_CLI_PATH = str(PROJECT_ROOT / ".local_tools" / "llama.cpp" / "build" / "bin" / "llama-cli")
+LLAMA_CLI_FILENAME = "llama-cli.exe" if os.name == "nt" else "llama-cli"
+LLAMA_CLI_PATH = str(
+    PROJECT_ROOT / ".local_tools" / "llama.cpp" / "build" / "bin" / LLAMA_CLI_FILENAME
+)
 
 
 def get_device() -> Any:
