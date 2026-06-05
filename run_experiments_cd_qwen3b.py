@@ -1,4 +1,4 @@
-"""Run independent C/D/E/F experiments with Qwen vision and EXAONE GGUF writing."""
+"""Run independent C/D/E/F/G experiments with Qwen vision and EXAONE GGUF writing."""
 
 from __future__ import annotations
 
@@ -123,6 +123,31 @@ def _prompt_e_visual_cot(index: int) -> str:
 
 
 def _prompt_f_fairy_tale_image_analyst(index: int) -> str:
+    return (
+        "당신은 아이 손그림을 동화 장면으로 해석하는 동화 그림 분석가입니다.\n"
+        "반드시 한국어 JSON만 출력하세요. 마크다운과 영어 설명은 쓰지 마세요.\n"
+        "그림을 동화의 재료로 읽되, 실제로 보이지 않는 사건이나 관계는 꾸며내지 마세요.\n"
+        "먼저 내부적으로 인물/동물/사물, 색/위치/행동, 표정/분위기, 확실한 단서와 불확실한 단서를 점검하세요.\n"
+        "단, 이 점검 과정은 출력하지 말고 최종 JSON 필드에만 반영하세요.\n"
+        "확실하지 않은 대상은 '~처럼 보임'이라고 적고 억지로 단정하지 마세요.\n"
+        "동물의 종류가 확실하지 않으면 토끼, 새, 뱀처럼 단정하지 말고 '동물'이라고 쓰세요.\n"
+        "scene_summary는 보이는 내용을 동화 그림 분석가답게 짧게 1~2문장으로 설명하세요.\n"
+        "최종 출력은 한국어 JSON 객체 하나만 출력하세요.\n"
+        f"이 이미지는 전체 이야기의 {index}번째 그림입니다.\n\n"
+        "{\n"
+        '  "scene_summary": "그림에 보이는 내용을 아이도 이해할 수 있게 2문장으로 설명",\n'
+        '  "characters": ["사람/동물/말하는 사물"],\n'
+        '  "objects": ["중요한 사물"],\n'
+        '  "setting": "장소 또는 배경",\n'
+        '  "mood": "밝음/쓸쓸함/신비로움/조심스러움 등",\n'
+        '  "emotion": "주인공이 느낄 법한 감정",\n'
+        '  "story_role": "이 그림이 이야기에서 맡을 역할",\n'
+        '  "uncertain": "확실하지 않은 부분"\n'
+        "}"
+    )
+
+
+def _prompt_g_cot_persona(index: int) -> str:
     return (
         "당신은 아이 손그림을 동화 장면으로 해석하는 동화 그림 분석가입니다.\n"
         "반드시 한국어 JSON만 출력하세요. 마크다운과 영어 설명은 쓰지 마세요.\n"
@@ -486,6 +511,103 @@ def _build_f_scene_repair_prompt(raw_response: str, scene: dict[str, Any]) -> st
     )
 
 
+def _g_scene_position_hint(scene_index: int) -> str:
+    if scene_index == 1:
+        return "이 장면은 이야기의 시작입니다. 인물, 장소, 분위기를 소개하는 느낌을 살리세요."
+    if scene_index == 10:
+        return "이 장면은 이야기의 마무리입니다. 따뜻한 결말과 여운을 주는 느낌을 살리세요."
+    return "이 장면은 앞뒤 흐름 속에서 자연스럽게 이어지는 중간 장면입니다. 너무 구체적인 단계나 사건을 강제하지 마세요."
+
+
+def _build_g_scene_prompt(scene: dict[str, Any]) -> str:
+    scene_index = int(scene.get("scene_index", 0))
+    return (
+        "실험 G: 당신은 어린이 그림을 따뜻한 동화 문단으로 바꾸는 동화작가입니다.\n"
+        "아래 Qwen 장면 JSON 하나만 보고, 해당 그림에 맞는 한국어 동화 문단을 작성하세요.\n"
+        "먼저 내부적으로 현재 그림의 핵심 시각 단서, 장면 번호의 이야기상 위치감, 문장 수, placeholder 여부를 점검하세요.\n"
+        "단, 이 점검 과정은 출력하지 말고 최종 JSON에만 반영하세요.\n"
+        f"장면 위치감: {_g_scene_position_hint(scene_index)}\n"
+        "현재 장면에 보이는 단서만 사용하고, 그림에 없는 사건이나 관계를 과하게 꾸며내지 마세요.\n"
+        "story_sentence는 아이가 읽기 쉬운 한국어 3~5문장으로 쓰세요. 가능하면 정확히 3문장으로 쓰세요.\n"
+        "\"해당하는 문단\", \"동화 문장\", \"...\" 같은 placeholder나 형식 설명 문구를 쓰지 마세요.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        f"출력 JSON은 scene_index와 story_sentence 두 키만 포함하고, scene_index 값은 {scene_index}이어야 합니다.\n\n"
+        f"scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _build_g_scene_repair_prompt(raw_response: str, scene: dict[str, Any]) -> str:
+    scene_index = int(scene["scene_index"])
+    return (
+        "You are a strict JSON repair tool and a warm Korean fairy-tale writer.\n"
+        "Convert the model response below into one valid JSON object only.\n"
+        "Do not add markdown. Do not explain. Do not include any text before or after JSON.\n"
+        "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
+        f"scene_index must be {scene_index}.\n"
+        f"Scene position nuance: {_g_scene_position_hint(scene_index)}\n"
+        "Keep story_sentence in a gentle fairy-tale writer style using only the scene context.\n"
+        "If possible, make story_sentence exactly 3 short Korean sentences.\n"
+        "Do not use placeholders such as 해당하는 문단, 동화 문장, or ....\n"
+        "Required shape:\n"
+        "{\n"
+        f'  "scene_index": {scene_index},\n'
+        '  "story_sentence": ""\n'
+        "}\n\n"
+        f"SCENE_CONTEXT:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
+
+
+def _build_g_refinement_prompt(scene: dict[str, Any]) -> str:
+    scene_index = int(scene["scene_index"])
+    previous_sentence = str(scene.get("_g_previous_sentence") or "").strip()
+    initial_sentence = str(scene.get("_g_initial_sentence") or "").strip()
+    return (
+        "실험 G 2차 순차 개선: 당신은 어린이 동화를 다듬는 따뜻한 동화작가입니다.\n"
+        "앞 장면의 최종 문장과 현재 장면의 1차 문장을 보고, 현재 장면 문장만 더 자연스럽게 개선하세요.\n"
+        "먼저 내부적으로 앞 문장의 감정/상황, 현재 그림의 핵심 시각 단서, 자연스러운 연결, placeholder 여부를 점검하세요.\n"
+        "단, 이 점검 과정은 출력하지 말고 최종 JSON에만 반영하세요.\n"
+        f"장면 위치감: {_g_scene_position_hint(scene_index)}\n"
+        "앞 문장과 자연스럽게 이어지게 하되, 현재 그림에 없는 사건이나 사물을 과하게 추가하지 마세요.\n"
+        "현재 scene JSON의 시각 근거가 앞 문장보다 우선입니다.\n"
+        "story_sentence는 아이가 읽기 쉬운 한국어 3~5문장으로 쓰세요. 가능하면 정확히 3문장으로 쓰세요.\n"
+        "\"해당하는 문단\", \"동화 문장\", \"...\" 같은 placeholder나 형식 설명 문구를 쓰지 마세요.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        f"출력 JSON은 scene_index와 story_sentence 두 키만 포함하고, scene_index 값은 {scene_index}이어야 합니다.\n\n"
+        f"previous_final_story_sentence:\n{previous_sentence}\n\n"
+        f"current_initial_story_sentence:\n{initial_sentence}\n\n"
+        f"current_scene:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n"
+    )
+
+
+def _build_g_refinement_repair_prompt(raw_response: str, scene: dict[str, Any]) -> str:
+    scene_index = int(scene["scene_index"])
+    previous_sentence = str(scene.get("_g_previous_sentence") or "").strip()
+    initial_sentence = str(scene.get("_g_initial_sentence") or "").strip()
+    return (
+        "You are a strict JSON repair tool and a warm Korean fairy-tale editor.\n"
+        "Convert the model response below into one valid JSON object only.\n"
+        "Do not add markdown. Do not explain. Do not include any text before or after JSON.\n"
+        "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
+        f"scene_index must be {scene_index}.\n"
+        f"Scene position nuance: {_g_scene_position_hint(scene_index)}\n"
+        "The revised story_sentence should connect naturally after the previous final sentence while staying grounded in the current scene.\n"
+        "If possible, make story_sentence exactly 3 short Korean sentences.\n"
+        "Do not use placeholders such as 해당하는 문단, 동화 문장, or ....\n"
+        "Required shape:\n"
+        "{\n"
+        f'  "scene_index": {scene_index},\n'
+        '  "story_sentence": ""\n'
+        "}\n\n"
+        f"PREVIOUS_FINAL_STORY_SENTENCE:\n{previous_sentence}\n\n"
+        f"CURRENT_INITIAL_STORY_SENTENCE:\n{initial_sentence}\n\n"
+        f"CURRENT_SCENE_CONTEXT:\n{json.dumps(_compact_scene(scene), ensure_ascii=False, indent=2)}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
+
+
 def _looks_like_placeholder(value: str) -> bool:
     text = value.strip()
     if not text:
@@ -591,12 +713,14 @@ def _run_exaone_scene_story(
     scene_prompt_builder: Callable[[dict[str, Any]], str] = _build_e_scene_prompt,
     repair_prompt_builder: Callable[[str, dict[str, Any]], str] = _build_e_scene_repair_prompt,
     max_new_tokens: int = 350,
+    step_prefix: str = "EXAONE",
+    step_label: str = "scene",
 ) -> dict[str, Any]:
     scene_index = int(scene["scene_index"])
     prompt = scene_prompt_builder(scene)
     with timed_step(
-        f"EXAONE-{scene_index:02d}",
-        f"{experiment_name} scene {scene_index} EXAONE GGUF generation",
+        f"{step_prefix}-{scene_index:02d}",
+        f"{experiment_name} {step_label} {scene_index} EXAONE GGUF generation",
         experiment=experiment_name,
         model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
     ):
@@ -622,8 +746,8 @@ def _run_exaone_scene_story(
             pass
         repair_prompt = repair_prompt_builder(raw_response, scene)
         with timed_step(
-            f"EXAONE-{scene_index:02d}-repair",
-            f"{experiment_name} scene {scene_index} EXAONE JSON repair",
+            f"{step_prefix}-{scene_index:02d}-repair",
+            f"{experiment_name} {step_label} {scene_index} EXAONE JSON repair",
             experiment=experiment_name,
             model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
         ):
@@ -685,6 +809,21 @@ def _build_f_title_prompt(body: str) -> str:
     return (
         "당신은 어린이 동화를 쓰는 따뜻한 동화작가입니다.\n"
         "아래 한국어 동화 전체 본문을 읽고 짧은 한국어 제목 하나를 만드세요.\n"
+        "제목은 15자 이내가 좋고, 아이가 읽고 싶어지는 동화 느낌이어야 합니다.\n"
+        "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
+        "{\n"
+        '  "title": "짧은 한국어 동화 제목"\n'
+        "}\n\n"
+        f"story_body:\n{body}\n"
+    )
+
+
+def _build_g_title_prompt(body: str) -> str:
+    return (
+        "당신은 어린이 동화를 쓰는 따뜻한 동화작가입니다.\n"
+        "아래 한국어 동화 전체 본문을 읽고 짧은 한국어 제목 하나를 만드세요.\n"
+        "먼저 내부적으로 이야기의 중심 정서와 1번부터 10번까지의 흐름을 확인하세요.\n"
+        "단, 이 점검 과정은 출력하지 말고 최종 JSON에만 반영하세요.\n"
         "제목은 15자 이내가 좋고, 아이가 읽고 싶어지는 동화 느낌이어야 합니다.\n"
         "반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
         "{\n"
@@ -790,6 +929,107 @@ def _run_exaone_per_scene_experiment(
             "method": "Qwen scene JSON -> EXAONE per-scene paragraphs -> code joins body -> EXAONE title",
             "scene_order": [scene["image_id"] for scene in ordered_scenes],
             "scene_max_new_tokens": 350,
+            "title_max_new_tokens": 120,
+        },
+        "experiment_method": experiment_name,
+    }
+
+
+def _run_exaone_g_experiment(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+    _ensure_exaone_gguf_available()
+    experiment_name = "Experiment_G"
+    ordered_scenes = sorted(scenes, key=lambda item: int(item["scene_index"]))
+    initial_results = [
+        _run_exaone_scene_story(
+            scene,
+            experiment_name=experiment_name,
+            scene_prompt_builder=_build_g_scene_prompt,
+            repair_prompt_builder=_build_g_scene_repair_prompt,
+            step_prefix="EXAONE-initial",
+            step_label="initial scene",
+        )
+        for scene in ordered_scenes
+    ]
+
+    initial_by_index = {int(item["scene_index"]): item for item in initial_results}
+    final_scene_results = [initial_results[0]["parsed_result"]]
+    refined_results: list[dict[str, Any]] = []
+    previous_final_sentence = initial_results[0]["parsed_result"]["story_sentence"]
+
+    for scene in ordered_scenes[1:]:
+        scene_index = int(scene["scene_index"])
+        initial_sentence = initial_by_index[scene_index]["parsed_result"]["story_sentence"]
+        refinement_scene = {
+            **scene,
+            "_g_previous_sentence": previous_final_sentence,
+            "_g_initial_sentence": initial_sentence,
+        }
+        refined_result = _run_exaone_scene_story(
+            refinement_scene,
+            experiment_name=experiment_name,
+            scene_prompt_builder=_build_g_refinement_prompt,
+            repair_prompt_builder=_build_g_refinement_repair_prompt,
+            step_prefix="EXAONE-refine",
+            step_label="refinement scene",
+        )
+        refined_results.append(refined_result)
+        final_scene_results.append(refined_result["parsed_result"])
+        previous_final_sentence = refined_result["parsed_result"]["story_sentence"]
+
+    scene_sentences = [item["story_sentence"] for item in final_scene_results]
+    body = "\n\n".join(scene_sentences)
+    title_result = _generate_e_title(
+        body,
+        experiment_name=experiment_name,
+        title_prompt_builder=_build_g_title_prompt,
+    )
+    json_repair_used = any(item["json_repair_used"] for item in initial_results + refined_results)
+    return {
+        "prompt_strategy": "cot_persona_scene_position_sequential_refinement",
+        "exaone_prompt": {
+            "initial_scene_prompts": [item["prompt"] for item in initial_results],
+            "refinement_prompts": [item["prompt"] for item in refined_results],
+            "title_prompt": title_result["prompt"],
+        },
+        "exaone_raw_response": "\n\n".join(
+            f"[initial scene {item['scene_index']}]\n{item['raw_response']}" for item in initial_results
+        )
+        + "\n\n"
+        + "\n\n".join(
+            f"[refine scene {item['scene_index']}]\n{item['raw_response']}" for item in refined_results
+        )
+        + f"\n\n[title]\n{title_result['raw_response']}",
+        "llama_runtime": title_result.get("llama_runtime") or get_last_llama_runtime(),
+        "parsed_result": {
+            "initial_scene_results": [item["parsed_result"] for item in initial_results],
+            "refined_scene_results": [item["parsed_result"] for item in refined_results],
+            "final_scene_results": final_scene_results,
+            "title_result": title_result["parsed_result"],
+            "title_fallback_used": title_result["fallback_used"],
+        },
+        "json_repair_used": json_repair_used,
+        "story": {
+            "title": title_result["title"],
+            "body": body,
+            "scene_sentences": scene_sentences,
+            "grounding_notes": [],
+        },
+        "structure": {
+            "mode": "per_scene_exaone_with_sequential_refinement",
+            "scene_count": len(ordered_scenes),
+            "exaone_initial_scene_calls": len(initial_results),
+            "exaone_refinement_calls": len(refined_results),
+            "exaone_title_calls": 1,
+            "exaone_total_calls": len(initial_results) + len(refined_results) + 1,
+        },
+        "plan": {
+            "method": (
+                "Qwen scene JSON -> EXAONE initial per-scene paragraphs -> "
+                "EXAONE sequential refinement with previous final sentence -> code joins body -> EXAONE title"
+            ),
+            "scene_order": [scene["image_id"] for scene in ordered_scenes],
+            "scene_max_new_tokens": 350,
+            "refinement_max_new_tokens": 350,
             "title_max_new_tokens": 120,
         },
         "experiment_method": experiment_name,
@@ -933,6 +1173,11 @@ def build_experiment_f(scenes: list[dict[str, Any]]) -> dict[str, Any]:
     )
 
 
+def build_experiment_g(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+    """Experiment G: CoT + persona prompts with sequential scene refinement."""
+    return _run_exaone_g_experiment(scenes)
+
+
 def _html_escape(value: Any) -> str:
     return (
         str(value or "")
@@ -1027,6 +1272,7 @@ def _experiment_dirs(output_root: Path) -> dict[str, Path]:
         "d": output_root / "D",
         "e": output_root / "E",
         "f": output_root / "F",
+        "g": output_root / "G",
     }
 
 
@@ -1036,6 +1282,7 @@ def _experiment_builders() -> dict[str, tuple[str, Any]]:
         "d": ("Experiment_D", build_experiment_d),
         "e": ("Experiment_E", build_experiment_e),
         "f": ("Experiment_F", build_experiment_f),
+        "g": ("Experiment_G", build_experiment_g),
     }
 
 
@@ -1124,6 +1371,9 @@ def prepare_qwen_scenes_for_experiment(
     elif key == "f":
         prompt_builder = _prompt_f_fairy_tale_image_analyst
         qwen_max_new_tokens = 240
+    elif key == "g":
+        prompt_builder = _prompt_g_cot_persona
+        qwen_max_new_tokens = 240
     else:
         prompt_builder = _prompt
         qwen_max_new_tokens = 220
@@ -1156,14 +1406,14 @@ def run_experiment_with_scenes(
 
 
 def run_selected_experiments(
-    experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f"),
+    experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f", "g"),
     input_dir: str | Path = INPUT_DIR,
     output_root: str | Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
     output_root = Path(output_root)
     selected = [experiment.lower() for experiment in experiments]
     if "all" in selected:
-        selected = ["c", "d", "e", "f"]
+        selected = ["c", "d", "e", "f", "g"]
 
     results: dict[str, Any] = {}
     for key in selected:
@@ -1181,11 +1431,11 @@ def run_selected_experiments(
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run independent Qwen + EXAONE GGUF experiments C/D/E/F.")
+    parser = argparse.ArgumentParser(description="Run independent Qwen + EXAONE GGUF experiments C/D/E/F/G.")
     parser.add_argument(
         "experiments",
         nargs="*",
-        choices=("c", "d", "e", "f", "all"),
+        choices=("c", "d", "e", "f", "g", "all"),
         default=["all"],
         help="Experiments to run. Defaults to all.",
     )

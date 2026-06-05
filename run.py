@@ -1,4 +1,4 @@
-"""Unified command runner for experiments A/B/C/D/E/F."""
+"""Unified command runner for experiments A/B/C/D/E/F/G."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ DEFAULT_OUTPUT_ROOT = BASE_DIR / "outputs"
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run sketch-to-story experiments by selecting a, b, c, d, e, or f."
+        description="Run sketch-to-story experiments by selecting a, b, c, d, e, f, or g."
     )
     subparsers = parser.add_subparsers(dest="experiment", required=True)
 
@@ -72,12 +72,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     b_parser.add_argument("--story-max-new-tokens", type=int)
 
-    for name in ("c", "d", "e", "f"):
+    for name in ("c", "d", "e", "f", "g"):
         sub = subparsers.add_parser(name, help=f"Run Experiment {name.upper()}.")
         sub.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="Ordered image directory.")
         sub.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
 
-    all_parser = subparsers.add_parser("all", help="Run A, B, C, D, E, and F in order.")
+    all_parser = subparsers.add_parser("all", help="Run A, B, C, D, E, F, and G in order.")
     all_parser.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="Ordered image directory.")
     all_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
     all_parser.add_argument("--clip-threshold", type=float, default=0.22)
@@ -197,7 +197,7 @@ def _preflight_for_experiment(args: argparse.Namespace) -> None:
         _preflight_exaone_gguf()
     elif args.experiment == "b" and getattr(args, "story_backend", "") == "exaone_gguf_structured":
         _preflight_exaone_gguf()
-    elif args.experiment in {"c", "d", "e", "f"}:
+    elif args.experiment in {"c", "d", "e", "f", "g"}:
         _preflight_qwen_model()
         _preflight_exaone_gguf()
 
@@ -293,7 +293,7 @@ def _run_guarded_experiment(
 
 def _run_cdef_guarded(args: argparse.Namespace) -> list[dict[str, Any]]:
     output_root = Path(args.output_root)
-    experiments = ["C", "D", "E", "F"]
+    experiments = ["C", "D", "E", "F", "G"]
     summaries = []
     for index, experiment in enumerate(experiments):
         next_experiment = experiments[index + 1] if index + 1 < len(experiments) else None
@@ -426,7 +426,7 @@ def main() -> None:
         set_step_context(experiment="B", phase="generation")
         log_stage(f"start Experiment B backend={args.story_backend}", step="B")
         _run_b(args)
-    elif args.experiment in {"c", "d", "e", "f"}:
+    elif args.experiment in {"c", "d", "e", "f", "g"}:
         set_step_context(experiment=args.experiment.upper(), phase="generation")
         log_stage(f"start Experiment {args.experiment.upper()}", step=args.experiment.upper())
         run_selected_experiments(

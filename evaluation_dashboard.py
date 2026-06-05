@@ -22,7 +22,7 @@ SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
 INPUT_DIR = BASE_DIR / "inputs"
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg")
-EXPERIMENTS = ("A", "B", "C", "D", "E", "F")
+EXPERIMENTS = ("A", "B", "C", "D", "E", "F", "G")
 
 QUANTITATIVE_METRICS = {
     "visual_groundedness": "그림 근거 충실도",
@@ -586,7 +586,7 @@ def main() -> None:
     mapping = load_or_create_mapping()
     cases = load_cases(mapping)
     if not cases:
-        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F 결과를 생성하세요.")
+        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G 결과를 생성하세요.")
         st.code("python run.py all", language="bash")
         return
 
