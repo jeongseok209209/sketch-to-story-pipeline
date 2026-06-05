@@ -22,7 +22,7 @@ SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
 INPUT_DIR = BASE_DIR / "inputs"
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg")
-EXPERIMENTS = ("A", "B", "C", "D", "E", "F", "G")
+EXPERIMENTS = ("A", "B", "C", "D", "E", "F", "G", "H", "I")
 
 QUANTITATIVE_METRICS = {
     "visual_groundedness": "그림 근거 충실도",
@@ -31,6 +31,7 @@ QUANTITATIVE_METRICS = {
     "emotion_tone_alignment": "감정/분위기 반영도",
     "scene_linguistic_quality": "장면 문장 언어 품질",
 }
+SCORE_OPTIONS = tuple(range(1, 11))
 
 QUALITATIVE_OPTIONS = {
     "story_coherence": {
@@ -122,6 +123,10 @@ def _resolve_image(image_id: str, scene_payload: dict[str, Any] | None = None) -
             candidate = Path(str(image_path))
             if candidate.exists():
                 return candidate
+            if not candidate.is_absolute():
+                candidate = BASE_DIR / candidate
+                if candidate.exists():
+                    return candidate
 
     if image_id:
         candidate = INPUT_DIR / image_id
@@ -207,6 +212,39 @@ def _story_from_cd_result(record: dict[str, Any]) -> tuple[str, list[str]]:
     return full_story, scene_sentences
 
 
+def _a_result_sort_key(path: Path) -> tuple[int, int | str, str]:
+    stem = path.stem.replace("_experiment_a", "")
+    if stem.isdigit():
+        return (0, int(stem), path.name.casefold())
+    return (1, stem.casefold(), path.name.casefold())
+
+
+def _case_from_a_records(case_id: str, result_files: list[Path]) -> EvaluationCase:
+    scenes = []
+    story_units = []
+    for index, result_file in enumerate(sorted(result_files, key=_a_result_sort_key), start=1):
+        record = _read_json(result_file)
+        image_id = str(record.get("image_id", "")).strip()
+        vision = record.get("vision") or {}
+        story_final = str(record.get("story_final", "")).strip()
+        scene_payload = {
+            **((record.get("steps") or {}).get("01_image_input") or {}),
+            "image_path": record.get("image_path") or ((record.get("steps") or {}).get("01_image_input") or {}).get("image_path"),
+        }
+        story_units.append(story_final)
+        scenes.append(
+            SceneView(
+                scene_index=index,
+                image_id=image_id,
+                image_path=_resolve_image(image_id, scene_payload),
+                scene_summary=_compose_a_scene_summary(vision),
+                generated_sentence=story_final,
+            )
+        )
+    full_story = "\n\n".join(part for part in story_units if part)
+    return EvaluationCase(case_id, "A", result_files[0], scenes, full_story)
+
+
 def _case_from_record(case_id: str, result_file: Path, experiment: str) -> EvaluationCase:
     record = _read_json(result_file)
 
@@ -214,7 +252,10 @@ def _case_from_record(case_id: str, result_file: Path, experiment: str) -> Evalu
         image_id = str(record.get("image_id", "")).strip()
         vision = record.get("vision") or {}
         full_story = str(record.get("story_final", "")).strip()
-        scene_payload = (record.get("steps") or {}).get("01_image_input") or {}
+        scene_payload = {
+            **((record.get("steps") or {}).get("01_image_input") or {}),
+            "image_path": record.get("image_path") or ((record.get("steps") or {}).get("01_image_input") or {}).get("image_path"),
+        }
         scenes = [
             SceneView(
                 scene_index=1,
@@ -237,7 +278,7 @@ def _case_from_record(case_id: str, result_file: Path, experiment: str) -> Evalu
                 SceneView(
                     scene_index=int(scene.get("scene_index") or index),
                     image_id=image_id,
-                    image_path=_resolve_image(image_id),
+                    image_path=_resolve_image(image_id, scene),
                     scene_summary=_compose_sequence_scene_summary(scene),
                     generated_sentence=story_units[index - 1] if index - 1 < len(story_units) else "",
                 )
@@ -254,7 +295,7 @@ def _case_from_record(case_id: str, result_file: Path, experiment: str) -> Evalu
             SceneView(
                 scene_index=int(scene.get("scene_index") or index),
                 image_id=image_id,
-                image_path=_resolve_image(image_id),
+                image_path=_resolve_image(image_id, scene),
                 scene_summary=summary,
                 generated_sentence=scene_sentences[index - 1] if index - 1 < len(scene_sentences) else "",
             )
@@ -280,22 +321,35 @@ def discover_result_files() -> list[ResultFile]:
     return results
 
 
-def create_blind_mapping() -> dict[str, dict[str, str]]:
+def create_blind_mapping() -> dict[str, dict[str, Any]]:
     result_files = discover_result_files()
-    shuffled = list(result_files)
-    random.SystemRandom().shuffle(shuffled)
-    mapping = {
-        f"case_{index:03d}": {
+    grouped_items: list[dict[str, Any]] = []
+    a_paths = sorted((result.path for result in result_files if result.experiment == "A"), key=_a_result_sort_key)
+    if a_paths:
+        grouped_items.append(
+            {
+                "experiment": "A",
+                "result_files": [_relative(path) for path in a_paths],
+            }
+        )
+    grouped_items.extend(
+        {
             "experiment": result.experiment,
             "result_file": _relative(result.path),
         }
-        for index, result in enumerate(shuffled, start=1)
+        for result in result_files
+        if result.experiment != "A"
+    )
+    random.SystemRandom().shuffle(grouped_items)
+    mapping = {
+        f"case_{index:03d}": item
+        for index, item in enumerate(grouped_items, start=1)
     }
     _write_json(MAPPING_FILE, mapping)
     return mapping
 
 
-def load_or_create_mapping() -> dict[str, dict[str, str]]:
+def load_or_create_mapping() -> dict[str, dict[str, Any]]:
     EVALUATION_DIR.mkdir(parents=True, exist_ok=True)
     if MAPPING_FILE.exists():
         mapping = _read_json(MAPPING_FILE)
@@ -304,12 +358,24 @@ def load_or_create_mapping() -> dict[str, dict[str, str]]:
     return create_blind_mapping()
 
 
-def load_cases(mapping: dict[str, dict[str, str]]) -> list[EvaluationCase]:
+def load_cases(mapping: dict[str, dict[str, Any]]) -> list[EvaluationCase]:
     cases: list[EvaluationCase] = []
     errors: list[str] = []
     for case_id in sorted(mapping):
         item = mapping[case_id]
         experiment = str(item.get("experiment", "")).upper()
+        result_file_values = item.get("result_files")
+        if experiment == "A" and isinstance(result_file_values, list):
+            result_files = [_resolve_result_path(str(value)) for value in result_file_values]
+            missing = [path for path in result_files if not path.exists()]
+            if missing:
+                errors.append(f"{case_id}: A 결과 파일 일부를 읽을 수 없습니다.")
+                continue
+            try:
+                cases.append(_case_from_a_records(case_id, result_files))
+            except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+                errors.append(f"{case_id}: {exc}")
+            continue
         result_file = _resolve_result_path(str(item.get("result_file", "")))
         if experiment not in EXPERIMENTS or not result_file.exists():
             errors.append(f"{case_id}: 결과 파일을 읽을 수 없습니다.")
@@ -367,7 +433,7 @@ def _score_average(scene_quantitative: list[dict[str, Any]]) -> float:
 
 
 def build_summary(
-    mapping: dict[str, dict[str, str]],
+    mapping: dict[str, dict[str, Any]],
     latest_records: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     metric_values: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
@@ -431,10 +497,18 @@ def _existing_scene_scores(
     for scene in existing_record.get("scene_quantitative", []):
         if int(scene.get("scene_index", -1)) == scene_index:
             return {
-                metric: int(scene.get(metric, 3))
+                metric: _coerce_score(scene.get(metric), default=5)
                 for metric in QUANTITATIVE_METRICS
             }
     return {}
+
+
+def _coerce_score(value: Any, default: int = 5) -> int:
+    try:
+        score = int(value)
+    except (TypeError, ValueError):
+        score = default
+    return min(max(score, SCORE_OPTIONS[0]), SCORE_OPTIONS[-1])
 
 
 def _existing_qualitative(
@@ -471,12 +545,30 @@ def _render_case_navigation(cases: list[EvaluationCase]) -> EvaluationCase:
     return current_case
 
 
+def _render_story_image_overview(case: EvaluationCase) -> None:
+    st.markdown("## 전체 그림 흐름")
+    st.caption("전체 이야기 평가를 위해 10장 그림의 순서를 먼저 확인하세요.")
+    column_count = 5
+    for row_start in range(0, len(case.scenes), column_count):
+        columns = st.columns(column_count)
+        for offset, scene in enumerate(case.scenes[row_start : row_start + column_count]):
+            with columns[offset]:
+                if scene.image_path and scene.image_path.exists():
+                    st.image(
+                        str(scene.image_path),
+                        caption=f"{scene.scene_index}번째",
+                        width="stretch",
+                    )
+                else:
+                    st.info(f"{scene.scene_index}번째 이미지 없음")
+
+
 def _render_scene(scene: SceneView, existing_record: dict[str, Any] | None, case_id: str) -> None:
     st.markdown(f"#### {scene.scene_index}번째 장면")
     image_col, eval_col = st.columns([1.2, 1])
     with image_col:
         if scene.image_path and scene.image_path.exists():
-            st.image(str(scene.image_path), use_container_width=True)
+            st.image(str(scene.image_path), width="stretch")
         else:
             st.info("이미지 파일을 찾을 수 없습니다.")
         st.markdown("**장면 설명**")
@@ -487,13 +579,13 @@ def _render_scene(scene: SceneView, existing_record: dict[str, Any] | None, case
     with eval_col:
         existing_scores = _existing_scene_scores(existing_record, scene.scene_index)
         for metric, label in QUANTITATIVE_METRICS.items():
-            st.slider(
+            score = _coerce_score(existing_scores.get(metric), default=5)
+            st.radio(
                 label,
-                min_value=1,
-                max_value=5,
-                value=existing_scores.get(metric, 3),
-                step=1,
+                SCORE_OPTIONS,
+                index=score - 1,
                 key=f"{case_id}_{scene.scene_index}_{metric}",
+                horizontal=True,
             )
 
 
@@ -586,7 +678,7 @@ def main() -> None:
     mapping = load_or_create_mapping()
     cases = load_cases(mapping)
     if not cases:
-        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G 결과를 생성하세요.")
+        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G/H/I 결과를 생성하세요.")
         st.code("python run.py all", language="bash")
         return
 
@@ -598,19 +690,20 @@ def main() -> None:
     completed = len([case for case in cases if case.case_id in latest_records])
     st.progress(completed / len(cases), text=f"저장된 평가: {completed} / {len(cases)}")
 
-    with st.form(f"evaluation_form_{current_case.case_id}"):
-        st.markdown("## 장면별 정량 평가")
-        st.caption("각 장면은 1점부터 5점까지 평가합니다.")
-        for scene in current_case.scenes:
-            with st.expander(f"{scene.scene_index}번째 장면 평가", expanded=True):
-                _render_scene(scene, existing_record, current_case.case_id)
+    _render_story_image_overview(current_case)
 
-        st.divider()
-        st.markdown("## 전체 이야기")
-        st.write(current_case.full_story or "전체 이야기 본문이 없습니다.")
-        _render_qualitative_form(current_case, existing_record)
+    st.markdown("## 장면별 정량 평가")
+    st.caption("각 장면은 1점부터 10점까지 숫자를 클릭해 평가합니다.")
+    for scene in current_case.scenes:
+        with st.expander(f"{scene.scene_index}번째 장면 평가", expanded=True):
+            _render_scene(scene, existing_record, current_case.case_id)
 
-        submitted = st.form_submit_button("현재 case 평가 저장", use_container_width=True)
+    st.divider()
+    st.markdown("## 전체 이야기")
+    st.write(current_case.full_story or "전체 이야기 본문이 없습니다.")
+    _render_qualitative_form(current_case, existing_record)
+
+    submitted = st.button("현재 case 평가 저장", width="stretch")
 
     if submitted:
         scene_quantitative = _collect_scene_quantitative(current_case)

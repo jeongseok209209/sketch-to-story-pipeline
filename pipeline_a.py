@@ -144,6 +144,7 @@ def run_experiment_a(
         # 전체 실행 기록은 한 파일에 모으고, steps 폴더에는 단계별 JSON도 함께 저장합니다.
         run_record = {
             "image_id": image.name,
+            "image_path": str(image.resolve()),
             "experiment": "A",
             "story_backend": story_backend,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -211,6 +212,7 @@ def run_sequence_story(
         scene_record = {
             "scene_index": index,
             "image_id": image_path.name,
+            "image_path": str(image_path.resolve()),
             "vision": vision,
             "structured_json": structured_json,
             "plan_json": plan_json,
@@ -221,6 +223,7 @@ def run_sequence_story(
         scene_records.append(scene_record)
         sequence_steps[f"{index:02d}_{image_path.stem}"] = {
             "image_id": image_path.name,
+            "image_path": str(image_path.resolve()),
             "vision_steps": vision_steps,
             "scene_record": scene_record,
         }
