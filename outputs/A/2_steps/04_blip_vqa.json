@@ -10,8 +10,8 @@
   },
   "answers": {
     "who": "girl",
-    "actions": "drawing",
-    "scene": "outside",
+    "actions": "girl is drawing on sand",
+    "scene": "in park",
     "mood": "happy"
   }
 }

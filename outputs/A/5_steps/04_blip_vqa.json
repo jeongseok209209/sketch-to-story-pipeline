@@ -9,9 +9,9 @@
     "mood": "What is the mood of this picture?"
   },
   "answers": {
-    "who": "tiger",
-    "actions": "house",
-    "scene": "at play",
+    "who": "girl",
+    "actions": "girl is drawing on grass",
+    "scene": "in park",
     "mood": "happy"
   }
 }

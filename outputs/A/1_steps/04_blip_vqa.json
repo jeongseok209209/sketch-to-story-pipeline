@@ -9,9 +9,9 @@
     "mood": "What is the mood of this picture?"
   },
   "answers": {
-    "who": "children",
-    "actions": "drawing",
-    "scene": "in front of house",
+    "who": "girl",
+    "actions": "walking",
+    "scene": "in park",
     "mood": "happy"
   }
 }

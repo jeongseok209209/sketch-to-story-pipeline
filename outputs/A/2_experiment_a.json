@@ -1,19 +1,20 @@
 {
   "image_id": "2.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:14:05.449415+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/2_steps",
+  "timestamp": "2026-06-06T06:29:45.582421+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\2_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "2.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/2.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
       "image_mode": "RGB",
       "image_size": [
-        1408,
-        1117
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs"
+      "raw_caption": "a children ' s drawing of a girl picking flowers in a field"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -51,8 +52,8 @@
       },
       "answers": {
         "who": "girl",
-        "actions": "drawing",
-        "scene": "outside",
+        "actions": "girl is drawing on sand",
+        "scene": "in park",
         "mood": "happy"
       }
     },
@@ -60,37 +61,43 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of a little girl carrying a basket of eggs girl drawing outside happy",
+      "source_text": "a children ' s drawing of a girl picking flowers in a field girl girl is drawing on sand in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
+        "a",
+        "is",
+        "flowers",
+        "sand",
         "s",
-        "of",
-        "little",
-        "basket",
-        "children",
-        "eggs",
-        "happy",
-        "carrying",
-        "outside",
-        "drawing",
         "girl",
-        "a"
+        "picking",
+        "park",
+        "field",
+        "children",
+        "in",
+        "happy",
+        "of",
+        "on",
+        "drawing"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.2400810718536377,
-        "of": 0.2768254280090332,
-        "little": 0.2834776043891907,
-        "basket": 0.2829257845878601,
-        "children": 0.3003472089767456,
-        "eggs": 0.2376130074262619,
-        "happy": 0.25588610768318176,
-        "carrying": 0.2954583168029785,
-        "outside": 0.2851819097995758,
-        "drawing": 0.2769652009010315,
-        "girl": 0.2886503040790558,
-        "a": 0.26044920086860657
+        "a": 0.21745772659778595,
+        "is": 0.19459731876850128,
+        "flowers": 0.21825498342514038,
+        "sand": 0.205550417304039,
+        "s": 0.2100309282541275,
+        "girl": 0.25474074482917786,
+        "picking": 0.28553134202957153,
+        "park": 0.24035875499248505,
+        "field": 0.25465846061706543,
+        "children": 0.2602899372577667,
+        "in": 0.21155671775341034,
+        "happy": 0.20562246441841125,
+        "of": 0.22741737961769104,
+        "on": 0.21494744718074799,
+        "drawing": 0.23795866966247559
       }
     },
     "06_vision_json": {
@@ -99,38 +106,28 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "little",
-          "basket",
-          "children",
-          "eggs",
-          "happy",
-          "carrying",
-          "outside",
-          "drawing",
           "girl",
-          "a"
+          "picking",
+          "park",
+          "field",
+          "children",
+          "of",
+          "drawing"
         ],
         "object_scores": {
-          "s": 0.2400810718536377,
-          "of": 0.2768254280090332,
-          "little": 0.2834776043891907,
-          "basket": 0.2829257845878601,
-          "children": 0.3003472089767456,
-          "eggs": 0.2376130074262619,
-          "happy": 0.25588610768318176,
-          "carrying": 0.2954583168029785,
-          "outside": 0.2851819097995758,
-          "drawing": 0.2769652009010315,
-          "girl": 0.2886503040790558,
-          "a": 0.26044920086860657
+          "girl": 0.25474074482917786,
+          "picking": 0.28553134202957153,
+          "park": 0.24035875499248505,
+          "field": 0.25465846061706543,
+          "children": 0.2602899372577667,
+          "of": 0.22741737961769104,
+          "drawing": 0.23795866966247559
         },
         "who": "girl",
-        "actions": "drawing",
-        "scene": "outside",
+        "actions": "girl is drawing on sand",
+        "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs",
+        "raw_caption": "a children ' s drawing of a girl picking flowers in a field",
         "confidence": "high"
       }
     },
@@ -139,68 +136,66 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a little girl carrying a basket of eggs. The main character was girl, drawing outside. The mood was happy.\n\nThe story begins:\n\n\n-Girl sitting on the balcony and looking out at all her friends waiting for their arrival when they arrive to meet them in front courtyard (the garden) - Girl has an egg hanging from one shoulder as she stares up through window towards sky where others are gathered watching birds or flowers growing around with red eyes that look like stars but instead of being brighter it is just dark brownish green colour/lighter than water blue color / Bird flying across space; bird appears very high above other trees making him seem small without wings so he must be huge if his body were tall enough"
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl picking flowers in a field. The main character was girl, girl is drawing on sand in park. The mood was happy.\n\nThe story begins:"
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이들의 이야기. 한때 계란 바구니를 들고 있는 어린 소녀의 어린이들의 그림이 있었다. 주인공은 소녀가 밖에서 그림을 그리는 것이었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다. - 소녀가 발코니에 앉아 있으며, 그들이 정원 (바구) 에 도착했을 때 그들의 도착을 기다리고있는 모든 친구들을 지켜보고 있습니다. - 소녀는 계실을 통해 하늘을 바라보고 다른 사람들이 모여있는 새나 꽃이 둥지를 향해 둥지를 틀어있는 동안 다른 새가 날개를 가지고있는 것처럼 보이지만, 그의 몸은 충분히 크고 큰 것이어야합니다. 그의 몸은 별처럼 보이는 붉은 눈과 함께 자라나는 새가 있습니다. 그러나 밝은 것이 아니라 어두운 갈색 녹색 색 / 푸른 물 색보다 밝은 색 / 새가 우주를 날아갑니다."
+      "story_final": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다."
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.25,
+        "object_coverage": 0.2857142857142857,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 382,
+        "char_count": 111,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "little",
-      "basket",
-      "children",
-      "eggs",
-      "happy",
-      "carrying",
-      "outside",
-      "drawing",
       "girl",
-      "a"
+      "picking",
+      "park",
+      "field",
+      "children",
+      "of",
+      "drawing"
     ],
     "object_scores": {
-      "s": 0.2400810718536377,
-      "of": 0.2768254280090332,
-      "little": 0.2834776043891907,
-      "basket": 0.2829257845878601,
-      "children": 0.3003472089767456,
-      "eggs": 0.2376130074262619,
-      "happy": 0.25588610768318176,
-      "carrying": 0.2954583168029785,
-      "outside": 0.2851819097995758,
-      "drawing": 0.2769652009010315,
-      "girl": 0.2886503040790558,
-      "a": 0.26044920086860657
+      "girl": 0.25474074482917786,
+      "picking": 0.28553134202957153,
+      "park": 0.24035875499248505,
+      "field": 0.25465846061706543,
+      "children": 0.2602899372577667,
+      "of": 0.22741737961769104,
+      "drawing": 0.23795866966247559
     },
     "who": "girl",
-    "actions": "drawing",
-    "scene": "outside",
+    "actions": "girl is drawing on sand",
+    "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a little girl carrying a basket of eggs",
+    "raw_caption": "a children ' s drawing of a girl picking flowers in a field",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a little girl carrying a basket of eggs. The main character was girl, drawing outside. The mood was happy.\n\nThe story begins:\n\n\n-Girl sitting on the balcony and looking out at all her friends waiting for their arrival when they arrive to meet them in front courtyard (the garden) - Girl has an egg hanging from one shoulder as she stares up through window towards sky where others are gathered watching birds or flowers growing around with red eyes that look like stars but instead of being brighter it is just dark brownish green colour/lighter than water blue color / Bird flying across space; bird appears very high above other trees making him seem small without wings so he must be huge if his body were tall enough",
-  "story_final": "어린이들의 이야기. 한때 계란 바구니를 들고 있는 어린 소녀의 어린이들의 그림이 있었다. 주인공은 소녀가 밖에서 그림을 그리는 것이었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다. - 소녀가 발코니에 앉아 있으며, 그들이 정원 (바구) 에 도착했을 때 그들의 도착을 기다리고있는 모든 친구들을 지켜보고 있습니다. - 소녀는 계실을 통해 하늘을 바라보고 다른 사람들이 모여있는 새나 꽃이 둥지를 향해 둥지를 틀어있는 동안 다른 새가 날개를 가지고있는 것처럼 보이지만, 그의 몸은 충분히 크고 큰 것이어야합니다. 그의 몸은 별처럼 보이는 붉은 눈과 함께 자라나는 새가 있습니다. 그러나 밝은 것이 아니라 어두운 갈색 녹색 색 / 푸른 물 색보다 밝은 색 / 새가 우주를 날아갑니다.",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl picking flowers in a field. The main character was girl, girl is drawing on sand in park. The mood was happy.\n\nThe story begins:",
+  "story_final": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+  "story": {
+    "title": "2",
+    "body": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+    "scene_sentences": [
+      "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다."
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.25,
+    "object_coverage": 0.2857142857142857,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 382,
+    "char_count": 111,
     "paragraph_count": 1
   }
 }

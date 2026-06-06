@@ -1,0 +1,188 @@
+[
+  {
+    "scene_index": 1,
+    "image_id": "1.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\1.png",
+    "scene_summary": "그림에는 한 소녀가 나무로 둘러싸인 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다.",
+    "characters": [
+      "사람"
+    ],
+    "objects": [
+      "나무",
+      "길",
+      "소녀"
+    ],
+    "setting": "산이나 숲 같은 자연 환경",
+    "mood": "밝음",
+    "emotion": "행복",
+    "story_role": "주인공이 걷고 있는 소녀",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무로 둘러싸인 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"나무\", \"길\", \"소녀\"],\n  \"setting\": \"산이나 숲 같은 자연 환경\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"주인공이 걷고 있는 소녀\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 2,
+    "image_id": "2.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
+    "scene_summary": "그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 소년은 흰색과 파란색의 상의를 입고 있으며, 머리에는 검은색 머리카락이 있습니다. 그의 배낭은 녹색이며, 주변에는 여러 개의 꽃들이 피어 있습니다.",
+    "characters": [
+      "사람"
+    ],
+    "objects": [
+      "꽃, 소년, 배낭"
+    ],
+    "setting": "숲",
+    "mood": "밝음",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 소년이 꽃을 수집하는 장면을 나타냅니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 소년은 흰색과 파란색의 상의를 입고 있으며, 머리에는 검은색 머리카락이 있습니다. 그의 배낭은 녹색이며, 주변에는 여러 개의 꽃들이 피어 있습니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"꽃, 소년, 배낭\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소년이 꽃을 수집하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 3,
+    "image_id": "3.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
+    "scene_summary": "그림에는 한 소녀가 나무 아래에서 꽃을 집어들고 있는 모습이 보입니다.",
+    "characters": [
+      "사람"
+    ],
+    "objects": [
+      "꽃, 나무, 소녀"
+    ],
+    "setting": "숲",
+    "mood": "행복",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 꽃을 찾는 장면을 나타냅니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 꽃을 집어들고 있는 모습이 보입니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"꽃, 나무, 소녀\"],\n  \"setting\": \"숲\",\n  \"mood\": \"행복\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 꽃을 찾는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 4,
+    "image_id": "4.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
+    "scene_summary": "그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 그려져 있습니다. 소녀는 올바른 색상과 모양으로 그려져 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.",
+    "characters": [
+      "사람/동물/말하는 사물"
+    ],
+    "objects": [
+      "중요한 사물"
+    ],
+    "setting": "나무와 식물이 있는 숲속",
+    "mood": "밝음",
+    "emotion": "행복/ concentration",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 보여줍니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 그려져 있습니다. 소녀는 올바른 색상과 모양으로 그려져 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"나무와 식물이 있는 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 5,
+    "image_id": "5.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
+    "scene_summary": "그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흰색 털의 토끼와 작은 새가 있습니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 머리카락이 있습니다.",
+    "characters": [
+      "사람/동물/말하는 사물"
+    ],
+    "objects": [
+      "중요한 사물"
+    ],
+    "setting": "산책 중인 소녀와 토끼, 새가 있는 산책길",
+    "mood": "밝음",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흰색 털의 토끼와 작은 새가 있습니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 머리카락이 있습니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"산책 중인 소녀와 토끼, 새가 있는 산책길\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 6,
+    "image_id": "6.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\6.png",
+    "scene_summary": "그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 있습니다.",
+    "characters": [
+      "사람"
+    ],
+    "objects": [
+      "꽃, 나무, 소녀"
+    ],
+    "setting": "숲",
+    "mood": "밝음",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 꽃을 찾는 장면을 나타냅니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 있습니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"꽃, 나무, 소녀\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 꽃을 찾는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 7,
+    "image_id": "7.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\7.png",
+    "scene_summary": "그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.",
+    "characters": [
+      "사람/동물/말하는 사물"
+    ],
+    "objects": [
+      "중요한 사물"
+    ],
+    "setting": "숲",
+    "mood": "밝음",
+    "emotion": "행복/ concentration",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 8,
+    "image_id": "8.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
+    "scene_summary": "그림에는 어린이가 별을 흔들며 즐거워하는 모습이 보입니다. 주변에는 나무와 꽃들이 있고, 밤하늘에는 별이 빛나고 있습니다.",
+    "characters": [
+      "사람/동물/말하는 사물"
+    ],
+    "objects": [
+      "중요한 사물"
+    ],
+    "setting": "밤의 숲",
+    "mood": "밝음/쓸쓸함/신비로움/조심스러움 등",
+    "emotion": "행복, 즐거움",
+    "story_role": "이 그림은 이야기의 중간부분에서 어린이가 별을 흔들며 즐기는 장면을 묘사합니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 어린이가 별을 흔들며 즐거워하는 모습이 보입니다. 주변에는 나무와 꽃들이 있고, 밤하늘에는 별이 빛나고 있습니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"밤의 숲\",\n  \"mood\": \"밝음/쓸쓸함/신비로움/조심스러움 등\",\n  \"emotion\": \"행복, 즐거움\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 어린이가 별을 흔들며 즐기는 장면을 묘사합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 9,
+    "image_id": "9.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
+    "scene_summary": "그림에는 어린이가 나무 아래에 앉아 있는 모습이 보이며, 주변에는 여러 동물들이 서 있습니다.",
+    "characters": [
+      "사람",
+      "동물"
+    ],
+    "objects": [
+      "나무",
+      "동물들"
+    ],
+    "setting": "밤의 숲",
+    "mood": "조심스러움",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 어린이가 나무 아래에 앉아 있는 모습을 보여줍니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 어린이가 나무 아래에 앉아 있는 모습이 보이며, 주변에는 여러 동물들이 서 있습니다.\",\n  \"characters\": [\"사람\", \"동물\"],\n  \"objects\": [\"나무\", \"동물들\"],\n  \"setting\": \"밤의 숲\",\n  \"mood\": \"조심스러움\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 어린이가 나무 아래에 앉아 있는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  },
+  {
+    "scene_index": 10,
+    "image_id": "10.png",
+    "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\10.png",
+    "scene_summary": "그림에는 한 소녀가 나무 아래에 앉아 있고, 그 주변에는 여러 동물들이 서 있습니다.",
+    "characters": [
+      "사람",
+      "동물"
+    ],
+    "objects": [
+      "나무",
+      "동물들"
+    ],
+    "setting": "숲",
+    "mood": "밝음",
+    "emotion": "행복",
+    "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 모습을 묘사합니다.",
+    "uncertain": "~처럼 보임",
+    "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에 앉아 있고, 그 주변에는 여러 동물들이 서 있습니다.\",\n  \"characters\": [\"사람\", \"동물\"],\n  \"objects\": [\"나무\", \"동물들\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 모습을 묘사합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+  }
+]

@@ -1,0 +1,2582 @@
+{
+  "experiment": "A",
+  "vision_model": "BLIP/BLIP-VQA/OpenCLIP",
+  "llm_model": "gpt2-medium + facebook/nllb-200-distilled-600M",
+  "timestamp": "2026-06-06T06:32:46.650325+00:00",
+  "image_order": [
+    "1.png",
+    "2.png",
+    "3.png",
+    "4.png",
+    "5.png",
+    "6.png",
+    "7.png",
+    "8.png",
+    "9.png",
+    "10.png"
+  ],
+  "scenes": [
+    {
+      "scene_index": 1,
+      "image_id": "1.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\1.png",
+      "scene_summary": "a children ' s drawing of a girl with a backpack walking down a dirt road / girl / walking / in park / happy",
+      "vision": {
+        "objects": [
+          "a",
+          "happy",
+          "down",
+          "s",
+          "girl",
+          "with",
+          "park",
+          "dirt",
+          "children",
+          "backpack",
+          "in",
+          "walking",
+          "of",
+          "road",
+          "drawing"
+        ],
+        "object_scores": {
+          "a": 0.25820186734199524,
+          "happy": 0.23986732959747314,
+          "down": 0.25814059376716614,
+          "s": 0.24165284633636475,
+          "girl": 0.27411970496177673,
+          "with": 0.2742234170436859,
+          "park": 0.2980514168739319,
+          "dirt": 0.23493792116641998,
+          "children": 0.28721657395362854,
+          "backpack": 0.26490259170532227,
+          "in": 0.2543553113937378,
+          "walking": 0.33362558484077454,
+          "of": 0.27196168899536133,
+          "road": 0.29824039340019226,
+          "drawing": 0.2743009030818939
+        },
+        "who": "girl",
+        "actions": "walking",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl with a backpack walking down a dirt road",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.2,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 794,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 2,
+      "image_id": "2.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
+      "scene_summary": "a children ' s drawing of a girl picking flowers in a field / girl / girl is drawing on sand / in park / happy",
+      "vision": {
+        "objects": [
+          "girl",
+          "picking",
+          "park",
+          "field",
+          "children",
+          "of",
+          "drawing"
+        ],
+        "object_scores": {
+          "girl": 0.25474074482917786,
+          "picking": 0.28553134202957153,
+          "park": 0.24035875499248505,
+          "field": 0.25465846061706543,
+          "children": 0.2602899372577667,
+          "of": 0.22741737961769104,
+          "drawing": 0.23795866966247559
+        },
+        "who": "girl",
+        "actions": "girl is drawing on sand",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl picking flowers in a field",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.2857142857142857,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 111,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 3,
+      "image_id": "3.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
+      "scene_summary": "a children ' s drawing of a girl digging a hole in the ground / little girl / digging / in park / happy",
+      "vision": {
+        "objects": [
+          "digging",
+          "ground",
+          "girl",
+          "hole",
+          "little",
+          "children",
+          "drawing"
+        ],
+        "object_scores": {
+          "digging": 0.3161751925945282,
+          "ground": 0.27053511142730713,
+          "girl": 0.24163885414600372,
+          "hole": 0.2324414849281311,
+          "little": 0.22706763446331024,
+          "children": 0.24051252007484436,
+          "drawing": 0.2289394736289978
+        },
+        "who": "little girl",
+        "actions": "digging",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.42857142857142855,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 260,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 4,
+      "image_id": "4.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
+      "scene_summary": "a children ' s drawing of a girl watering water in a garden / girl / girl is watering / in park / happy",
+      "vision": {
+        "objects": [
+          "a",
+          "girl",
+          "park",
+          "garden",
+          "water",
+          "children",
+          "of",
+          "watering",
+          "drawing"
+        ],
+        "object_scores": {
+          "a": 0.22271643579006195,
+          "girl": 0.2577912211418152,
+          "park": 0.2422572374343872,
+          "garden": 0.24825292825698853,
+          "water": 0.23866690695285797,
+          "children": 0.2610662579536438,
+          "of": 0.22993992269039154,
+          "watering": 0.28405025601387024,
+          "drawing": 0.25322863459587097
+        },
+        "who": "girl",
+        "actions": "girl is watering",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl watering water in a garden",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.4444444444444444,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 556,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 5,
+      "image_id": "5.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
+      "scene_summary": "a children ' s drawing of a girl and a rabbit in a forest / girl / girl is drawing on grass / in park / happy",
+      "vision": {
+        "objects": [
+          "a",
+          "grass",
+          "forest",
+          "happy",
+          "s",
+          "girl",
+          "park",
+          "children",
+          "in",
+          "rabbit",
+          "of",
+          "and",
+          "on",
+          "drawing"
+        ],
+        "object_scores": {
+          "a": 0.23559489846229553,
+          "grass": 0.2353818416595459,
+          "forest": 0.29655352234840393,
+          "happy": 0.23346136510372162,
+          "s": 0.22675037384033203,
+          "girl": 0.2745725214481354,
+          "park": 0.2555975615978241,
+          "children": 0.27131253480911255,
+          "in": 0.2346651554107666,
+          "rabbit": 0.2307756096124649,
+          "of": 0.2438991814851761,
+          "and": 0.22726944088935852,
+          "on": 0.24165524542331696,
+          "drawing": 0.2642938494682312
+        },
+        "who": "girl",
+        "actions": "girl is drawing on grass",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.5714285714285714,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 554,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 6,
+      "image_id": "6.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\6.png",
+      "scene_summary": "a children ' s drawing of a girl planting a plant in the ground / girl / girl is drawing on grass / in park / sad",
+      "vision": {
+        "objects": [
+          "ground",
+          "planting",
+          "girl",
+          "park",
+          "plant",
+          "children",
+          "of",
+          "drawing"
+        ],
+        "object_scores": {
+          "ground": 0.27394965291023254,
+          "planting": 0.29011139273643494,
+          "girl": 0.24316199123859406,
+          "park": 0.22471828758716583,
+          "plant": 0.23275423049926758,
+          "children": 0.2459537237882614,
+          "of": 0.22121360898017883,
+          "drawing": 0.23662133514881134
+        },
+        "who": "girl",
+        "actions": "girl is drawing on grass",
+        "scene": "in park",
+        "mood": "sad",
+        "raw_caption": "a children ' s drawing of a girl planting a plant in the ground",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.625,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 577,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 7,
+      "image_id": "7.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\7.png",
+      "scene_summary": "a children ' s drawing of a girl planting a tree with a bunny nearby / girl and boy / girl is drawing on stump / in park / happy",
+      "vision": {
+        "objects": [
+          "with",
+          "of",
+          "girl",
+          "stump",
+          "nearby",
+          "drawing",
+          "planting",
+          "park",
+          "children",
+          "on"
+        ],
+        "object_scores": {
+          "with": 0.23041656613349915,
+          "of": 0.22426216304302216,
+          "girl": 0.2426108419895172,
+          "stump": 0.2569480836391449,
+          "nearby": 0.2429748773574829,
+          "drawing": 0.2355538159608841,
+          "planting": 0.2829696834087372,
+          "park": 0.2315586507320404,
+          "children": 0.24747586250305176,
+          "on": 0.22310885787010193
+        },
+        "who": "girl and boy",
+        "actions": "girl is drawing on stump",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl planting a tree with a bunny nearby",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.7,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 299,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 8,
+      "image_id": "8.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
+      "scene_summary": "a children ' s drawing of a girl standing next to a tree and a rabbit / girl and girl / girl eating / in park / happy",
+      "vision": {
+        "objects": [
+          "girl",
+          "park",
+          "standing",
+          "tree",
+          "children",
+          "next"
+        ],
+        "object_scores": {
+          "girl": 0.24018016457557678,
+          "park": 0.22069929540157318,
+          "standing": 0.22269144654273987,
+          "tree": 0.2345178872346878,
+          "children": 0.24210403859615326,
+          "next": 0.22566726803779602
+        },
+        "who": "girl and girl",
+        "actions": "girl eating",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.8333333333333334,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 477,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 9,
+      "image_id": "9.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
+      "scene_summary": "a children ' s drawing of a girl standing in a forest surrounded by animals / little girl / little girl is walking with bears / in park / happy",
+      "vision": {
+        "objects": [
+          "forest",
+          "by",
+          "surrounded"
+        ],
+        "object_scores": {
+          "forest": 0.23603782057762146,
+          "by": 0.22380532324314117,
+          "surrounded": 0.22011424601078033
+        },
+        "who": "little girl",
+        "actions": "little girl is walking with bears",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.3333333333333333,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 385,
+        "paragraph_count": 1
+      }
+    },
+    {
+      "scene_index": 10,
+      "image_id": "10.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\10.png",
+      "scene_summary": "a children ' s drawing of a girl sitting on the ground surrounded by animals / girl and two children / children playing / in park / happy",
+      "vision": {
+        "objects": [
+          "by",
+          "surrounded",
+          "animals",
+          "girl",
+          "ground",
+          "park",
+          "children"
+        ],
+        "object_scores": {
+          "by": 0.24007241427898407,
+          "surrounded": 0.26070287823677063,
+          "animals": 0.24731922149658203,
+          "girl": 0.22966128587722778,
+          "ground": 0.2215828150510788,
+          "park": 0.23386317491531372,
+          "children": 0.2325846403837204
+        },
+        "who": "girl and two children",
+        "actions": "children playing",
+        "scene": "in park",
+        "mood": "happy",
+        "raw_caption": "a children ' s drawing of a girl sitting on the ground surrounded by animals",
+        "confidence": "high"
+      },
+      "metrics": {
+        "object_coverage": 0.5714285714285714,
+        "object_coverage_mode": "nllb_translation",
+        "char_count": 111,
+        "paragraph_count": 1
+      }
+    }
+  ],
+  "prompt_strategy": "single_image_baseline_normalized",
+  "parsed_result": {
+    "image_records": [
+      {
+        "image_id": "1.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\1.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:29:24.470234+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\1_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "1.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\1.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl with a backpack walking down a dirt road"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl",
+              "actions": "walking",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl with a backpack walking down a dirt road girl walking in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "happy",
+              "down",
+              "s",
+              "girl",
+              "with",
+              "park",
+              "dirt",
+              "children",
+              "backpack",
+              "in",
+              "walking",
+              "of",
+              "road",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.25820186734199524,
+              "happy": 0.23986732959747314,
+              "down": 0.25814059376716614,
+              "s": 0.24165284633636475,
+              "girl": 0.27411970496177673,
+              "with": 0.2742234170436859,
+              "park": 0.2980514168739319,
+              "dirt": 0.23493792116641998,
+              "children": 0.28721657395362854,
+              "backpack": 0.26490259170532227,
+              "in": 0.2543553113937378,
+              "walking": 0.33362558484077454,
+              "of": 0.27196168899536133,
+              "road": 0.29824039340019226,
+              "drawing": 0.2743009030818939
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "a",
+                "happy",
+                "down",
+                "s",
+                "girl",
+                "with",
+                "park",
+                "dirt",
+                "children",
+                "backpack",
+                "in",
+                "walking",
+                "of",
+                "road",
+                "drawing"
+              ],
+              "object_scores": {
+                "a": 0.25820186734199524,
+                "happy": 0.23986732959747314,
+                "down": 0.25814059376716614,
+                "s": 0.24165284633636475,
+                "girl": 0.27411970496177673,
+                "with": 0.2742234170436859,
+                "park": 0.2980514168739319,
+                "dirt": 0.23493792116641998,
+                "children": 0.28721657395362854,
+                "backpack": 0.26490259170532227,
+                "in": 0.2543553113937378,
+                "walking": 0.33362558484077454,
+                "of": 0.27196168899536133,
+                "road": 0.29824039340019226,
+                "drawing": 0.2743009030818939
+              },
+              "who": "girl",
+              "actions": "walking",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl with a backpack walking down a dirt road",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl with a backpack walking down a dirt road. The main character was girl, walking in park. The mood was happy.\n\nThe story begins:\n\n\n 'On the other side is another town.' A boy says this while sitting on his chair and looking at something around him… Something that he couldn't possibly understand but it looked like an adult carrying some sort to carry her bag! He thinks about what could be behind such action for so long before making up several names out loud (like \"Safaris\" or \"'Uzma\")…. All these thoughts come back into focus when she starts talking again; then comes after moments later—a little more excited than usual because now everything seems normal as they walk along one footpath which leads through gardens all over here!! Then suddenly stops abruptly….. Suddenly everyone looks scared right away!!! I thought those were not words spoken by somebody who has never been anywhere else during their life except school... It would have seemed absurd if said person hadn´t seen them earlier coming from every direction..... Well we are finally somewhere.... At first sight you may think —this place should look empty? But inside someone"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때"
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.2,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 794,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "a",
+            "happy",
+            "down",
+            "s",
+            "girl",
+            "with",
+            "park",
+            "dirt",
+            "children",
+            "backpack",
+            "in",
+            "walking",
+            "of",
+            "road",
+            "drawing"
+          ],
+          "object_scores": {
+            "a": 0.25820186734199524,
+            "happy": 0.23986732959747314,
+            "down": 0.25814059376716614,
+            "s": 0.24165284633636475,
+            "girl": 0.27411970496177673,
+            "with": 0.2742234170436859,
+            "park": 0.2980514168739319,
+            "dirt": 0.23493792116641998,
+            "children": 0.28721657395362854,
+            "backpack": 0.26490259170532227,
+            "in": 0.2543553113937378,
+            "walking": 0.33362558484077454,
+            "of": 0.27196168899536133,
+            "road": 0.29824039340019226,
+            "drawing": 0.2743009030818939
+          },
+          "who": "girl",
+          "actions": "walking",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl with a backpack walking down a dirt road",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl with a backpack walking down a dirt road. The main character was girl, walking in park. The mood was happy.\n\nThe story begins:\n\n\n 'On the other side is another town.' A boy says this while sitting on his chair and looking at something around him… Something that he couldn't possibly understand but it looked like an adult carrying some sort to carry her bag! He thinks about what could be behind such action for so long before making up several names out loud (like \"Safaris\" or \"'Uzma\")…. All these thoughts come back into focus when she starts talking again; then comes after moments later—a little more excited than usual because now everything seems normal as they walk along one footpath which leads through gardens all over here!! Then suddenly stops abruptly….. Suddenly everyone looks scared right away!!! I thought those were not words spoken by somebody who has never been anywhere else during their life except school... It would have seemed absurd if said person hadn´t seen them earlier coming from every direction..... Well we are finally somewhere.... At first sight you may think —this place should look empty? But inside someone",
+        "story_final": "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때",
+        "story": {
+          "title": "1",
+          "body": "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때"
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.2,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 794,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "2.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:29:45.582421+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\2_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "2.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl picking flowers in a field"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl",
+              "actions": "girl is drawing on sand",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl picking flowers in a field girl girl is drawing on sand in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "is",
+              "flowers",
+              "sand",
+              "s",
+              "girl",
+              "picking",
+              "park",
+              "field",
+              "children",
+              "in",
+              "happy",
+              "of",
+              "on",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.21745772659778595,
+              "is": 0.19459731876850128,
+              "flowers": 0.21825498342514038,
+              "sand": 0.205550417304039,
+              "s": 0.2100309282541275,
+              "girl": 0.25474074482917786,
+              "picking": 0.28553134202957153,
+              "park": 0.24035875499248505,
+              "field": 0.25465846061706543,
+              "children": 0.2602899372577667,
+              "in": 0.21155671775341034,
+              "happy": 0.20562246441841125,
+              "of": 0.22741737961769104,
+              "on": 0.21494744718074799,
+              "drawing": 0.23795866966247559
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "girl",
+                "picking",
+                "park",
+                "field",
+                "children",
+                "of",
+                "drawing"
+              ],
+              "object_scores": {
+                "girl": 0.25474074482917786,
+                "picking": 0.28553134202957153,
+                "park": 0.24035875499248505,
+                "field": 0.25465846061706543,
+                "children": 0.2602899372577667,
+                "of": 0.22741737961769104,
+                "drawing": 0.23795866966247559
+              },
+              "who": "girl",
+              "actions": "girl is drawing on sand",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl picking flowers in a field",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl picking flowers in a field. The main character was girl, girl is drawing on sand in park. The mood was happy.\n\nThe story begins:"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.2857142857142857,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 111,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "girl",
+            "picking",
+            "park",
+            "field",
+            "children",
+            "of",
+            "drawing"
+          ],
+          "object_scores": {
+            "girl": 0.25474074482917786,
+            "picking": 0.28553134202957153,
+            "park": 0.24035875499248505,
+            "field": 0.25465846061706543,
+            "children": 0.2602899372577667,
+            "of": 0.22741737961769104,
+            "drawing": 0.23795866966247559
+          },
+          "who": "girl",
+          "actions": "girl is drawing on sand",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl picking flowers in a field",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl picking flowers in a field. The main character was girl, girl is drawing on sand in park. The mood was happy.\n\nThe story begins:",
+        "story_final": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+        "story": {
+          "title": "2",
+          "body": "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.2857142857142857,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 111,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "3.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:30:03.468000+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\3_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "3.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl digging a hole in the ground"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "little girl",
+              "actions": "digging",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl digging a hole in the ground little girl digging in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "digging",
+              "ground",
+              "s",
+              "the",
+              "girl",
+              "hole",
+              "little",
+              "park",
+              "children",
+              "in",
+              "happy",
+              "of",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.2093340903520584,
+              "digging": 0.3161751925945282,
+              "ground": 0.27053511142730713,
+              "s": 0.20826104283332825,
+              "the": 0.20080000162124634,
+              "girl": 0.24163885414600372,
+              "hole": 0.2324414849281311,
+              "little": 0.22706763446331024,
+              "park": 0.2165740579366684,
+              "children": 0.24051252007484436,
+              "in": 0.21264098584651947,
+              "happy": 0.2011692374944687,
+              "of": 0.21888311207294464,
+              "drawing": 0.2289394736289978
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "digging",
+                "ground",
+                "girl",
+                "hole",
+                "little",
+                "children",
+                "drawing"
+              ],
+              "object_scores": {
+                "digging": 0.3161751925945282,
+                "ground": 0.27053511142730713,
+                "girl": 0.24163885414600372,
+                "hole": 0.2324414849281311,
+                "little": 0.22706763446331024,
+                "children": 0.24051252007484436,
+                "drawing": 0.2289394736289978
+              },
+              "who": "little girl",
+              "actions": "digging",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl digging a hole in the ground. The main character was little girl, digging in park. The mood was happy.\n\nThe story begins:\n \"Oh what do you think I'm doing?\" says Little Girl to her sister – as she brings an apple into play and plays with it until they reach one another (the sound is like that of walking). Then suddenly … something terrible happens! That child will be born from this tree at night during school holidays on day when schools are closed for lunch break… It turns out [Little Boy] has just eaten some apples before dinner which have been stuck by worms inside his mouth since he ate them right after playing ball today.\"\nI don't want your sympathy or advice please stop reading now 🙂"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.42857142857142855,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 260,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "digging",
+            "ground",
+            "girl",
+            "hole",
+            "little",
+            "children",
+            "drawing"
+          ],
+          "object_scores": {
+            "digging": 0.3161751925945282,
+            "ground": 0.27053511142730713,
+            "girl": 0.24163885414600372,
+            "hole": 0.2324414849281311,
+            "little": 0.22706763446331024,
+            "children": 0.24051252007484436,
+            "drawing": 0.2289394736289978
+          },
+          "who": "little girl",
+          "actions": "digging",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl digging a hole in the ground. The main character was little girl, digging in park. The mood was happy.\n\nThe story begins:\n \"Oh what do you think I'm doing?\" says Little Girl to her sister – as she brings an apple into play and plays with it until they reach one another (the sound is like that of walking). Then suddenly … something terrible happens! That child will be born from this tree at night during school holidays on day when schools are closed for lunch break… It turns out [Little Boy] has just eaten some apples before dinner which have been stuck by worms inside his mouth since he ate them right after playing ball today.\"\nI don't want your sympathy or advice please stop reading now 🙂",
+        "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.",
+        "story": {
+          "title": "3",
+          "body": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.42857142857142855,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 260,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "4.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:30:33.058614+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\4_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "4.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl watering water in a garden"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl",
+              "actions": "girl is watering",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl watering water in a garden girl girl is watering in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "is",
+              "s",
+              "girl",
+              "park",
+              "garden",
+              "water",
+              "children",
+              "in",
+              "happy",
+              "of",
+              "watering",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.22271643579006195,
+              "is": 0.20085102319717407,
+              "s": 0.214645117521286,
+              "girl": 0.2577912211418152,
+              "park": 0.2422572374343872,
+              "garden": 0.24825292825698853,
+              "water": 0.23866690695285797,
+              "children": 0.2610662579536438,
+              "in": 0.21747161448001862,
+              "happy": 0.21654938161373138,
+              "of": 0.22993992269039154,
+              "watering": 0.28405025601387024,
+              "drawing": 0.25322863459587097
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "a",
+                "girl",
+                "park",
+                "garden",
+                "water",
+                "children",
+                "of",
+                "watering",
+                "drawing"
+              ],
+              "object_scores": {
+                "a": 0.22271643579006195,
+                "girl": 0.2577912211418152,
+                "park": 0.2422572374343872,
+                "garden": 0.24825292825698853,
+                "water": 0.23866690695285797,
+                "children": 0.2610662579536438,
+                "of": 0.22993992269039154,
+                "watering": 0.28405025601387024,
+                "drawing": 0.25322863459587097
+              },
+              "who": "girl",
+              "actions": "girl is watering",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl watering water in a garden",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl watering water in a garden. The main character was girl, girl is watering in park. The mood was happy.\n\nThe story begins:\n/u00b0d /i\\ A boy says to the other boys who are playing tag with her that he thinks she looks like an angel and asks him if it means anything because his name is Adam (God) or Jesus (Son). They both look at eachother but they ignore all others around them as usual. He tries to go for more matches by telling this silly tale about how \"the angels sing,\" which causes everyone else to think these were only friends talking together then when someone gets hurt some people start screaming on camera saying we need help! She leaves so nobody has heard what happened outside now even though most seem interested; also apparently no one would know any better than us since our parents had never seen their little girls grow up before!! At school another kid from class walks over asking why does your sister do stuff while you're alone? But here comes my favorite line outta everything I've ever read either way..\"So tell me!\" said Kuzuro again putting herself"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.4444444444444444,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 556,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "a",
+            "girl",
+            "park",
+            "garden",
+            "water",
+            "children",
+            "of",
+            "watering",
+            "drawing"
+          ],
+          "object_scores": {
+            "a": 0.22271643579006195,
+            "girl": 0.2577912211418152,
+            "park": 0.2422572374343872,
+            "garden": 0.24825292825698853,
+            "water": 0.23866690695285797,
+            "children": 0.2610662579536438,
+            "of": 0.22993992269039154,
+            "watering": 0.28405025601387024,
+            "drawing": 0.25322863459587097
+          },
+          "who": "girl",
+          "actions": "girl is watering",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl watering water in a garden",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl watering water in a garden. The main character was girl, girl is watering in park. The mood was happy.\n\nThe story begins:\n/u00b0d /i\\ A boy says to the other boys who are playing tag with her that he thinks she looks like an angel and asks him if it means anything because his name is Adam (God) or Jesus (Son). They both look at eachother but they ignore all others around them as usual. He tries to go for more matches by telling this silly tale about how \"the angels sing,\" which causes everyone else to think these were only friends talking together then when someone gets hurt some people start screaming on camera saying we need help! She leaves so nobody has heard what happened outside now even though most seem interested; also apparently no one would know any better than us since our parents had never seen their little girls grow up before!! At school another kid from class walks over asking why does your sister do stuff while you're alone? But here comes my favorite line outta everything I've ever read either way..\"So tell me!\" said Kuzuro again putting herself",
+        "story_final": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.",
+        "story": {
+          "title": "4",
+          "body": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.4444444444444444,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 556,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "5.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:31:05.966554+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\5_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "5.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl",
+              "actions": "girl is drawing on grass",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl and a rabbit in a forest girl girl is drawing on grass in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "grass",
+              "is",
+              "forest",
+              "happy",
+              "s",
+              "girl",
+              "park",
+              "children",
+              "in",
+              "rabbit",
+              "of",
+              "and",
+              "on",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.23559489846229553,
+              "grass": 0.2353818416595459,
+              "is": 0.2141972929239273,
+              "forest": 0.29655352234840393,
+              "happy": 0.23346136510372162,
+              "s": 0.22675037384033203,
+              "girl": 0.2745725214481354,
+              "park": 0.2555975615978241,
+              "children": 0.27131253480911255,
+              "in": 0.2346651554107666,
+              "rabbit": 0.2307756096124649,
+              "of": 0.2438991814851761,
+              "and": 0.22726944088935852,
+              "on": 0.24165524542331696,
+              "drawing": 0.2642938494682312
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "a",
+                "grass",
+                "forest",
+                "happy",
+                "s",
+                "girl",
+                "park",
+                "children",
+                "in",
+                "rabbit",
+                "of",
+                "and",
+                "on",
+                "drawing"
+              ],
+              "object_scores": {
+                "a": 0.23559489846229553,
+                "grass": 0.2353818416595459,
+                "forest": 0.29655352234840393,
+                "happy": 0.23346136510372162,
+                "s": 0.22675037384033203,
+                "girl": 0.2745725214481354,
+                "park": 0.2555975615978241,
+                "children": 0.27131253480911255,
+                "in": 0.2346651554107666,
+                "rabbit": 0.2307756096124649,
+                "of": 0.2438991814851761,
+                "and": 0.22726944088935852,
+                "on": 0.24165524542331696,
+                "drawing": 0.2642938494682312
+              },
+              "who": "girl",
+              "actions": "girl is drawing on grass",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl and a rabbit in a forest. The main character was girl, girl is drawing on grass in park. The mood was happy.\n\nThe story begins:\n the hero has come to collect flowers for his mother from another town near by with their child at night when he doesn't have much money because they need it all around (the baby too). He finds them but donít get any flower until after sunrise as rain will ruin him some day so instead just ask girls about where her parents are going out this evening before leaving home early morning while getting ready!\n\n \"Now that you know something nice I can do more things like gardening\" said one kid saying excitedly over an open window looking up into clouds she had already brought along which were raining down onto trees behind each other making every single tree look exactly how usual ones looks today except those small newish bush bushes growing close together under leaves falling away below . But why does your friend think everyone else here seems lazy enough not even thinking twice? Well since then many times during schooldays if no-one notices or cares what happens next we go back through our pasts again only sometimes forgetting who did"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.5714285714285714,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 554,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "a",
+            "grass",
+            "forest",
+            "happy",
+            "s",
+            "girl",
+            "park",
+            "children",
+            "in",
+            "rabbit",
+            "of",
+            "and",
+            "on",
+            "drawing"
+          ],
+          "object_scores": {
+            "a": 0.23559489846229553,
+            "grass": 0.2353818416595459,
+            "forest": 0.29655352234840393,
+            "happy": 0.23346136510372162,
+            "s": 0.22675037384033203,
+            "girl": 0.2745725214481354,
+            "park": 0.2555975615978241,
+            "children": 0.27131253480911255,
+            "in": 0.2346651554107666,
+            "rabbit": 0.2307756096124649,
+            "of": 0.2438991814851761,
+            "and": 0.22726944088935852,
+            "on": 0.24165524542331696,
+            "drawing": 0.2642938494682312
+          },
+          "who": "girl",
+          "actions": "girl is drawing on grass",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl and a rabbit in a forest. The main character was girl, girl is drawing on grass in park. The mood was happy.\n\nThe story begins:\n the hero has come to collect flowers for his mother from another town near by with their child at night when he doesn't have much money because they need it all around (the baby too). He finds them but donít get any flower until after sunrise as rain will ruin him some day so instead just ask girls about where her parents are going out this evening before leaving home early morning while getting ready!\n\n \"Now that you know something nice I can do more things like gardening\" said one kid saying excitedly over an open window looking up into clouds she had already brought along which were raining down onto trees behind each other making every single tree look exactly how usual ones looks today except those small newish bush bushes growing close together under leaves falling away below . But why does your friend think everyone else here seems lazy enough not even thinking twice? Well since then many times during schooldays if no-one notices or cares what happens next we go back through our pasts again only sometimes forgetting who did",
+        "story_final": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.",
+        "story": {
+          "title": "5",
+          "body": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.5714285714285714,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 554,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "6.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\6.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:31:36.300677+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\6_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "6.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\6.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl planting a plant in the ground"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl",
+              "actions": "girl is drawing on grass",
+              "scene": "in park",
+              "mood": "sad"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl planting a plant in the ground girl girl is drawing on grass in park sad",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "grass",
+              "sad",
+              "is",
+              "ground",
+              "planting",
+              "s",
+              "the",
+              "girl",
+              "park",
+              "plant",
+              "children",
+              "in",
+              "of",
+              "on",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.21129214763641357,
+              "grass": 0.21693463623523712,
+              "sad": 0.19478373229503632,
+              "is": 0.19422392547130585,
+              "ground": 0.27394965291023254,
+              "planting": 0.29011139273643494,
+              "s": 0.2080303281545639,
+              "the": 0.2075476050376892,
+              "girl": 0.24316199123859406,
+              "park": 0.22471828758716583,
+              "plant": 0.23275423049926758,
+              "children": 0.2459537237882614,
+              "in": 0.21210196614265442,
+              "of": 0.22121360898017883,
+              "on": 0.21967941522598267,
+              "drawing": 0.23662133514881134
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "ground",
+                "planting",
+                "girl",
+                "park",
+                "plant",
+                "children",
+                "of",
+                "drawing"
+              ],
+              "object_scores": {
+                "ground": 0.27394965291023254,
+                "planting": 0.29011139273643494,
+                "girl": 0.24316199123859406,
+                "park": 0.22471828758716583,
+                "plant": 0.23275423049926758,
+                "children": 0.2459537237882614,
+                "of": 0.22121360898017883,
+                "drawing": 0.23662133514881134
+              },
+              "who": "girl",
+              "actions": "girl is drawing on grass",
+              "scene": "in park",
+              "mood": "sad",
+              "raw_caption": "a children ' s drawing of a girl planting a plant in the ground",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl planting a plant in the ground. The main character was girl, girl is drawing on grass in park. The mood was sad.\n\nThe story begins:\n\n\n Dawn came to town at night and her eyes were wide open as she sat down beside me reading my poem \" To be or not...\" . She smiled but no words could come out between us that would make it any better for both parties involved...I think I've been through enough now....and we should start over! We started our conversation with this lovely line by saying goodbye then moved into an interlude where you will find all sorts o f fun facts about ourselves & each other :-). But let´s see if i can explain how these things got here .. Well firstly some people are probably wondering why someone who loves poetry wants one ? And thats what makes sense , when life gets busy they sometimes just want to relax even though their job may bring them plenty stress.. In fact many times after work friends get together around tea/lunch because its hard to leave home without your phone - which does give lots energy ! (this has happened before) So maybe writing poems means"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.625,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 577,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "ground",
+            "planting",
+            "girl",
+            "park",
+            "plant",
+            "children",
+            "of",
+            "drawing"
+          ],
+          "object_scores": {
+            "ground": 0.27394965291023254,
+            "planting": 0.29011139273643494,
+            "girl": 0.24316199123859406,
+            "park": 0.22471828758716583,
+            "plant": 0.23275423049926758,
+            "children": 0.2459537237882614,
+            "of": 0.22121360898017883,
+            "drawing": 0.23662133514881134
+          },
+          "who": "girl",
+          "actions": "girl is drawing on grass",
+          "scene": "in park",
+          "mood": "sad",
+          "raw_caption": "a children ' s drawing of a girl planting a plant in the ground",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl planting a plant in the ground. The main character was girl, girl is drawing on grass in park. The mood was sad.\n\nThe story begins:\n\n\n Dawn came to town at night and her eyes were wide open as she sat down beside me reading my poem \" To be or not...\" . She smiled but no words could come out between us that would make it any better for both parties involved...I think I've been through enough now....and we should start over! We started our conversation with this lovely line by saying goodbye then moved into an interlude where you will find all sorts o f fun facts about ourselves & each other :-). But let´s see if i can explain how these things got here .. Well firstly some people are probably wondering why someone who loves poetry wants one ? And thats what makes sense , when life gets busy they sometimes just want to relax even though their job may bring them plenty stress.. In fact many times after work friends get together around tea/lunch because its hard to leave home without your phone - which does give lots energy ! (this has happened before) So maybe writing poems means",
+        "story_final": "어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다.",
+        "story": {
+          "title": "6",
+          "body": "어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.625,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 577,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "7.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\7.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:31:58.491513+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\7_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "7.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\7.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl planting a tree with a bunny nearby"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl and boy",
+              "actions": "girl is drawing on stump",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl planting a tree with a bunny nearby girl and boy girl is drawing on stump in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "s",
+              "with",
+              "of",
+              "and",
+              "girl",
+              "stump",
+              "tree",
+              "nearby",
+              "drawing",
+              "is",
+              "planting",
+              "park",
+              "in",
+              "a",
+              "bunny",
+              "boy",
+              "children",
+              "happy",
+              "on"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "s": 0.2111394852399826,
+              "with": 0.23041656613349915,
+              "of": 0.22426216304302216,
+              "and": 0.21209736168384552,
+              "girl": 0.2426108419895172,
+              "stump": 0.2569480836391449,
+              "tree": 0.2106587439775467,
+              "nearby": 0.2429748773574829,
+              "drawing": 0.2355538159608841,
+              "is": 0.18907783925533295,
+              "planting": 0.2829696834087372,
+              "park": 0.2315586507320404,
+              "in": 0.21756704151630402,
+              "a": 0.21783320605754852,
+              "bunny": 0.217976376414299,
+              "boy": 0.19633619487285614,
+              "children": 0.24747586250305176,
+              "happy": 0.2007804960012436,
+              "on": 0.22310885787010193
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "with",
+                "of",
+                "girl",
+                "stump",
+                "nearby",
+                "drawing",
+                "planting",
+                "park",
+                "children",
+                "on"
+              ],
+              "object_scores": {
+                "with": 0.23041656613349915,
+                "of": 0.22426216304302216,
+                "girl": 0.2426108419895172,
+                "stump": 0.2569480836391449,
+                "nearby": 0.2429748773574829,
+                "drawing": 0.2355538159608841,
+                "planting": 0.2829696834087372,
+                "park": 0.2315586507320404,
+                "children": 0.24747586250305176,
+                "on": 0.22310885787010193
+              },
+              "who": "girl and boy",
+              "actions": "girl is drawing on stump",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl planting a tree with a bunny nearby",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl planting a tree with a bunny nearby. The main character was girl and boy, girl is drawing on stump in park. The mood was happy.\n\nThe story begins:\n\n\n 1) Girl plants flower at first but can't get fruit because the flowers are not big enough for her to grab them; 2), As she starts growing more trees later gets frustrated that no one notices what she does best – collecting little ones' seeds 3). To make things worse - She has never done it before 4.) While gathering seedlings from bush (in between walking through town streets every day)- Woman accidentally drops two leaves while trying drop some pollen into plant 5 ). When asked why did he do this… It turns out his friend had given him 10 packets containing pink-ish stuff 7 ) Man then gives each packet as gift 8 ); Boy decides when they need better crops 9 ), He buys all these new crop which turned out OK until summer came around after rainstorm 11 ). And finally... All girls want berries so boys eat lots! So now Girls grow up looking like rabbits.. or something? Or maybe just cute animals?? That would be fun :)"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.7,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 299,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "with",
+            "of",
+            "girl",
+            "stump",
+            "nearby",
+            "drawing",
+            "planting",
+            "park",
+            "children",
+            "on"
+          ],
+          "object_scores": {
+            "with": 0.23041656613349915,
+            "of": 0.22426216304302216,
+            "girl": 0.2426108419895172,
+            "stump": 0.2569480836391449,
+            "nearby": 0.2429748773574829,
+            "drawing": 0.2355538159608841,
+            "planting": 0.2829696834087372,
+            "park": 0.2315586507320404,
+            "children": 0.24747586250305176,
+            "on": 0.22310885787010193
+          },
+          "who": "girl and boy",
+          "actions": "girl is drawing on stump",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl planting a tree with a bunny nearby",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl planting a tree with a bunny nearby. The main character was girl and boy, girl is drawing on stump in park. The mood was happy.\n\nThe story begins:\n\n\n 1) Girl plants flower at first but can't get fruit because the flowers are not big enough for her to grab them; 2), As she starts growing more trees later gets frustrated that no one notices what she does best – collecting little ones' seeds 3). To make things worse - She has never done it before 4.) While gathering seedlings from bush (in between walking through town streets every day)- Woman accidentally drops two leaves while trying drop some pollen into plant 5 ). When asked why did he do this… It turns out his friend had given him 10 packets containing pink-ish stuff 7 ) Man then gives each packet as gift 8 ); Boy decides when they need better crops 9 ), He buys all these new crop which turned out OK until summer came around after rainstorm 11 ). And finally... All girls want berries so boys eat lots! So now Girls grow up looking like rabbits.. or something? Or maybe just cute animals?? That would be fun :)",
+        "story_final": "한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다.",
+        "story": {
+          "title": "7",
+          "body": "한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다.",
+          "scene_sentences": [
+            "한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.7,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 299,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "8.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:32:25.185692+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\8_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "8.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl and girl",
+              "actions": "girl eating",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl standing next to a tree and a rabbit girl and girl girl eating in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "a",
+              "eating",
+              "happy",
+              "s",
+              "girl",
+              "park",
+              "to",
+              "standing",
+              "tree",
+              "children",
+              "next",
+              "in",
+              "rabbit",
+              "of",
+              "and",
+              "drawing"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "a": 0.21226173639297485,
+              "eating": 0.20293813943862915,
+              "happy": 0.20508038997650146,
+              "s": 0.20126910507678986,
+              "girl": 0.24018016457557678,
+              "park": 0.22069929540157318,
+              "to": 0.20731085538864136,
+              "standing": 0.22269144654273987,
+              "tree": 0.2345178872346878,
+              "children": 0.24210403859615326,
+              "next": 0.22566726803779602,
+              "in": 0.21461577713489532,
+              "rabbit": 0.18037186563014984,
+              "of": 0.2196774035692215,
+              "and": 0.2133699506521225,
+              "drawing": 0.21956583857536316
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "girl",
+                "park",
+                "standing",
+                "tree",
+                "children",
+                "next"
+              ],
+              "object_scores": {
+                "girl": 0.24018016457557678,
+                "park": 0.22069929540157318,
+                "standing": 0.22269144654273987,
+                "tree": 0.2345178872346878,
+                "children": 0.24210403859615326,
+                "next": 0.22566726803779602
+              },
+              "who": "girl and girl",
+              "actions": "girl eating",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing next to a tree and a rabbit. The main character was girl and girl, girl eating in park. The mood was happy.\n\nThe story begins:\n\n\n • Girl goes out for walks through the woods with her friends; she sees rabbits at various places around town. One day while walking by an open field one young boy comes across two large black rats that are trying their best not get eaten. They can't escape them so they must eat each other like meat-eaters do on earth! A friend (the owner) sends his dog along but it doesn´t work as well... So he is left alone all night where only little girls watch over him - thinking nothing about what happens later which turns into trouble when things go wrong.... In short this child has lost sight… And now I am going back home again . My daughter tells me \"It had been just such a lovely summer evening\" She smiles happily.\""
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.8333333333333334,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 477,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "girl",
+            "park",
+            "standing",
+            "tree",
+            "children",
+            "next"
+          ],
+          "object_scores": {
+            "girl": 0.24018016457557678,
+            "park": 0.22069929540157318,
+            "standing": 0.22269144654273987,
+            "tree": 0.2345178872346878,
+            "children": 0.24210403859615326,
+            "next": 0.22566726803779602
+          },
+          "who": "girl and girl",
+          "actions": "girl eating",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing next to a tree and a rabbit. The main character was girl and girl, girl eating in park. The mood was happy.\n\nThe story begins:\n\n\n • Girl goes out for walks through the woods with her friends; she sees rabbits at various places around town. One day while walking by an open field one young boy comes across two large black rats that are trying their best not get eaten. They can't escape them so they must eat each other like meat-eaters do on earth! A friend (the owner) sends his dog along but it doesn´t work as well... So he is left alone all night where only little girls watch over him - thinking nothing about what happens later which turns into trouble when things go wrong.... In short this child has lost sight… And now I am going back home again . My daughter tells me \"It had been just such a lovely summer evening\" She smiles happily.\"",
+        "story_final": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.",
+        "story": {
+          "title": "8",
+          "body": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.",
+          "scene_sentences": [
+            "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.8333333333333334,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 477,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "9.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:32:46.643348+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\9_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "9.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "little girl",
+              "actions": "little girl is walking with bears",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl standing in a forest surrounded by animals little girl little girl is walking with bears in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "forest",
+              "by",
+              "s",
+              "little",
+              "with",
+              "surrounded",
+              "walking",
+              "animals",
+              "of",
+              "girl",
+              "bears",
+              "drawing",
+              "is",
+              "park",
+              "in",
+              "a",
+              "standing",
+              "children",
+              "happy"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "forest": 0.23603782057762146,
+              "by": 0.22380532324314117,
+              "s": 0.15831077098846436,
+              "little": 0.18613074719905853,
+              "with": 0.1927732676267624,
+              "surrounded": 0.22011424601078033,
+              "walking": 0.21856757998466492,
+              "animals": 0.20973752439022064,
+              "of": 0.1924077719449997,
+              "girl": 0.20362982153892517,
+              "bears": 0.18811368942260742,
+              "drawing": 0.18758556246757507,
+              "is": 0.1502641886472702,
+              "park": 0.19523343443870544,
+              "in": 0.17627482116222382,
+              "a": 0.17399168014526367,
+              "standing": 0.1920328438282013,
+              "children": 0.20922529697418213,
+              "happy": 0.17376184463500977
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "forest",
+                "by",
+                "surrounded"
+              ],
+              "object_scores": {
+                "forest": 0.23603782057762146,
+                "by": 0.22380532324314117,
+                "surrounded": 0.22011424601078033
+              },
+              "who": "little girl",
+              "actions": "little girl is walking with bears",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing in a forest surrounded by animals. The main character was little girl, little girl is walking with bears in park. The mood was happy.\n\nThe story begins:\n\n\n \"Little Girl\" (not her real name) had just started school when she got the news that someone killed their grandfather and father at gunpoint! Little boy ran away from home to save his parents as he believed they were dead so all those who loved him would follow for comfort but found out later it was too late; everything went wrong because this man stole some money hidden inside one box filled full… With tears streaming down Little Boy´s face.\""
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \""
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.3333333333333333,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 385,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "forest",
+            "by",
+            "surrounded"
+          ],
+          "object_scores": {
+            "forest": 0.23603782057762146,
+            "by": 0.22380532324314117,
+            "surrounded": 0.22011424601078033
+          },
+          "who": "little girl",
+          "actions": "little girl is walking with bears",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing in a forest surrounded by animals. The main character was little girl, little girl is walking with bears in park. The mood was happy.\n\nThe story begins:\n\n\n \"Little Girl\" (not her real name) had just started school when she got the news that someone killed their grandfather and father at gunpoint! Little boy ran away from home to save his parents as he believed they were dead so all those who loved him would follow for comfort but found out later it was too late; everything went wrong because this man stole some money hidden inside one box filled full… With tears streaming down Little Boy´s face.\"",
+        "story_final": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"",
+        "story": {
+          "title": "9",
+          "body": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"",
+          "scene_sentences": [
+            "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \""
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.3333333333333333,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 385,
+          "paragraph_count": 1
+        }
+      },
+      {
+        "image_id": "10.png",
+        "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\10.png",
+        "experiment": "A",
+        "story_backend": "gpt2_nllb",
+        "timestamp": "2026-06-06T06:29:35.142135+00:00",
+        "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\10_steps",
+        "steps": {
+          "01_image_input": {
+            "step": 1,
+            "name": "손그림 이미지 입력",
+            "image_id": "10.png",
+            "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\10.png",
+            "image_mode": "RGB",
+            "image_size": [
+              2816,
+              1536
+            ]
+          },
+          "02_preprocessing": {
+            "step": 2,
+            "name": "전처리",
+            "blip_size": [
+              384,
+              384
+            ],
+            "openclip_size": [
+              224,
+              224
+            ],
+            "white_background_normalization": true,
+            "contrast_correction": "ImageOps.autocontrast + contrast 1.15"
+          },
+          "03_blip_captioning": {
+            "step": 3,
+            "name": "BLIP captioning",
+            "output": "자유 캡션",
+            "prefix": "a children's drawing of",
+            "num_beams": 5,
+            "max_length": 50,
+            "raw_caption": "a children ' s drawing of a girl sitting on the ground surrounded by animals"
+          },
+          "04_blip_vqa": {
+            "step": 4,
+            "name": "BLIP-VQA 슬롯 질의",
+            "output": "{who, action, scene, mood}",
+            "questions": {
+              "who": "Who is in this picture?",
+              "actions": "What is happening in this picture?",
+              "scene": "Where is this scene?",
+              "mood": "What is the mood of this picture?"
+            },
+            "answers": {
+              "who": "girl and two children",
+              "actions": "children playing",
+              "scene": "in park",
+              "mood": "happy"
+            }
+          },
+          "05_openclip_concept_scoring": {
+            "step": 5,
+            "name": "OpenCLIP 개념 점수화",
+            "output": "{concept: similarity}",
+            "source_text": "a children ' s drawing of a girl sitting on the ground surrounded by animals girl and two children children playing in park happy",
+            "candidate_extraction_regex": "[a-zA-Z]+",
+            "candidate_words": [
+              "by",
+              "s",
+              "surrounded",
+              "animals",
+              "of",
+              "and",
+              "girl",
+              "drawing",
+              "ground",
+              "the",
+              "park",
+              "in",
+              "playing",
+              "a",
+              "two",
+              "sitting",
+              "children",
+              "happy",
+              "on"
+            ],
+            "prompt_template": "a child's drawing of a {word}",
+            "clip_threshold": 0.22,
+            "scores": {
+              "by": 0.24007241427898407,
+              "s": 0.17894479632377625,
+              "surrounded": 0.26070287823677063,
+              "animals": 0.24731922149658203,
+              "of": 0.2177942842245102,
+              "and": 0.20188221335411072,
+              "girl": 0.22966128587722778,
+              "drawing": 0.2138085514307022,
+              "ground": 0.2215828150510788,
+              "the": 0.1875753551721573,
+              "park": 0.23386317491531372,
+              "in": 0.1938544064760208,
+              "playing": 0.21138082444667816,
+              "a": 0.20155632495880127,
+              "two": 0.16858842968940735,
+              "sitting": 0.211579829454422,
+              "children": 0.2325846403837204,
+              "happy": 0.20353837311267853,
+              "on": 0.20217318832874298
+            }
+          },
+          "06_vision_json": {
+            "step": 6,
+            "name": "교차 검증 + 통합",
+            "output": "vision_json",
+            "vision": {
+              "objects": [
+                "by",
+                "surrounded",
+                "animals",
+                "girl",
+                "ground",
+                "park",
+                "children"
+              ],
+              "object_scores": {
+                "by": 0.24007241427898407,
+                "surrounded": 0.26070287823677063,
+                "animals": 0.24731922149658203,
+                "girl": 0.22966128587722778,
+                "ground": 0.2215828150510788,
+                "park": 0.23386317491531372,
+                "children": 0.2325846403837204
+              },
+              "who": "girl and two children",
+              "actions": "children playing",
+              "scene": "in park",
+              "mood": "happy",
+              "raw_caption": "a children ' s drawing of a girl sitting on the ground surrounded by animals",
+              "confidence": "high"
+            }
+          },
+          "07_gpt2_story_en": {
+            "step": 7,
+            "name": "GPT-2 영문 동화 생성",
+            "output": "story_en",
+            "max_new_tokens": 200,
+            "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl sitting on the ground surrounded by animals. The main character was girl and two children, children playing in park. The mood was happy.\n\nThe story begins:"
+          },
+          "08_nllb_translation_ko": {
+            "step": 8,
+            "name": "NLLB 영한 번역",
+            "output": "story_final",
+            "story_final": "어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다."
+          },
+          "09_evaluation": {
+            "step": 9,
+            "name": "평가 지표 계산",
+            "output": "metrics",
+            "metrics": {
+              "object_coverage": 0.5714285714285714,
+              "object_coverage_mode": "nllb_translation",
+              "char_count": 111,
+              "paragraph_count": 1
+            }
+          }
+        },
+        "vision": {
+          "objects": [
+            "by",
+            "surrounded",
+            "animals",
+            "girl",
+            "ground",
+            "park",
+            "children"
+          ],
+          "object_scores": {
+            "by": 0.24007241427898407,
+            "surrounded": 0.26070287823677063,
+            "animals": 0.24731922149658203,
+            "girl": 0.22966128587722778,
+            "ground": 0.2215828150510788,
+            "park": 0.23386317491531372,
+            "children": 0.2325846403837204
+          },
+          "who": "girl and two children",
+          "actions": "children playing",
+          "scene": "in park",
+          "mood": "happy",
+          "raw_caption": "a children ' s drawing of a girl sitting on the ground surrounded by animals",
+          "confidence": "high"
+        },
+        "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl sitting on the ground surrounded by animals. The main character was girl and two children, children playing in park. The mood was happy.\n\nThe story begins:",
+        "story_final": "어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+        "story": {
+          "title": "10",
+          "body": "어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+          "scene_sentences": [
+            "어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다."
+          ],
+          "grounding_notes": []
+        },
+        "metrics": {
+          "object_coverage": 0.5714285714285714,
+          "object_coverage_mode": "nllb_translation",
+          "char_count": 111,
+          "paragraph_count": 1
+        }
+      }
+    ],
+    "aggregate_metrics": {
+      "object_coverage_average": 0.4993253968253968,
+      "char_count_total": 4124,
+      "scene_count": 10
+    }
+  },
+  "json_repair_used": false,
+  "story": {
+    "title": "Experiment A Baseline",
+    "body": "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때\n\n어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.\n\n어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.\n\n어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.\n\n어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.\n\n어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다.\n\n한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다.\n\n어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.\n\n어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"\n\n어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+    "scene_sentences": [
+      "어린이들의 이야기. 한때는 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어렸을 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어릴 때, 어, 어릴 때, 어릴 때, 어릴 때",
+      "어린이들의 이야기. 한때, 어린이들의 그림이 있었습니다. 한 소녀가 들에서 꽃을 모으고 있었다. 주인공은 소녀, 소녀가 공원에서 모래에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+      "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.",
+      "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.",
+      "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.",
+      "어린이들의 이야기. 한때는, 어린이들의 그림이 있었습니다. 땅 속에 식물을 심는 소녀가 있었습니다. 주인공은 소녀였으며, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 슬픈 것이었다. 이야기는 시작됩니다. 새벽은 밤에 마을에 왔고 그녀의 눈이 크게 열려 있었고 그녀는 내 시 \"가거나 아니\"를 읽고 옆에 앉아있었습니다. 그녀는 미소했지만 두 당사자에게도 더 나은 것을 할 수있는 단어들이 우리 사이에 나오지 않았습니다. 나는 이미 충분히 겪었기 때문에... 그리고 우리는 다시 시작해야합니다. 우리는 이 사랑스러운 대화를 작별 인사를 하면서 시작했고, 우리는 우리 자신과 서로에 대한 모든 종류의 재미있는 사실을 찾을 수있는 간편으로 이동했습니다.:-). 그러나 내가 어떻게 이 모든 것을 얻을 수 있는지 설명 할 수 있는지 보자.. 그래서 먼저 시를 사랑하는 사람이 왜 많은 시간을 보내기를 원합니까? 그리고 아마도 그들은 시를 떠나고 싶어합니다. 그리고 때로는 전화 직장을 가지고있는 동안 많은 에너지를 가져가기 때문에 종종 스트레스를 많이 얻습니다. 사실, 그것은 종종 종종 종종 일어나기 전에 시를 떠나고 싶어합니다.",
+      "한 때, 한 어린이의 그림이 있었습니다. 한 소녀가 근처에 토끼와 함께 나무를 심는 것을 어린이들의 그림으로 그려졌습니다. 주인공 인물은 소녀와 소년이었습니다. 소녀는 공원에서 줄기 위에 그림을 그리고 있었습니다. 분위기는 행복했습니다. 이야기는 시작됩니다: 1) 소녀가 처음에는 꽃을 심지만 꽃이 충분히 크지 않아 열매를 맺지 못하기 때문에 꽃을 심지만 꽃을 피우지 않습니다. 2) 더 많은 나무를 자라는 것을 시작하면 나중에 아무도 그녀가 가장 잘하는 것을 알아차리지 않는다는 것을 좌절합니다. 3) 작은 토끼의 씨앗을 수집합니다.",
+      "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.",
+      "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"",
+      "어린이들의 이야기. 한때 동물들이 둘러싸인 땅에 앉아있는 소녀의 어린이들의 그림이 있었다. 주인공은 소녀와 두 명의 어린이, 공원에서 놀고있는 어린이들이었다. 분위기는 행복했다. 이야기는 시작됩니다."
+    ],
+    "grounding_notes": []
+  },
+  "structure": {
+    "mode": "single_image_baseline_aggregate",
+    "scene_count": 10
+  },
+  "plan": {
+    "method": "BLIP/OpenCLIP per-image baseline -> normalized D-aligned story fields",
+    "scene_order": [
+      "1.png",
+      "2.png",
+      "3.png",
+      "4.png",
+      "5.png",
+      "6.png",
+      "7.png",
+      "8.png",
+      "9.png",
+      "10.png"
+    ]
+  },
+  "metrics": {
+    "object_coverage_average": 0.4993253968253968,
+    "char_count_total": 4124,
+    "scene_count": 10
+  },
+  "validation_policy": "d_aligned_story_fields",
+  "experiment_method": "Experiment_A"
+}

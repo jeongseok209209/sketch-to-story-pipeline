@@ -1,19 +1,20 @@
 {
   "image_id": "8.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:16:53.645542+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/8_steps",
+  "timestamp": "2026-06-06T06:32:25.185692+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\8_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "8.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/8.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
       "image_mode": "RGB",
       "image_size": [
-        1387,
-        1134
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of a tiger and a girl in a tree"
+      "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -50,8 +51,8 @@
         "mood": "What is the mood of this picture?"
       },
       "answers": {
-        "who": "children",
-        "actions": "tree",
+        "who": "girl and girl",
+        "actions": "girl eating",
         "scene": "in park",
         "mood": "happy"
       }
@@ -60,37 +61,45 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of a tiger and a girl in a tree children tree in park happy",
+      "source_text": "a children ' s drawing of a girl standing next to a tree and a rabbit girl and girl girl eating in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
+        "a",
+        "eating",
+        "happy",
         "s",
-        "of",
-        "tiger",
-        "in",
+        "girl",
+        "park",
+        "to",
+        "standing",
         "tree",
         "children",
-        "happy",
-        "park",
+        "next",
+        "in",
+        "rabbit",
+        "of",
         "and",
-        "drawing",
-        "girl",
-        "a"
+        "drawing"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.2744806408882141,
-        "of": 0.31607991456985474,
-        "tiger": 0.3505001366138458,
-        "in": 0.30009621381759644,
-        "tree": 0.2887219190597534,
-        "children": 0.31825417280197144,
-        "happy": 0.29425400495529175,
-        "park": 0.2747039198875427,
-        "and": 0.31235384941101074,
-        "drawing": 0.3095708191394806,
-        "girl": 0.2792975902557373,
-        "a": 0.3011642396450043
+        "a": 0.21226173639297485,
+        "eating": 0.20293813943862915,
+        "happy": 0.20508038997650146,
+        "s": 0.20126910507678986,
+        "girl": 0.24018016457557678,
+        "park": 0.22069929540157318,
+        "to": 0.20731085538864136,
+        "standing": 0.22269144654273987,
+        "tree": 0.2345178872346878,
+        "children": 0.24210403859615326,
+        "next": 0.22566726803779602,
+        "in": 0.21461577713489532,
+        "rabbit": 0.18037186563014984,
+        "of": 0.2196774035692215,
+        "and": 0.2133699506521225,
+        "drawing": 0.21956583857536316
       }
     },
     "06_vision_json": {
@@ -99,38 +108,26 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "tiger",
-          "in",
+          "girl",
+          "park",
+          "standing",
           "tree",
           "children",
-          "happy",
-          "park",
-          "and",
-          "drawing",
-          "girl",
-          "a"
+          "next"
         ],
         "object_scores": {
-          "s": 0.2744806408882141,
-          "of": 0.31607991456985474,
-          "tiger": 0.3505001366138458,
-          "in": 0.30009621381759644,
-          "tree": 0.2887219190597534,
-          "children": 0.31825417280197144,
-          "happy": 0.29425400495529175,
-          "park": 0.2747039198875427,
-          "and": 0.31235384941101074,
-          "drawing": 0.3095708191394806,
-          "girl": 0.2792975902557373,
-          "a": 0.3011642396450043
+          "girl": 0.24018016457557678,
+          "park": 0.22069929540157318,
+          "standing": 0.22269144654273987,
+          "tree": 0.2345178872346878,
+          "children": 0.24210403859615326,
+          "next": 0.22566726803779602
         },
-        "who": "children",
-        "actions": "tree",
+        "who": "girl and girl",
+        "actions": "girl eating",
         "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of a tiger and a girl in a tree",
+        "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
         "confidence": "high"
       }
     },
@@ -139,68 +136,64 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl in a tree. The main character was children, tree in park. The mood was happy.\n\nThe story begins:\n...When the child first started going to school at 8 years old, she would take his hand from her face so that they could look out across the playground while playing outside together! They both became friends with each other as well as their teachers' parents for life and were inseparable since then. Then one day it happened; no matter how many times he said hello or played catch-up over dinner table - this kid never once stopped talking about trees!!! This is when all those wonderful memories start pouring into my head!! I have been thinking like him ever after!!\""
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing next to a tree and a rabbit. The main character was girl and girl, girl eating in park. The mood was happy.\n\nThe story begins:\n\n\n • Girl goes out for walks through the woods with her friends; she sees rabbits at various places around town. One day while walking by an open field one young boy comes across two large black rats that are trying their best not get eaten. They can't escape them so they must eat each other like meat-eaters do on earth! A friend (the owner) sends his dog along but it doesn´t work as well... So he is left alone all night where only little girls watch over him - thinking nothing about what happens later which turns into trouble when things go wrong.... In short this child has lost sight… And now I am going back home again . My daughter tells me \"It had been just such a lovely summer evening\" She smiles happily.\""
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이들의 이야기. 한때 나무에 있는 호랑이와 소녀의 어린이들의 그림이 있었다. 주인공은 어린이들이, 공원에서 있는 나무였다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. ...8살 때 아이가 처음으로 학교에 갈 때, 그녀는 자신의 얼굴을 떼어 놓았으며, 그들은 함께 놀고 있는 동안 놀이터를 건너가 볼 수 있도록 손을 잡았어요. 그들은 둘 다 서로 친구였고, 교사들의 부모와 평생 동안 서로 떼어놓을 수 없었습니다. 그리고 어느 날 그것은 일어났습니다. 그는 얼마나 많은 번 인사하거나 저녁 테이블에 따라 잡을 수 있었는지 상관없이, 이 아이는 나무에 대해 이야기 한 번도 멈추지 않았습니다!!! 이 때 모든 멋진 기억이 내 머리에 쏟아지기 시작했습니다!! 나는 그를 생각하기 시작했습니다. 그 후!!\""
+      "story_final": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음."
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.5833333333333334,
+        "object_coverage": 0.8333333333333334,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 396,
+        "char_count": 477,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
-      "in",
+      "girl",
+      "park",
+      "standing",
       "tree",
       "children",
-      "happy",
-      "park",
-      "and",
-      "drawing",
-      "girl",
-      "a"
+      "next"
     ],
     "object_scores": {
-      "s": 0.2744806408882141,
-      "of": 0.31607991456985474,
-      "tiger": 0.3505001366138458,
-      "in": 0.30009621381759644,
-      "tree": 0.2887219190597534,
-      "children": 0.31825417280197144,
-      "happy": 0.29425400495529175,
-      "park": 0.2747039198875427,
-      "and": 0.31235384941101074,
-      "drawing": 0.3095708191394806,
-      "girl": 0.2792975902557373,
-      "a": 0.3011642396450043
+      "girl": 0.24018016457557678,
+      "park": 0.22069929540157318,
+      "standing": 0.22269144654273987,
+      "tree": 0.2345178872346878,
+      "children": 0.24210403859615326,
+      "next": 0.22566726803779602
     },
-    "who": "children",
-    "actions": "tree",
+    "who": "girl and girl",
+    "actions": "girl eating",
     "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger and a girl in a tree",
+    "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl in a tree. The main character was children, tree in park. The mood was happy.\n\nThe story begins:\n...When the child first started going to school at 8 years old, she would take his hand from her face so that they could look out across the playground while playing outside together! They both became friends with each other as well as their teachers' parents for life and were inseparable since then. Then one day it happened; no matter how many times he said hello or played catch-up over dinner table - this kid never once stopped talking about trees!!! This is when all those wonderful memories start pouring into my head!! I have been thinking like him ever after!!\"",
-  "story_final": "어린이들의 이야기. 한때 나무에 있는 호랑이와 소녀의 어린이들의 그림이 있었다. 주인공은 어린이들이, 공원에서 있는 나무였다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. ...8살 때 아이가 처음으로 학교에 갈 때, 그녀는 자신의 얼굴을 떼어 놓았으며, 그들은 함께 놀고 있는 동안 놀이터를 건너가 볼 수 있도록 손을 잡았어요. 그들은 둘 다 서로 친구였고, 교사들의 부모와 평생 동안 서로 떼어놓을 수 없었습니다. 그리고 어느 날 그것은 일어났습니다. 그는 얼마나 많은 번 인사하거나 저녁 테이블에 따라 잡을 수 있었는지 상관없이, 이 아이는 나무에 대해 이야기 한 번도 멈추지 않았습니다!!! 이 때 모든 멋진 기억이 내 머리에 쏟아지기 시작했습니다!! 나는 그를 생각하기 시작했습니다. 그 후!!\"",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing next to a tree and a rabbit. The main character was girl and girl, girl eating in park. The mood was happy.\n\nThe story begins:\n\n\n • Girl goes out for walks through the woods with her friends; she sees rabbits at various places around town. One day while walking by an open field one young boy comes across two large black rats that are trying their best not get eaten. They can't escape them so they must eat each other like meat-eaters do on earth! A friend (the owner) sends his dog along but it doesn´t work as well... So he is left alone all night where only little girls watch over him - thinking nothing about what happens later which turns into trouble when things go wrong.... In short this child has lost sight… And now I am going back home again . My daughter tells me \"It had been just such a lovely summer evening\" She smiles happily.\"",
+  "story_final": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.",
+  "story": {
+    "title": "8",
+    "body": "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음.",
+    "scene_sentences": [
+      "어린이 이야기. 한 때, 나무와 토끼 옆에 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 소녀와 소녀, 공원에서 먹는 소녀였다. 분위기는 행복했다. 이야기는 다음과 같이 시작됩니다. • 소녀는 친구들과 함께 숲을 돌아다니며, 마을 주변 여러 곳에서 토끼를 보며. 어느 날 열린 마당을 지나가는 동안 어린 소년은 먹히지 않으려고 최선을 다하는 두 개의 큰 검은 쥐를 만나게 됩니다. 그들은 피할 수 없습니다. 그래서 그들은 서로 먹어야합니다. 육식하는 사람이 지구에처럼! 친구 (주) 는 자신의 개를 보내지만 잘 작동하지 않습니다. 그래서 그는 혼자 밤 내내 남아있다. 어린 소녀들만이 그를 감시 - 나중에 무슨 일이 일어날지 생각하지 않습니다. 좋은 문제가 될 때 좋은 문제가 될 것입니다. ... 짧은 시간 동안 이 어린 소년은 다시 눈을 잃었습니다. 그리고 이제 나는 다시 집에 돌아갑니다. \"이런 여름 저녁이었다\"라고 말했다. 내 딸은 웃음."
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.5833333333333334,
+    "object_coverage": 0.8333333333333334,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 396,
+    "char_count": 477,
     "paragraph_count": 1
   }
 }

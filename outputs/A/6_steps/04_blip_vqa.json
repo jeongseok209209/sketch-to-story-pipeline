@@ -9,9 +9,9 @@
     "mood": "What is the mood of this picture?"
   },
   "answers": {
-    "who": "children",
-    "actions": "cat and child in window",
-    "scene": "outside",
-    "mood": "happy"
+    "who": "girl",
+    "actions": "girl is drawing on grass",
+    "scene": "in park",
+    "mood": "sad"
   }
 }

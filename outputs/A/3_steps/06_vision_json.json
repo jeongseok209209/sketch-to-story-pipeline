@@ -4,38 +4,28 @@
   "output": "vision_json",
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
+      "digging",
+      "ground",
+      "girl",
+      "hole",
       "little",
       "children",
-      "happy",
-      "playing",
-      "and",
-      "outside",
-      "drawing",
-      "girl",
-      "a"
+      "drawing"
     ],
     "object_scores": {
-      "s": 0.23547270894050598,
-      "of": 0.27109381556510925,
-      "tiger": 0.3393873870372772,
-      "little": 0.26848655939102173,
-      "children": 0.28579437732696533,
-      "happy": 0.24701760709285736,
-      "playing": 0.2777624726295471,
-      "and": 0.27572375535964966,
-      "outside": 0.25965720415115356,
-      "drawing": 0.2736055850982666,
-      "girl": 0.2598666548728943,
-      "a": 0.25999170541763306
+      "digging": 0.3161751925945282,
+      "ground": 0.27053511142730713,
+      "girl": 0.24163885414600372,
+      "hole": 0.2324414849281311,
+      "little": 0.22706763446331024,
+      "children": 0.24051252007484436,
+      "drawing": 0.2289394736289978
     },
-    "who": "little girl and tiger",
-    "actions": "tiger and girl playing",
-    "scene": "outside",
+    "who": "little girl",
+    "actions": "digging",
+    "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball",
+    "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
     "confidence": "high"
   }
 }

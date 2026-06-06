@@ -1,19 +1,20 @@
 {
   "image_id": "9.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:17:22.966327+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/9_steps",
+  "timestamp": "2026-06-06T06:32:46.643348+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\9_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "9.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/9.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
       "image_mode": "RGB",
       "image_size": [
-        1397,
-        1126
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger"
+      "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -50,8 +51,8 @@
         "mood": "What is the mood of this picture?"
       },
       "answers": {
-        "who": "children",
-        "actions": "kite flying",
+        "who": "little girl",
+        "actions": "little girl is walking with bears",
         "scene": "in park",
         "mood": "happy"
       }
@@ -60,45 +61,51 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of three children swinging on a rope with a tiger children kite flying in park happy",
+      "source_text": "a children ' s drawing of a girl standing in a forest surrounded by animals little girl little girl is walking with bears in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
+        "forest",
+        "by",
         "s",
-        "of",
-        "on",
+        "little",
         "with",
-        "tiger",
-        "flying",
-        "in",
-        "children",
-        "happy",
-        "three",
-        "rope",
-        "park",
-        "swinging",
+        "surrounded",
+        "walking",
+        "animals",
+        "of",
+        "girl",
+        "bears",
         "drawing",
-        "kite",
-        "a"
+        "is",
+        "park",
+        "in",
+        "a",
+        "standing",
+        "children",
+        "happy"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.25070375204086304,
-        "of": 0.2927619218826294,
-        "on": 0.26437103748321533,
-        "with": 0.2783440947532654,
-        "tiger": 0.335135281085968,
-        "flying": 0.30885663628578186,
-        "in": 0.2721984386444092,
-        "children": 0.3040425181388855,
-        "happy": 0.26280543208122253,
-        "three": 0.25724247097969055,
-        "rope": 0.28369155526161194,
-        "park": 0.27237316966056824,
-        "swinging": 0.37351110577583313,
-        "drawing": 0.29152458906173706,
-        "kite": 0.278056263923645,
-        "a": 0.27051597833633423
+        "forest": 0.23603782057762146,
+        "by": 0.22380532324314117,
+        "s": 0.15831077098846436,
+        "little": 0.18613074719905853,
+        "with": 0.1927732676267624,
+        "surrounded": 0.22011424601078033,
+        "walking": 0.21856757998466492,
+        "animals": 0.20973752439022064,
+        "of": 0.1924077719449997,
+        "girl": 0.20362982153892517,
+        "bears": 0.18811368942260742,
+        "drawing": 0.18758556246757507,
+        "is": 0.1502641886472702,
+        "park": 0.19523343443870544,
+        "in": 0.17627482116222382,
+        "a": 0.17399168014526367,
+        "standing": 0.1920328438282013,
+        "children": 0.20922529697418213,
+        "happy": 0.17376184463500977
       }
     },
     "06_vision_json": {
@@ -107,46 +114,20 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "on",
-          "with",
-          "tiger",
-          "flying",
-          "in",
-          "children",
-          "happy",
-          "three",
-          "rope",
-          "park",
-          "swinging",
-          "drawing",
-          "kite",
-          "a"
+          "forest",
+          "by",
+          "surrounded"
         ],
         "object_scores": {
-          "s": 0.25070375204086304,
-          "of": 0.2927619218826294,
-          "on": 0.26437103748321533,
-          "with": 0.2783440947532654,
-          "tiger": 0.335135281085968,
-          "flying": 0.30885663628578186,
-          "in": 0.2721984386444092,
-          "children": 0.3040425181388855,
-          "happy": 0.26280543208122253,
-          "three": 0.25724247097969055,
-          "rope": 0.28369155526161194,
-          "park": 0.27237316966056824,
-          "swinging": 0.37351110577583313,
-          "drawing": 0.29152458906173706,
-          "kite": 0.278056263923645,
-          "a": 0.27051597833633423
+          "forest": 0.23603782057762146,
+          "by": 0.22380532324314117,
+          "surrounded": 0.22011424601078033
         },
-        "who": "children",
-        "actions": "kite flying",
+        "who": "little girl",
+        "actions": "little girl is walking with bears",
         "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+        "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals",
         "confidence": "high"
       }
     },
@@ -155,76 +136,58 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of three children swinging on a rope with a tiger. The main character was children, kite flying in park. The mood was happy.\n\nThe story begins:\n \"They were all young boys from the neighborhood who used to play together at their neighbor Kukrukhovka lake near Moscow and now lived opposite one another.\"\n\n\n    <!--iframe--> -------------------------​"
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing in a forest surrounded by animals. The main character was little girl, little girl is walking with bears in park. The mood was happy.\n\nThe story begins:\n\n\n \"Little Girl\" (not her real name) had just started school when she got the news that someone killed their grandfather and father at gunpoint! Little boy ran away from home to save his parents as he believed they were dead so all those who loved him would follow for comfort but found out later it was too late; everything went wrong because this man stole some money hidden inside one box filled full… With tears streaming down Little Boy´s face.\""
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이 이야기. 한때는 호랑이와 로프에 흔들리는 어린이 3명의 그림이 있었다. 주인공은 어린이들이 공원에서 날아가는 유래가 있었다. 분위기는 행복했다. 이야기는 이렇게 시작합니다. \"그들은 모두 이웃 마을의 어린 소년들이 모스크바 근처의 쿠크루코프카 호수에서 함께 놀고 있었고 지금은 서로 반대편에 살고 있었다. \" <!--iframe--> -------------------------"
+      "story_final": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \""
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.625,
+        "object_coverage": 0.3333333333333333,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 216,
+        "char_count": 385,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "on",
-      "with",
-      "tiger",
-      "flying",
-      "in",
-      "children",
-      "happy",
-      "three",
-      "rope",
-      "park",
-      "swinging",
-      "drawing",
-      "kite",
-      "a"
+      "forest",
+      "by",
+      "surrounded"
     ],
     "object_scores": {
-      "s": 0.25070375204086304,
-      "of": 0.2927619218826294,
-      "on": 0.26437103748321533,
-      "with": 0.2783440947532654,
-      "tiger": 0.335135281085968,
-      "flying": 0.30885663628578186,
-      "in": 0.2721984386444092,
-      "children": 0.3040425181388855,
-      "happy": 0.26280543208122253,
-      "three": 0.25724247097969055,
-      "rope": 0.28369155526161194,
-      "park": 0.27237316966056824,
-      "swinging": 0.37351110577583313,
-      "drawing": 0.29152458906173706,
-      "kite": 0.278056263923645,
-      "a": 0.27051597833633423
+      "forest": 0.23603782057762146,
+      "by": 0.22380532324314117,
+      "surrounded": 0.22011424601078033
     },
-    "who": "children",
-    "actions": "kite flying",
+    "who": "little girl",
+    "actions": "little girl is walking with bears",
     "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of three children swinging on a rope with a tiger",
+    "raw_caption": "a children ' s drawing of a girl standing in a forest surrounded by animals",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of three children swinging on a rope with a tiger. The main character was children, kite flying in park. The mood was happy.\n\nThe story begins:\n \"They were all young boys from the neighborhood who used to play together at their neighbor Kukrukhovka lake near Moscow and now lived opposite one another.\"\n\n\n    <!--iframe--> -------------------------​",
-  "story_final": "어린이 이야기. 한때는 호랑이와 로프에 흔들리는 어린이 3명의 그림이 있었다. 주인공은 어린이들이 공원에서 날아가는 유래가 있었다. 분위기는 행복했다. 이야기는 이렇게 시작합니다. \"그들은 모두 이웃 마을의 어린 소년들이 모스크바 근처의 쿠크루코프카 호수에서 함께 놀고 있었고 지금은 서로 반대편에 살고 있었다. \" <!--iframe--> -------------------------",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl standing in a forest surrounded by animals. The main character was little girl, little girl is walking with bears in park. The mood was happy.\n\nThe story begins:\n\n\n \"Little Girl\" (not her real name) had just started school when she got the news that someone killed their grandfather and father at gunpoint! Little boy ran away from home to save his parents as he believed they were dead so all those who loved him would follow for comfort but found out later it was too late; everything went wrong because this man stole some money hidden inside one box filled full… With tears streaming down Little Boy´s face.\"",
+  "story_final": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"",
+  "story": {
+    "title": "9",
+    "body": "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \"",
+    "scene_sentences": [
+      "어린이 이야기. 한 때, 동물들이 둘러싸인 숲에서 어린 소녀가 서 있는 어린이들의 그림이 있었다. 주인공은 어린 소녀였으며, 어린 소녀는 공원에서 곰들과 함께 걷고 있었다. 분위기는 행복했다. 이야기는 이렇게 시작됩니다. \"작은 소녀\" (정말 이름이 아닌) 는 방금 학교를 시작했을 때 누군가가 그들의 할아버지와 아버지를 총알로 살해했다는 소식을 들었습니다. 어린 소년은 부모를 구하기 위해 집을 도망쳤고, 그들이 죽은 것이라고 믿었기 때문에 그를 사랑하는 모든 사람들이 위로를 위해 따라갔지만 나중에 너무 늦었다고 알게되었습니다. 모든 것이 잘못되었습니다. 이 남자가 한 상자 안에 숨겨진 돈을 훔쳤기 때문에 모든 것이 잘못되었습니다. 작은 소년의 얼굴은 눈물이 흐르며 가득했습니다. \""
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.625,
+    "object_coverage": 0.3333333333333333,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 216,
+    "char_count": 385,
     "paragraph_count": 1
   }
 }

@@ -248,6 +248,28 @@ def _case_from_a_records(case_id: str, result_files: list[Path]) -> EvaluationCa
 def _case_from_record(case_id: str, result_file: Path, experiment: str) -> EvaluationCase:
     record = _read_json(result_file)
 
+    if isinstance(record.get("story"), dict):
+        full_story, scene_sentences = _story_from_cd_result(record)
+        scenes_payload = record.get("scenes") or []
+        scenes = []
+        for index, scene in enumerate(scenes_payload, start=1):
+            image_id = str(scene.get("image_id", "")).strip()
+            summary = (
+                str(scene.get("scene_summary") or "").strip()
+                or _compose_sequence_scene_summary(scene)
+                or "?λ㈃ ?ㅻ챸 ?놁쓬"
+            )
+            scenes.append(
+                SceneView(
+                    scene_index=int(scene.get("scene_index") or index),
+                    image_id=image_id,
+                    image_path=_resolve_image(image_id, scene),
+                    scene_summary=summary,
+                    generated_sentence=scene_sentences[index - 1] if index - 1 < len(scene_sentences) else "",
+                )
+            )
+        return EvaluationCase(case_id, experiment, result_file, scenes, full_story)
+
     if experiment == "A":
         image_id = str(record.get("image_id", "")).strip()
         vision = record.get("vision") or {}
@@ -310,9 +332,11 @@ def discover_result_files() -> list[ResultFile]:
         if not directory.exists():
             continue
         if experiment == "A":
-            paths = sorted(directory.glob("*_experiment_a.json"))
+            standard_path = directory / "experiment_a_result.json"
+            paths = [standard_path] if standard_path.exists() else sorted(directory.glob("*_experiment_a.json"))
         elif experiment == "B":
-            paths = sorted(directory.glob("sequence_story.json"))
+            standard_path = directory / "experiment_b_result.json"
+            paths = [standard_path] if standard_path.exists() else sorted(directory.glob("sequence_story.json"))
         else:
             paths = sorted(directory.glob(f"experiment_{experiment.lower()}_result.json"))
             if not paths:
@@ -324,7 +348,14 @@ def discover_result_files() -> list[ResultFile]:
 def create_blind_mapping() -> dict[str, dict[str, Any]]:
     result_files = discover_result_files()
     grouped_items: list[dict[str, Any]] = []
-    a_paths = sorted((result.path for result in result_files if result.experiment == "A"), key=_a_result_sort_key)
+    a_paths = sorted(
+        (
+            result.path
+            for result in result_files
+            if result.experiment == "A" and result.path.name != "experiment_a_result.json"
+        ),
+        key=_a_result_sort_key,
+    )
     if a_paths:
         grouped_items.append(
             {
@@ -338,7 +369,7 @@ def create_blind_mapping() -> dict[str, dict[str, Any]]:
             "result_file": _relative(result.path),
         }
         for result in result_files
-        if result.experiment != "A"
+        if result.experiment != "A" or result.path.name == "experiment_a_result.json"
     )
     random.SystemRandom().shuffle(grouped_items)
     mapping = {

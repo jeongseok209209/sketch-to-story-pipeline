@@ -1,19 +1,20 @@
 {
   "image_id": "4.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:14:49.148130+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/4_steps",
+  "timestamp": "2026-06-06T06:30:33.058614+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\4_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "4.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/4.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
       "image_mode": "RGB",
       "image_size": [
-        1405,
-        1120
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of a tiger and a girl holding a basket"
+      "raw_caption": "a children ' s drawing of a girl watering water in a garden"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -50,9 +51,9 @@
         "mood": "What is the mood of this picture?"
       },
       "answers": {
-        "who": "little girl",
-        "actions": "girl and bear playing",
-        "scene": "outside",
+        "who": "girl",
+        "actions": "girl is watering",
+        "scene": "in park",
         "mood": "happy"
       }
     },
@@ -60,43 +61,39 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of a tiger and a girl holding a basket little girl girl and bear playing outside happy",
+      "source_text": "a children ' s drawing of a girl watering water in a garden girl girl is watering in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
-        "s",
-        "of",
-        "tiger",
-        "basket",
-        "little",
-        "bear",
-        "children",
-        "happy",
-        "playing",
-        "and",
-        "outside",
-        "drawing",
-        "girl",
         "a",
-        "holding"
+        "is",
+        "s",
+        "girl",
+        "park",
+        "garden",
+        "water",
+        "children",
+        "in",
+        "happy",
+        "of",
+        "watering",
+        "drawing"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.22493000328540802,
-        "of": 0.2647944688796997,
-        "tiger": 0.32766884565353394,
-        "basket": 0.26788756251335144,
-        "little": 0.25390398502349854,
-        "bear": 0.23318442702293396,
-        "children": 0.28541800379753113,
-        "happy": 0.2371433675289154,
-        "playing": 0.2678506374359131,
-        "and": 0.26658231019973755,
-        "outside": 0.2485324740409851,
-        "drawing": 0.2667650878429413,
-        "girl": 0.2490476816892624,
-        "a": 0.25441938638687134,
-        "holding": 0.25878167152404785
+        "a": 0.22271643579006195,
+        "is": 0.20085102319717407,
+        "s": 0.214645117521286,
+        "girl": 0.2577912211418152,
+        "park": 0.2422572374343872,
+        "garden": 0.24825292825698853,
+        "water": 0.23866690695285797,
+        "children": 0.2610662579536438,
+        "in": 0.21747161448001862,
+        "happy": 0.21654938161373138,
+        "of": 0.22993992269039154,
+        "watering": 0.28405025601387024,
+        "drawing": 0.25322863459587097
       }
     },
     "06_vision_json": {
@@ -105,44 +102,32 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "tiger",
-          "basket",
-          "little",
-          "bear",
-          "children",
-          "happy",
-          "playing",
-          "and",
-          "outside",
-          "drawing",
-          "girl",
           "a",
-          "holding"
+          "girl",
+          "park",
+          "garden",
+          "water",
+          "children",
+          "of",
+          "watering",
+          "drawing"
         ],
         "object_scores": {
-          "s": 0.22493000328540802,
-          "of": 0.2647944688796997,
-          "tiger": 0.32766884565353394,
-          "basket": 0.26788756251335144,
-          "little": 0.25390398502349854,
-          "bear": 0.23318442702293396,
-          "children": 0.28541800379753113,
-          "happy": 0.2371433675289154,
-          "playing": 0.2678506374359131,
-          "and": 0.26658231019973755,
-          "outside": 0.2485324740409851,
-          "drawing": 0.2667650878429413,
-          "girl": 0.2490476816892624,
-          "a": 0.25441938638687134,
-          "holding": 0.25878167152404785
+          "a": 0.22271643579006195,
+          "girl": 0.2577912211418152,
+          "park": 0.2422572374343872,
+          "garden": 0.24825292825698853,
+          "water": 0.23866690695285797,
+          "children": 0.2610662579536438,
+          "of": 0.22993992269039154,
+          "watering": 0.28405025601387024,
+          "drawing": 0.25322863459587097
         },
-        "who": "little girl",
-        "actions": "girl and bear playing",
-        "scene": "outside",
+        "who": "girl",
+        "actions": "girl is watering",
+        "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of a tiger and a girl holding a basket",
+        "raw_caption": "a children ' s drawing of a girl watering water in a garden",
         "confidence": "high"
       }
     },
@@ -151,74 +136,70 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl holding a basket. The main character was little girl, girl and bear playing outside. The mood was happy.\n\nThe story begins:"
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl watering water in a garden. The main character was girl, girl is watering in park. The mood was happy.\n\nThe story begins:\n/u00b0d /i\\ A boy says to the other boys who are playing tag with her that he thinks she looks like an angel and asks him if it means anything because his name is Adam (God) or Jesus (Son). They both look at eachother but they ignore all others around them as usual. He tries to go for more matches by telling this silly tale about how \"the angels sing,\" which causes everyone else to think these were only friends talking together then when someone gets hurt some people start screaming on camera saying we need help! She leaves so nobody has heard what happened outside now even though most seem interested; also apparently no one would know any better than us since our parents had never seen their little girls grow up before!! At school another kid from class walks over asking why does your sister do stuff while you're alone? But here comes my favorite line outta everything I've ever read either way..\"So tell me!\" said Kuzuro again putting herself"
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이들의 이야기. 한때는 어린이의 그림이 있었습니다. 호랑이와 여자 아이가 바구니를 들고 있었다. 주인공은 어린 소녀, 여자아이와 곰이 밖에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다."
+      "story_final": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다."
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.4,
+        "object_coverage": 0.4444444444444444,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 111,
+        "char_count": 556,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
-      "basket",
-      "little",
-      "bear",
-      "children",
-      "happy",
-      "playing",
-      "and",
-      "outside",
-      "drawing",
-      "girl",
       "a",
-      "holding"
+      "girl",
+      "park",
+      "garden",
+      "water",
+      "children",
+      "of",
+      "watering",
+      "drawing"
     ],
     "object_scores": {
-      "s": 0.22493000328540802,
-      "of": 0.2647944688796997,
-      "tiger": 0.32766884565353394,
-      "basket": 0.26788756251335144,
-      "little": 0.25390398502349854,
-      "bear": 0.23318442702293396,
-      "children": 0.28541800379753113,
-      "happy": 0.2371433675289154,
-      "playing": 0.2678506374359131,
-      "and": 0.26658231019973755,
-      "outside": 0.2485324740409851,
-      "drawing": 0.2667650878429413,
-      "girl": 0.2490476816892624,
-      "a": 0.25441938638687134,
-      "holding": 0.25878167152404785
+      "a": 0.22271643579006195,
+      "girl": 0.2577912211418152,
+      "park": 0.2422572374343872,
+      "garden": 0.24825292825698853,
+      "water": 0.23866690695285797,
+      "children": 0.2610662579536438,
+      "of": 0.22993992269039154,
+      "watering": 0.28405025601387024,
+      "drawing": 0.25322863459587097
     },
-    "who": "little girl",
-    "actions": "girl and bear playing",
-    "scene": "outside",
+    "who": "girl",
+    "actions": "girl is watering",
+    "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger and a girl holding a basket",
+    "raw_caption": "a children ' s drawing of a girl watering water in a garden",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl holding a basket. The main character was little girl, girl and bear playing outside. The mood was happy.\n\nThe story begins:",
-  "story_final": "어린이들의 이야기. 한때는 어린이의 그림이 있었습니다. 호랑이와 여자 아이가 바구니를 들고 있었다. 주인공은 어린 소녀, 여자아이와 곰이 밖에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다.",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl watering water in a garden. The main character was girl, girl is watering in park. The mood was happy.\n\nThe story begins:\n/u00b0d /i\\ A boy says to the other boys who are playing tag with her that he thinks she looks like an angel and asks him if it means anything because his name is Adam (God) or Jesus (Son). They both look at eachother but they ignore all others around them as usual. He tries to go for more matches by telling this silly tale about how \"the angels sing,\" which causes everyone else to think these were only friends talking together then when someone gets hurt some people start screaming on camera saying we need help! She leaves so nobody has heard what happened outside now even though most seem interested; also apparently no one would know any better than us since our parents had never seen their little girls grow up before!! At school another kid from class walks over asking why does your sister do stuff while you're alone? But here comes my favorite line outta everything I've ever read either way..\"So tell me!\" said Kuzuro again putting herself",
+  "story_final": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.",
+  "story": {
+    "title": "4",
+    "body": "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다.",
+    "scene_sentences": [
+      "어린이들의 이야기. 한때, 어린이들의 그림으로 정원에서 물을 물을 흘리는 소녀가 그려져 있었다. 주인공은 소녀, 소녀가 공원에서 물을 흘리고 있었다. 분위기가 행복했다. 이야기는 시작됩니다. /u00b0d /i\\ 소년은 그녀와 함께 타그를 하는 다른 소년들에게 그녀가 천사처럼 생겼다고 생각하고 어떤 의미인지 묻고, 그의 이름은 아담 (하나님) 또는 예수 (자신) 이다. 그들은 서로를 쳐다보고 있지만 평소처럼 주변 사람들을 무시합니다. 그는 \"천사가 노래하는 것\"에 대한 이 어리석은 이야기를 더 많은 경기로 가고 싶어합니다. 이것은 다른 모든 사람들이 함께 친구라고 생각하게 만듭니다. 누군가가 말을 할 때 어떤 사람들은 우리가 도움을 필요로 하는 것을 시작합니다! 그녀는 떠나고 싶어합니다. 그래서 아무도 지금 밖으로 무슨 일이 일어나고 있는지 듣지 않았습니다. 그러나 가장 관심이있는 것 같습니다. 우리는 또한 다른 어떤 방법을 더 잘 알고 있습니다. 우리 부모님은 왜 우리 딸을 혼자 밖으로 걸어가는 것을 알고 있습니다. 그러나 왜 우리 딸은 자신의 좋아하는 걸 더 잘 알고 있습니다."
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.4,
+    "object_coverage": 0.4444444444444444,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 111,
+    "char_count": 556,
     "paragraph_count": 1
   }
 }

@@ -1,19 +1,20 @@
 {
   "image_id": "5.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:15:24.596210+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/5_steps",
+  "timestamp": "2026-06-06T06:31:05.966554+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\5_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "5.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/5.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
       "image_mode": "RGB",
       "image_size": [
-        1409,
-        1117
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch"
+      "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -50,9 +51,9 @@
         "mood": "What is the mood of this picture?"
       },
       "answers": {
-        "who": "tiger",
-        "actions": "house",
-        "scene": "at play",
+        "who": "girl",
+        "actions": "girl is drawing on grass",
+        "scene": "in park",
         "mood": "happy"
       }
     },
@@ -60,43 +61,43 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch tiger house at play happy",
+      "source_text": "a children ' s drawing of a girl and a rabbit in a forest girl girl is drawing on grass in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
-        "s",
-        "of",
-        "tiger",
-        "cat",
-        "dressed",
-        "house",
-        "children",
-        "at",
+        "a",
+        "grass",
+        "is",
+        "forest",
         "happy",
-        "play",
+        "s",
+        "girl",
+        "park",
+        "children",
+        "in",
+        "rabbit",
+        "of",
         "and",
-        "as",
-        "drawing",
-        "witch",
-        "a"
+        "on",
+        "drawing"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.22348518669605255,
-        "of": 0.26876455545425415,
-        "tiger": 0.30895906686782837,
-        "cat": 0.2685147523880005,
-        "dressed": 0.26649361848831177,
-        "house": 0.2320277839899063,
-        "children": 0.28057098388671875,
-        "at": 0.25033026933670044,
-        "happy": 0.23782265186309814,
-        "play": 0.27636903524398804,
-        "and": 0.26113077998161316,
-        "as": 0.24735794961452484,
-        "drawing": 0.26966938376426697,
-        "witch": 0.27894502878189087,
-        "a": 0.2450156956911087
+        "a": 0.23559489846229553,
+        "grass": 0.2353818416595459,
+        "is": 0.2141972929239273,
+        "forest": 0.29655352234840393,
+        "happy": 0.23346136510372162,
+        "s": 0.22675037384033203,
+        "girl": 0.2745725214481354,
+        "park": 0.2555975615978241,
+        "children": 0.27131253480911255,
+        "in": 0.2346651554107666,
+        "rabbit": 0.2307756096124649,
+        "of": 0.2438991814851761,
+        "and": 0.22726944088935852,
+        "on": 0.24165524542331696,
+        "drawing": 0.2642938494682312
       }
     },
     "06_vision_json": {
@@ -105,44 +106,42 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "tiger",
-          "cat",
-          "dressed",
-          "house",
-          "children",
-          "at",
+          "a",
+          "grass",
+          "forest",
           "happy",
-          "play",
+          "s",
+          "girl",
+          "park",
+          "children",
+          "in",
+          "rabbit",
+          "of",
           "and",
-          "as",
-          "drawing",
-          "witch",
-          "a"
+          "on",
+          "drawing"
         ],
         "object_scores": {
-          "s": 0.22348518669605255,
-          "of": 0.26876455545425415,
-          "tiger": 0.30895906686782837,
-          "cat": 0.2685147523880005,
-          "dressed": 0.26649361848831177,
-          "house": 0.2320277839899063,
-          "children": 0.28057098388671875,
-          "at": 0.25033026933670044,
-          "happy": 0.23782265186309814,
-          "play": 0.27636903524398804,
-          "and": 0.26113077998161316,
-          "as": 0.24735794961452484,
-          "drawing": 0.26966938376426697,
-          "witch": 0.27894502878189087,
-          "a": 0.2450156956911087
+          "a": 0.23559489846229553,
+          "grass": 0.2353818416595459,
+          "forest": 0.29655352234840393,
+          "happy": 0.23346136510372162,
+          "s": 0.22675037384033203,
+          "girl": 0.2745725214481354,
+          "park": 0.2555975615978241,
+          "children": 0.27131253480911255,
+          "in": 0.2346651554107666,
+          "rabbit": 0.2307756096124649,
+          "of": 0.2438991814851761,
+          "and": 0.22726944088935852,
+          "on": 0.24165524542331696,
+          "drawing": 0.2642938494682312
         },
-        "who": "tiger",
-        "actions": "house",
-        "scene": "at play",
+        "who": "girl",
+        "actions": "girl is drawing on grass",
+        "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch",
+        "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest",
         "confidence": "high"
       }
     },
@@ -151,74 +150,80 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch. The main character was tiger, house at play. The mood was happy.\n\nThe story begins:\n (the girl) went out to her kitchen in the morning carrying milk for breakfast. On going down she passed through several houses on horseback - first one had three cats; then another two men who would not answer their callings but were just waiting with toys or food while they waited till lunchtime came around again... When all this happened it struck me that I could have been any child living anywhere! So when you come home from school today find yourself standing outside your front door looking into empty rooms so full of people now watching television programs etc.. You know how busy life can be? Then imagine my surprise whenever suddenly something seemed odd about someone else.... This is what happens sometimes during our daily lives . Sometimes we don't notice some strange person staring us straight in eyes which makes us wonder if he has seen an animal before..... But once more after pondering these questions...... We decide never go back inside without leaving behind such things !"
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl and a rabbit in a forest. The main character was girl, girl is drawing on grass in park. The mood was happy.\n\nThe story begins:\n the hero has come to collect flowers for his mother from another town near by with their child at night when he doesn't have much money because they need it all around (the baby too). He finds them but donít get any flower until after sunrise as rain will ruin him some day so instead just ask girls about where her parents are going out this evening before leaving home early morning while getting ready!\n\n \"Now that you know something nice I can do more things like gardening\" said one kid saying excitedly over an open window looking up into clouds she had already brought along which were raining down onto trees behind each other making every single tree look exactly how usual ones looks today except those small newish bush bushes growing close together under leaves falling away below . But why does your friend think everyone else here seems lazy enough not even thinking twice? Well since then many times during schooldays if no-one notices or cares what happens next we go back through our pasts again only sometimes forgetting who did"
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이들의 이야기. 한 때, 마녀로 옷을 입은 호랑이와 마녀로 옷을 입은 고양이라는 어린이들의 그림이 있었다. 주인공은 호랑이, 집에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다: ( 소녀) 아침 아침 아침 우유를 들고 부엌으로 갔다. 내려가면서 그녀는 몇 개의 집들을 지나가며 말 달고 - 첫째는 세 개의 고양이가 있었고; 다음에는 두 명의 남자가 그들의 호출을 응답하지 않고 장난감이나 음식을 가지고 기다리고 있었고, 그들은 다시 점심 시간까지 기다렸다. 이 모든 일이 일어났을 때 나는 내가 어디에도 살고있는 어린이가 되었다는 것을 느꼈습니다. 그래서 학교를 돌아왔을 때 오늘 당신은 당신의 문 앞에 서서 빈 방에 앉아있는 사람들을 볼 수 있습니다, 지금 TV 프로그램을 보는 등에 가득합니다. 당신은 어떻게 할 수 있는지 알고 있습니까?"
+      "story_final": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다."
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.4666666666666667,
+        "object_coverage": 0.5714285714285714,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 422,
+        "char_count": 554,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
-      "cat",
-      "dressed",
-      "house",
-      "children",
-      "at",
+      "a",
+      "grass",
+      "forest",
       "happy",
-      "play",
+      "s",
+      "girl",
+      "park",
+      "children",
+      "in",
+      "rabbit",
+      "of",
       "and",
-      "as",
-      "drawing",
-      "witch",
-      "a"
+      "on",
+      "drawing"
     ],
     "object_scores": {
-      "s": 0.22348518669605255,
-      "of": 0.26876455545425415,
-      "tiger": 0.30895906686782837,
-      "cat": 0.2685147523880005,
-      "dressed": 0.26649361848831177,
-      "house": 0.2320277839899063,
-      "children": 0.28057098388671875,
-      "at": 0.25033026933670044,
-      "happy": 0.23782265186309814,
-      "play": 0.27636903524398804,
-      "and": 0.26113077998161316,
-      "as": 0.24735794961452484,
-      "drawing": 0.26966938376426697,
-      "witch": 0.27894502878189087,
-      "a": 0.2450156956911087
+      "a": 0.23559489846229553,
+      "grass": 0.2353818416595459,
+      "forest": 0.29655352234840393,
+      "happy": 0.23346136510372162,
+      "s": 0.22675037384033203,
+      "girl": 0.2745725214481354,
+      "park": 0.2555975615978241,
+      "children": 0.27131253480911255,
+      "in": 0.2346651554107666,
+      "rabbit": 0.2307756096124649,
+      "of": 0.2438991814851761,
+      "and": 0.22726944088935852,
+      "on": 0.24165524542331696,
+      "drawing": 0.2642938494682312
     },
-    "who": "tiger",
-    "actions": "house",
-    "scene": "at play",
+    "who": "girl",
+    "actions": "girl is drawing on grass",
+    "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch",
+    "raw_caption": "a children ' s drawing of a girl and a rabbit in a forest",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger dressed as a witch and a cat dressed as a witch. The main character was tiger, house at play. The mood was happy.\n\nThe story begins:\n (the girl) went out to her kitchen in the morning carrying milk for breakfast. On going down she passed through several houses on horseback - first one had three cats; then another two men who would not answer their callings but were just waiting with toys or food while they waited till lunchtime came around again... When all this happened it struck me that I could have been any child living anywhere! So when you come home from school today find yourself standing outside your front door looking into empty rooms so full of people now watching television programs etc.. You know how busy life can be? Then imagine my surprise whenever suddenly something seemed odd about someone else.... This is what happens sometimes during our daily lives . Sometimes we don't notice some strange person staring us straight in eyes which makes us wonder if he has seen an animal before..... But once more after pondering these questions...... We decide never go back inside without leaving behind such things !",
-  "story_final": "어린이들의 이야기. 한 때, 마녀로 옷을 입은 호랑이와 마녀로 옷을 입은 고양이라는 어린이들의 그림이 있었다. 주인공은 호랑이, 집에서 놀고 있었다. 분위기는 행복했다. 이야기는 시작됩니다: ( 소녀) 아침 아침 아침 우유를 들고 부엌으로 갔다. 내려가면서 그녀는 몇 개의 집들을 지나가며 말 달고 - 첫째는 세 개의 고양이가 있었고; 다음에는 두 명의 남자가 그들의 호출을 응답하지 않고 장난감이나 음식을 가지고 기다리고 있었고, 그들은 다시 점심 시간까지 기다렸다. 이 모든 일이 일어났을 때 나는 내가 어디에도 살고있는 어린이가 되었다는 것을 느꼈습니다. 그래서 학교를 돌아왔을 때 오늘 당신은 당신의 문 앞에 서서 빈 방에 앉아있는 사람들을 볼 수 있습니다, 지금 TV 프로그램을 보는 등에 가득합니다. 당신은 어떻게 할 수 있는지 알고 있습니까?",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl and a rabbit in a forest. The main character was girl, girl is drawing on grass in park. The mood was happy.\n\nThe story begins:\n the hero has come to collect flowers for his mother from another town near by with their child at night when he doesn't have much money because they need it all around (the baby too). He finds them but donít get any flower until after sunrise as rain will ruin him some day so instead just ask girls about where her parents are going out this evening before leaving home early morning while getting ready!\n\n \"Now that you know something nice I can do more things like gardening\" said one kid saying excitedly over an open window looking up into clouds she had already brought along which were raining down onto trees behind each other making every single tree look exactly how usual ones looks today except those small newish bush bushes growing close together under leaves falling away below . But why does your friend think everyone else here seems lazy enough not even thinking twice? Well since then many times during schooldays if no-one notices or cares what happens next we go back through our pasts again only sometimes forgetting who did",
+  "story_final": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.",
+  "story": {
+    "title": "5",
+    "body": "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다.",
+    "scene_sentences": [
+      "어린이들의 이야기. 한때 숲 속의 어린 소녀와 토끼의 그림이 그려져 있었다. 주인공은 소녀였는데, 소녀는 공원에서 풀에 그림을 그리고 있었다. 분위기는 행복했다. 이야기는 시작됩니다. 영웅은 다른 마을에서 어머니에게 꽃을 수집하러 와서 자신의 아이와 함께 밤에 많은 돈을 가지고 있지 않습니다. 왜냐하면 그들은 그것을 주위에 필요로 하기 때문에 (아동도) 그들을 발견하지만 비가 그를 망칠 때 어느 날 태양이 뜨기 전까지는 꽃을 얻을 수 없습니다. 그래서 대신 소녀가 오늘 저녁에 그녀의 부모님이 집에서 일찍 아침을 떠나기 전에 밖으로 나가고 있는지 물어보십시오! \"이제 당신이 알고있는 것을 나는 정원 같은 더 많은 일을 할 수 있습니다\"라고 한 아이가 흥분하고 흥분하고 그녀가 이미 가져온 구름에 대한 공개를 통해 말했다. 그 나무 뒤에 지난 동안 다른 작은 나무를 보는 동안, 우리는 다른 작은 나무 밑에 두 번이나 떨어지는 것을 생각하지만, 우리 친구들은 왜 다시 다시 돌아가는 것 처럼 생각하기 때문에, 다음 날부터 다른 모든 작은 나무 밑에 다시 다시 돌아가는 것 처럼 보입니다."
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.4666666666666667,
+    "object_coverage": 0.5714285714285714,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 422,
+    "char_count": 554,
     "paragraph_count": 1
   }
 }

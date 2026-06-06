@@ -4,38 +4,26 @@
   "output": "vision_json",
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
-      "in",
+      "girl",
+      "park",
+      "standing",
       "tree",
       "children",
-      "happy",
-      "park",
-      "and",
-      "drawing",
-      "girl",
-      "a"
+      "next"
     ],
     "object_scores": {
-      "s": 0.2744806408882141,
-      "of": 0.31607991456985474,
-      "tiger": 0.3505001366138458,
-      "in": 0.30009621381759644,
-      "tree": 0.2887219190597534,
-      "children": 0.31825417280197144,
-      "happy": 0.29425400495529175,
-      "park": 0.2747039198875427,
-      "and": 0.31235384941101074,
-      "drawing": 0.3095708191394806,
-      "girl": 0.2792975902557373,
-      "a": 0.3011642396450043
+      "girl": 0.24018016457557678,
+      "park": 0.22069929540157318,
+      "standing": 0.22269144654273987,
+      "tree": 0.2345178872346878,
+      "children": 0.24210403859615326,
+      "next": 0.22566726803779602
     },
-    "who": "children",
-    "actions": "tree",
+    "who": "girl and girl",
+    "actions": "girl eating",
     "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger and a girl in a tree",
+    "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit",
     "confidence": "high"
   }
 }

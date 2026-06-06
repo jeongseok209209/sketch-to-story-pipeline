@@ -1,19 +1,20 @@
 {
   "image_id": "3.png",
+  "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
   "experiment": "A",
   "story_backend": "gpt2_nllb",
-  "timestamp": "2026-06-03T12:14:27.402392+00:00",
-  "step_output_dir": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/outputs/A/3_steps",
+  "timestamp": "2026-06-06T06:30:03.468000+00:00",
+  "step_output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A\\3_steps",
   "steps": {
     "01_image_input": {
       "step": 1,
       "name": "손그림 이미지 입력",
       "image_id": "3.png",
-      "image_path": "/Users/jeong_seok/Documents/New project 2/a_to_e_3b_full_package_20260603/inputs/3.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
       "image_mode": "RGB",
       "image_size": [
-        1414,
-        1113
+        2816,
+        1536
       ]
     },
     "02_preprocessing": {
@@ -37,7 +38,7 @@
       "prefix": "a children's drawing of",
       "num_beams": 5,
       "max_length": 50,
-      "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball"
+      "raw_caption": "a children ' s drawing of a girl digging a hole in the ground"
     },
     "04_blip_vqa": {
       "step": 4,
@@ -50,9 +51,9 @@
         "mood": "What is the mood of this picture?"
       },
       "answers": {
-        "who": "little girl and tiger",
-        "actions": "tiger and girl playing",
-        "scene": "outside",
+        "who": "little girl",
+        "actions": "digging",
+        "scene": "in park",
         "mood": "happy"
       }
     },
@@ -60,39 +61,41 @@
       "step": 5,
       "name": "OpenCLIP 개념 점수화",
       "output": "{concept: similarity}",
-      "source_text": "a children ' s drawing of a tiger and a girl playing baseball little girl and tiger tiger and girl playing outside happy",
+      "source_text": "a children ' s drawing of a girl digging a hole in the ground little girl digging in park happy",
       "candidate_extraction_regex": "[a-zA-Z]+",
       "candidate_words": [
+        "a",
+        "digging",
+        "ground",
         "s",
-        "of",
-        "tiger",
-        "little",
-        "children",
-        "happy",
-        "baseball",
-        "playing",
-        "and",
-        "outside",
-        "drawing",
+        "the",
         "girl",
-        "a"
+        "hole",
+        "little",
+        "park",
+        "children",
+        "in",
+        "happy",
+        "of",
+        "drawing"
       ],
       "prompt_template": "a child's drawing of a {word}",
       "clip_threshold": 0.22,
       "scores": {
-        "s": 0.23547270894050598,
-        "of": 0.27109381556510925,
-        "tiger": 0.3393873870372772,
-        "little": 0.26848655939102173,
-        "children": 0.28579437732696533,
-        "happy": 0.24701760709285736,
-        "baseball": 0.2187243103981018,
-        "playing": 0.2777624726295471,
-        "and": 0.27572375535964966,
-        "outside": 0.25965720415115356,
-        "drawing": 0.2736055850982666,
-        "girl": 0.2598666548728943,
-        "a": 0.25999170541763306
+        "a": 0.2093340903520584,
+        "digging": 0.3161751925945282,
+        "ground": 0.27053511142730713,
+        "s": 0.20826104283332825,
+        "the": 0.20080000162124634,
+        "girl": 0.24163885414600372,
+        "hole": 0.2324414849281311,
+        "little": 0.22706763446331024,
+        "park": 0.2165740579366684,
+        "children": 0.24051252007484436,
+        "in": 0.21264098584651947,
+        "happy": 0.2011692374944687,
+        "of": 0.21888311207294464,
+        "drawing": 0.2289394736289978
       }
     },
     "06_vision_json": {
@@ -101,38 +104,28 @@
       "output": "vision_json",
       "vision": {
         "objects": [
-          "s",
-          "of",
-          "tiger",
+          "digging",
+          "ground",
+          "girl",
+          "hole",
           "little",
           "children",
-          "happy",
-          "playing",
-          "and",
-          "outside",
-          "drawing",
-          "girl",
-          "a"
+          "drawing"
         ],
         "object_scores": {
-          "s": 0.23547270894050598,
-          "of": 0.27109381556510925,
-          "tiger": 0.3393873870372772,
-          "little": 0.26848655939102173,
-          "children": 0.28579437732696533,
-          "happy": 0.24701760709285736,
-          "playing": 0.2777624726295471,
-          "and": 0.27572375535964966,
-          "outside": 0.25965720415115356,
-          "drawing": 0.2736055850982666,
-          "girl": 0.2598666548728943,
-          "a": 0.25999170541763306
+          "digging": 0.3161751925945282,
+          "ground": 0.27053511142730713,
+          "girl": 0.24163885414600372,
+          "hole": 0.2324414849281311,
+          "little": 0.22706763446331024,
+          "children": 0.24051252007484436,
+          "drawing": 0.2289394736289978
         },
-        "who": "little girl and tiger",
-        "actions": "tiger and girl playing",
-        "scene": "outside",
+        "who": "little girl",
+        "actions": "digging",
+        "scene": "in park",
         "mood": "happy",
-        "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball",
+        "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
         "confidence": "high"
       }
     },
@@ -141,68 +134,66 @@
       "name": "GPT-2 영문 동화 생성",
       "output": "story_en",
       "max_new_tokens": 200,
-      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl playing baseball. The main character was little girl and tiger, tiger and girl playing outside. The mood was happy.\n\nThe story begins:\n\n\n \"On one occasion the girls were looking for some balls to throw at an imaginary friend who had just returned from heaven by way in town.\""
+      "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl digging a hole in the ground. The main character was little girl, digging in park. The mood was happy.\n\nThe story begins:\n \"Oh what do you think I'm doing?\" says Little Girl to her sister – as she brings an apple into play and plays with it until they reach one another (the sound is like that of walking). Then suddenly … something terrible happens! That child will be born from this tree at night during school holidays on day when schools are closed for lunch break… It turns out [Little Boy] has just eaten some apples before dinner which have been stuck by worms inside his mouth since he ate them right after playing ball today.\"\nI don't want your sympathy or advice please stop reading now 🙂"
     },
     "08_nllb_translation_ko": {
       "step": 8,
       "name": "NLLB 영한 번역",
       "output": "story_final",
-      "story_final": "어린이 이야기. 한때 야구 경기를 하는 호랑이와 소녀의 어린이 그림이 있었습니다. 주인공은 어린 소녀와 호랑이, 호랑이와 소녀가 밖에서 놀고 있었습니다. 분위기는 행복했습니다. 이야기는 이렇게 시작합니다. \"일 때 소녀들은 마을로 돌아오는 길에 천국에서 돌아온 상상적인 친구에게 던지기 위해 공을 찾고 있었습니다\"."
+      "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다."
     },
     "09_evaluation": {
       "step": 9,
       "name": "평가 지표 계산",
       "output": "metrics",
       "metrics": {
-        "object_coverage": 0.25,
+        "object_coverage": 0.42857142857142855,
         "object_coverage_mode": "nllb_translation",
-        "char_count": 176,
+        "char_count": 260,
         "paragraph_count": 1
       }
     }
   },
   "vision": {
     "objects": [
-      "s",
-      "of",
-      "tiger",
+      "digging",
+      "ground",
+      "girl",
+      "hole",
       "little",
       "children",
-      "happy",
-      "playing",
-      "and",
-      "outside",
-      "drawing",
-      "girl",
-      "a"
+      "drawing"
     ],
     "object_scores": {
-      "s": 0.23547270894050598,
-      "of": 0.27109381556510925,
-      "tiger": 0.3393873870372772,
-      "little": 0.26848655939102173,
-      "children": 0.28579437732696533,
-      "happy": 0.24701760709285736,
-      "playing": 0.2777624726295471,
-      "and": 0.27572375535964966,
-      "outside": 0.25965720415115356,
-      "drawing": 0.2736055850982666,
-      "girl": 0.2598666548728943,
-      "a": 0.25999170541763306
+      "digging": 0.3161751925945282,
+      "ground": 0.27053511142730713,
+      "girl": 0.24163885414600372,
+      "hole": 0.2324414849281311,
+      "little": 0.22706763446331024,
+      "children": 0.24051252007484436,
+      "drawing": 0.2289394736289978
     },
-    "who": "little girl and tiger",
-    "actions": "tiger and girl playing",
-    "scene": "outside",
+    "who": "little girl",
+    "actions": "digging",
+    "scene": "in park",
     "mood": "happy",
-    "raw_caption": "a children ' s drawing of a tiger and a girl playing baseball",
+    "raw_caption": "a children ' s drawing of a girl digging a hole in the ground",
     "confidence": "high"
   },
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a tiger and a girl playing baseball. The main character was little girl and tiger, tiger and girl playing outside. The mood was happy.\n\nThe story begins:\n\n\n \"On one occasion the girls were looking for some balls to throw at an imaginary friend who had just returned from heaven by way in town.\"",
-  "story_final": "어린이 이야기. 한때 야구 경기를 하는 호랑이와 소녀의 어린이 그림이 있었습니다. 주인공은 어린 소녀와 호랑이, 호랑이와 소녀가 밖에서 놀고 있었습니다. 분위기는 행복했습니다. 이야기는 이렇게 시작합니다. \"일 때 소녀들은 마을로 돌아오는 길에 천국에서 돌아온 상상적인 친구에게 던지기 위해 공을 찾고 있었습니다\".",
+  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl digging a hole in the ground. The main character was little girl, digging in park. The mood was happy.\n\nThe story begins:\n \"Oh what do you think I'm doing?\" says Little Girl to her sister – as she brings an apple into play and plays with it until they reach one another (the sound is like that of walking). Then suddenly … something terrible happens! That child will be born from this tree at night during school holidays on day when schools are closed for lunch break… It turns out [Little Boy] has just eaten some apples before dinner which have been stuck by worms inside his mouth since he ate them right after playing ball today.\"\nI don't want your sympathy or advice please stop reading now 🙂",
+  "story_final": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.",
+  "story": {
+    "title": "3",
+    "body": "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다.",
+    "scene_sentences": [
+      "어린이들의 이야기. 한때는 어린이들의 그림으로 여학생이 땅에 구멍을 파고 있었다. 주인공은 공원에서 구멍을 파고 있던 여학생이었다. 분위기가 행복했다. 이야기는 이렇게 시작됩니다. \"오, 내가 무슨 일을 하고 있다고 생각하십니까?\" 여동생은 딸에게 말합니다. 그녀는 사과를 가지고 놀고 서로 닿을 때까지 놀고 있습니다. (음악은 걷기와 같습니다). 그러다가 갑자기 ... 끔찍한 일이 발생합니다. 학교 휴일 때 학교가 점심 휴식 시간에 이 나무에서 태어날 것입니다."
+    ],
+    "grounding_notes": []
+  },
   "metrics": {
-    "object_coverage": 0.25,
+    "object_coverage": 0.42857142857142855,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 176,
+    "char_count": 260,
     "paragraph_count": 1
   }
 }

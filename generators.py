@@ -377,6 +377,14 @@ def _required_text(payload: dict[str, Any], key: str) -> str:
     return _to_korean_hint(value)
 
 
+def _required_structured_text(payload: dict[str, Any], key: str) -> str:
+    raw_value = str(payload.get(key, "")).strip()
+    value = _to_korean_hint(raw_value)
+    if _is_placeholder_text(value):
+        raise ValueError(f"EXAONE JSON missing text field: {key}")
+    return value
+
+
 def _required_ko_list(payload: dict[str, Any], key: str, limit: int) -> list[str]:
     values = [value for value in _coerce_ko_list(payload.get(key), []) if not _is_placeholder_text(value)]
     if not values:
@@ -386,8 +394,39 @@ def _required_ko_list(payload: dict[str, Any], key: str, limit: int) -> list[str
     return values[:limit]
 
 
+def _required_structured_list(payload: dict[str, Any], key: str, limit: int) -> list[str]:
+    values = [
+        _to_korean_hint(value)
+        for value in _coerce_str_list(payload.get(key), [])
+        if not _is_placeholder_text(value)
+    ]
+    if not values:
+        raise ValueError(f"EXAONE JSON missing list field: {key}")
+    return values[:limit]
+
+
+def _language_quality_warnings(fields: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+
+    def visit(prefix: str, value: Any) -> None:
+        if isinstance(value, dict):
+            for child_key, child_value in value.items():
+                visit(f"{prefix}.{child_key}" if prefix else str(child_key), child_value)
+            return
+        if isinstance(value, list):
+            for index, child_value in enumerate(value):
+                visit(f"{prefix}[{index}]", child_value)
+            return
+        text = str(value or "").strip()
+        if text and _looks_mostly_english(text):
+            warnings.append(f"{prefix}:mostly_english")
+
+    visit("", fields)
+    return warnings
+
+
 def _normalize_exaone_story_schema(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Normalize EXAONE JSON into the pipeline's structured/plan schema."""
+    """Normalize EXAONE JSON without treating English residue as a hard failure."""
     structured_raw = payload.get("structured_json", payload)
     plan_raw = payload.get("plan_json", {})
     if not isinstance(structured_raw, dict):
@@ -396,26 +435,33 @@ def _normalize_exaone_story_schema(payload: dict[str, Any]) -> tuple[dict[str, A
         raise ValueError("EXAONE JSON missing plan_json object.")
 
     structured = {
-        "characters": _required_ko_list(structured_raw, "characters", 3),
-        "place": _required_text(structured_raw, "place"),
-        "visible_items": _required_ko_list(structured_raw, "visible_items", 8),
-        "story_items": _required_ko_list(structured_raw, "story_items", 5),
-        "mood": _required_text(structured_raw, "mood"),
-        "theme": _required_text(structured_raw, "theme"),
+        "characters": _required_structured_list(structured_raw, "characters", 3),
+        "place": _required_structured_text(structured_raw, "place"),
+        "visible_items": _required_structured_list(structured_raw, "visible_items", 8),
+        "story_items": _required_structured_list(structured_raw, "story_items", 5),
+        "mood": _required_structured_text(structured_raw, "mood"),
+        "theme": _required_structured_text(structured_raw, "theme"),
         "main_event": _to_korean_hint(str(structured_raw.get("main_event", "")).strip()),
         "source": "exaone",
     }
-    if structured["main_event"] and _looks_mostly_english(structured["main_event"]):
-        raise ValueError("EXAONE JSON field is not Korean enough: main_event")
 
     plan = {
-        "title": _required_text(plan_raw, "title"),
-        "beginning": _required_text(plan_raw, "beginning"),
-        "middle": _required_text(plan_raw, "middle"),
-        "ending": _required_text(plan_raw, "ending"),
+        "title": _required_structured_text(plan_raw, "title"),
+        "beginning": _required_structured_text(plan_raw, "beginning"),
+        "middle": _required_structured_text(plan_raw, "middle"),
+        "ending": _required_structured_text(plan_raw, "ending"),
         "style": plan_raw.get("style") if isinstance(plan_raw.get("style"), dict) else {},
         "source": "exaone",
     }
+    warnings = _language_quality_warnings(
+        {
+            "structured_json": structured,
+            "plan_json": {key: value for key, value in plan.items() if key != "style"},
+        }
+    )
+    if warnings:
+        structured["validation_warnings"] = warnings
+        plan["validation_warnings"] = warnings
     return structured, plan
 
 
@@ -1098,10 +1144,9 @@ def generate_sequence_story_exaone_gguf(
     story = re.sub(r"^>\s*", "", story).strip()
     story = re.sub(r"^동화 본문:\s*", "", story).strip()
     story = re.sub(r"^```(?:text)?\s*|\s*```$", "", story).strip()
-    required_story_sentences = len(scene_records) * 5
+    required_story_sentences = len(scene_records)
     if (
         not story
-        or _looks_mostly_english(story)
         or "exceeds the available context size" in story
         or story.startswith("Error:")
         or story.startswith("아래는 순서가 있는")
@@ -1123,7 +1168,6 @@ def generate_sequence_story_exaone_gguf(
         rewritten = re.sub(r"^```(?:text)?\s*|\s*```$", "", rewrite_story.strip()).strip()
         if (
             not rewritten
-            or _looks_mostly_english(rewritten)
             or "ordered_scenes:" in rewritten
             or rewritten.startswith("Error:")
             or _count_story_sentences(rewritten) < required_story_sentences

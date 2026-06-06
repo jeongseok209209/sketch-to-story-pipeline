@@ -235,6 +235,92 @@ def _iter_images(directory: str | Path) -> list[Path]:
     )
 
 
+def _a_scene_summary(vision: dict[str, Any]) -> str:
+    parts = []
+    for key in ("raw_caption", "who", "actions", "scene", "mood"):
+        value = str(vision.get(key, "")).strip()
+        if value:
+            parts.append(value)
+    return " / ".join(parts)
+
+
+def _a_record_sort_key(record: dict[str, Any]) -> tuple[int, int | str]:
+    stem = Path(str(record.get("image_id", ""))).stem
+    if stem.isdigit():
+        return (0, int(stem))
+    return (1, stem.casefold())
+
+
+def _write_a_standard_result(records: list[dict[str, Any]], output_dir: str | Path) -> dict[str, Any]:
+    if not records:
+        raise ValueError("Experiment A produced no records to normalize.")
+    out_dir = Path(output_dir)
+    if not out_dir.is_absolute():
+        out_dir = _resolve_workspace_path(out_dir)
+    ordered = sorted(records, key=_a_record_sort_key)
+    story_sentences = [str(record.get("story_final", "")).strip() for record in ordered]
+    scenes = [
+        {
+            "scene_index": index,
+            "image_id": record.get("image_id", ""),
+            "image_path": record.get("image_path", ""),
+            "scene_summary": _a_scene_summary(record.get("vision") or {}),
+            "vision": record.get("vision") or {},
+            "metrics": record.get("metrics") or {},
+        }
+        for index, record in enumerate(ordered, start=1)
+    ]
+    body = "\n\n".join(sentence for sentence in story_sentences if sentence)
+    aggregate_metrics = {
+        "object_coverage_average": (
+            sum(float((record.get("metrics") or {}).get("object_coverage", 0.0)) for record in ordered)
+            / len(ordered)
+        ),
+        "char_count_total": sum(int((record.get("metrics") or {}).get("char_count", 0)) for record in ordered),
+        "scene_count": len(ordered),
+    }
+    result = {
+        "experiment": "A",
+        "vision_model": "BLIP/BLIP-VQA/OpenCLIP",
+        "llm_model": f"{GPT2_MODEL} + {NLLB_MODEL}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "image_order": [str(record.get("image_id", "")) for record in ordered],
+        "scenes": scenes,
+        "prompt_strategy": "single_image_baseline_normalized",
+        "parsed_result": {
+            "image_records": ordered,
+            "aggregate_metrics": aggregate_metrics,
+        },
+        "json_repair_used": False,
+        "story": {
+            "title": "Experiment A Baseline",
+            "body": body,
+            "scene_sentences": story_sentences,
+            "grounding_notes": [],
+        },
+        "structure": {
+            "mode": "single_image_baseline_aggregate",
+            "scene_count": len(ordered),
+        },
+        "plan": {
+            "method": "BLIP/OpenCLIP per-image baseline -> normalized D-aligned story fields",
+            "scene_order": [str(record.get("image_id", "")) for record in ordered],
+        },
+        "metrics": aggregate_metrics,
+        "validation_policy": "d_aligned_story_fields",
+        "experiment_method": "Experiment_A",
+    }
+    _write_standard_story_files(
+        out_dir,
+        "Experiment_A",
+        result,
+        result_filename="experiment_a_result.json",
+        story_filename="experiment_a_story.txt",
+        html_filename="experiment_a_story.html",
+    )
+    return result
+
+
 def _run_a(args: argparse.Namespace) -> Any:
     if args.batch:
         records = []
@@ -248,7 +334,7 @@ def _run_a(args: argparse.Namespace) -> Any:
                     story_max_new_tokens=args.story_max_new_tokens,
                 )
             )
-        return records
+        return _write_a_standard_result(records, args.output_dir)
 
     image_arg = Path(args.image)
     if image_arg.exists():
@@ -262,13 +348,14 @@ def _run_a(args: argparse.Namespace) -> Any:
                 break
         if image_path is None:
             image_path = Path(args.input_dir) / f"{args.image}.png"
-    return run_experiment_a(
+    record = run_experiment_a(
         str(image_path),
         output_dir=args.output_dir,
         clip_threshold=args.clip_threshold,
         story_backend=args.story_backend,
         story_max_new_tokens=args.story_max_new_tokens,
     )
+    return _write_a_standard_result([record], args.output_dir)
 
 
 def _run_b(args: argparse.Namespace) -> Any:
@@ -365,6 +452,92 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _html_escape(value: Any) -> str:
+    return (
+        str(value or "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def _file_url(path: str | Path) -> str:
+    return "file:///" + str(path).replace("\\", "/")
+
+
+def _write_standard_story_files(
+    output_dir: Path,
+    experiment_name: str,
+    record: dict[str, Any],
+    *,
+    result_filename: str,
+    story_filename: str,
+    html_filename: str,
+) -> None:
+    story = record["story"]
+    _write_json(output_dir / result_filename, record)
+    (output_dir / story_filename).write_text(
+        f"[title]\n{story['title']}\n\n[story]\n{story['body']}\n",
+        encoding="utf-8",
+    )
+
+    scenes = record.get("scenes") or []
+    scene_cards = []
+    for scene, sentence in zip(scenes, story.get("scene_sentences") or []):
+        image_path = scene.get("image_path") or scene.get("image_id") or ""
+        scene_cards.append(
+            f"""
+            <article class="scene">
+              <div class="image-frame"><img src="{_html_escape(_file_url(image_path))}" alt="{_html_escape(scene.get('image_id', ''))}"></div>
+              <div class="text">
+                <p class="no">{_html_escape(scene.get('scene_index', ''))}</p>
+                <p class="sentence">{_html_escape(sentence)}</p>
+                <p class="summary">{_html_escape(scene.get('scene_summary', ''))}</p>
+              </div>
+            </article>
+            """
+        )
+    story_paragraphs = "\n".join(
+        f"<p>{_html_escape(part)}</p>" for part in str(story.get("body", "")).split("\n\n") if part.strip()
+    )
+    html = f"""<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{_html_escape(experiment_name)} - {_html_escape(story.get('title', ''))}</title>
+<style>
+body {{ margin:0; font-family:"Malgun Gothic",system-ui,sans-serif; background:#fff8e8; color:#2a211a; line-height:1.7; }}
+header {{ padding:34px clamp(18px,5vw,70px); background:#fff1cf; border-bottom:1px solid #ddcfbd; }}
+h1 {{ margin:0; font-size:clamp(28px,5vw,54px); letter-spacing:0; }}
+main {{ max-width:1120px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px; }}
+.meta {{ color:#5f574f; }}
+.book {{ background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; padding:22px; }}
+.book p {{ font-size:18px; margin:0 0 12px; word-break:keep-all; }}
+.scene {{ display:grid; grid-template-columns:minmax(220px,38%) 1fr; gap:22px; align-items:center; margin:18px 0; padding:18px; background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; }}
+.image-frame {{ aspect-ratio:4/3; border:1px solid #ddcfbd; border-radius:8px; background:white; overflow:hidden; }}
+.image-frame img {{ width:100%; height:100%; object-fit:contain; display:block; }}
+.no {{ margin:0 0 8px; color:#964b3f; font-weight:700; }}
+.sentence {{ margin:0; font-size:clamp(17px,2vw,23px); word-break:keep-all; }}
+.summary {{ margin:12px 0 0; color:#74695f; font-size:14px; }}
+@media (max-width:760px) {{ .scene {{ grid-template-columns:1fr; }} .image-frame {{ aspect-ratio:1/1; }} }}
+</style>
+</head>
+<body>
+<header>
+<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(record.get('vision_model', ''))} · llm: {_html_escape(record.get('llm_model', ''))}</p>
+<h1>{_html_escape(story.get('title', ''))}</h1>
+</header>
+<main>
+<section class="book"><h2>Story</h2>{story_paragraphs}</section>
+<section><h2>Scenes</h2>{"".join(scene_cards)}</section>
+</main>
+</body>
+</html>"""
+    (output_dir / html_filename).write_text(html, encoding="utf-8")
+
+
 def _relative_to_base(path: Path) -> str:
     try:
         return str(path.resolve().relative_to(BASE_DIR.resolve()))
@@ -376,8 +549,14 @@ def _result_files_for_success(experiment: str, output_dir: Path) -> list[Path]:
     if not output_dir.is_absolute():
         output_dir = _resolve_workspace_path(output_dir)
     if experiment == "A":
+        result_path = output_dir / "experiment_a_result.json"
+        if result_path.exists():
+            return [result_path]
         return sorted(output_dir.glob("*_experiment_a.json"))
     if experiment == "B":
+        result_path = output_dir / "experiment_b_result.json"
+        if result_path.exists():
+            return [result_path]
         result_path = output_dir / "sequence_story.json"
         return [result_path] if result_path.exists() else []
     result_path = output_dir / f"experiment_{experiment.lower()}_result.json"
@@ -399,7 +578,7 @@ def _reset_evaluation_for_successful_all_run(output_root: Path) -> dict[str, dic
             continue
         output_dir = Path(str(item.get("output_dir") or output_root / experiment))
         result_files = _result_files_for_success(experiment, output_dir)
-        if experiment == "A" and result_files:
+        if experiment == "A" and len(result_files) > 1:
             mapping_items.append(
                 {
                     "experiment": experiment,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,6 +61,74 @@ def _write_text(path: Path, text: str) -> None:
     """Write a plain UTF-8 text file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text.strip() + "\n", encoding="utf-8")
+
+
+def _html_escape(value: Any) -> str:
+    return (
+        str(value or "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
+def _file_url(path: str | Path) -> str:
+    return "file:///" + str(path).replace("\\", "/")
+
+
+def _write_story_html(path: Path, experiment_name: str, record: dict[str, Any]) -> None:
+    story = record["story"]
+    scene_cards = []
+    for scene, sentence in zip(record.get("scenes") or [], story.get("scene_sentences") or []):
+        scene_cards.append(
+            f"""
+            <article class="scene">
+              <div class="image-frame"><img src="{_html_escape(_file_url(scene.get('image_path', '')))}" alt="{_html_escape(scene.get('image_id', ''))}"></div>
+              <div class="text">
+                <p class="no">{_html_escape(scene.get('scene_index', ''))}</p>
+                <p class="sentence">{_html_escape(sentence)}</p>
+              </div>
+            </article>
+            """
+        )
+    story_paragraphs = "\n".join(
+        f"<p>{_html_escape(part)}</p>" for part in str(story.get("body", "")).split("\n\n") if part.strip()
+    )
+    html = f"""<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{_html_escape(experiment_name)} - {_html_escape(story.get('title', ''))}</title>
+<style>
+body {{ margin:0; font-family:"Malgun Gothic",system-ui,sans-serif; background:#fff8e8; color:#2a211a; line-height:1.7; }}
+header {{ padding:34px clamp(18px,5vw,70px); background:#fff1cf; border-bottom:1px solid #ddcfbd; }}
+h1 {{ margin:0; font-size:clamp(28px,5vw,54px); letter-spacing:0; }}
+main {{ max-width:1120px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px; }}
+.meta {{ color:#5f574f; }}
+.book {{ background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; padding:22px; }}
+.book p {{ font-size:18px; margin:0 0 12px; word-break:keep-all; }}
+.scene {{ display:grid; grid-template-columns:minmax(220px,38%) 1fr; gap:22px; align-items:center; margin:18px 0; padding:18px; background:#fffdf7; border:1px solid #ddcfbd; border-radius:8px; }}
+.image-frame {{ aspect-ratio:4/3; border:1px solid #ddcfbd; border-radius:8px; background:white; overflow:hidden; }}
+.image-frame img {{ width:100%; height:100%; object-fit:contain; display:block; }}
+.no {{ margin:0 0 8px; color:#964b3f; font-weight:700; }}
+.sentence {{ margin:0; font-size:clamp(17px,2vw,23px); word-break:keep-all; }}
+@media (max-width:760px) {{ .scene {{ grid-template-columns:1fr; }} .image-frame {{ aspect-ratio:1/1; }} }}
+</style>
+</head>
+<body>
+<header>
+<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(record.get('vision_model', ''))} · llm: {_html_escape(record.get('llm_model', ''))}</p>
+<h1>{_html_escape(story.get('title', ''))}</h1>
+</header>
+<main>
+<section class="book"><h2>Story</h2>{story_paragraphs}</section>
+<section><h2>Scenes</h2>{"".join(scene_cards)}</section>
+</main>
+</body>
+</html>"""
+    path.write_text(html, encoding="utf-8")
 
 
 def _save_step_records(stage_dir: Path, steps: dict[str, Any]) -> None:
@@ -153,6 +222,12 @@ def run_experiment_a(
             "vision": vision,
             "story_en": story_en,
             "story_final": story_final,
+            "story": {
+                "title": image.stem,
+                "body": story_final,
+                "scene_sentences": [story_final] if story_final else [],
+                "grounding_notes": [],
+            },
             "metrics": metrics,
         }
         output_path = out_dir / f"{image.stem}_experiment_a.json"
@@ -180,6 +255,54 @@ def _build_structured_for_backend(
         max_new_tokens=token_budget,
     )
     return structured_json, plan_json, raw_response, token_budget, "EXAONE GGUF ???/??"
+
+
+def _split_sequence_story(body: str, scene_count: int) -> list[str]:
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", body) if part.strip()]
+    if len(paragraphs) == scene_count:
+        return paragraphs
+
+    sentences = [
+        part.strip()
+        for part in re.findall(r"[^.!?\n]+[.!?]?", body)
+        if part.strip()
+    ]
+    if len(sentences) < scene_count:
+        raise ValueError(
+            f"EXAONE returned {len(sentences)} story segments for {scene_count} scenes."
+        )
+
+    chunks: list[str] = []
+    for index in range(scene_count):
+        start = round(index * len(sentences) / scene_count)
+        end = round((index + 1) * len(sentences) / scene_count)
+        chunk = " ".join(sentences[start:end]).strip()
+        if not chunk:
+            raise ValueError(f"EXAONE story segment {index + 1} is empty.")
+        chunks.append(chunk)
+    return chunks
+
+
+def _normalize_sequence_story(story_final: str, scene_records: list[dict[str, Any]]) -> dict[str, Any]:
+    body = str(story_final or "").strip()
+    if not body:
+        raise ValueError("EXAONE story.body is required.")
+    scene_sentences = _split_sequence_story(body, len(scene_records))
+    title = ""
+    for record in scene_records:
+        plan_title = str(record.get("plan_json", {}).get("title") or "").strip()
+        if plan_title and plan_title != "...":
+            title = plan_title
+            break
+    if not title:
+        title = "Sequence Story"
+    return {
+        "title": title,
+        "body": body,
+        "scene_sentences": scene_sentences,
+        "grounding_notes": [],
+    }
+
 
 def run_sequence_story(
     image_dir: str = DEFAULT_SEQUENCE_DIR,
@@ -233,28 +356,63 @@ def run_sequence_story(
         max_new_tokens=story_max_new_tokens
         or min(3600, max(1200, len(scene_records) * 360)),
     )
+    normalized_story = _normalize_sequence_story(story_final, scene_records)
     sequence_llama_runtime = get_last_llama_runtime()
     finalizer = "EXAONE GGUF ?? ?? ??"
     output_path = out_dir / "sequence_story.json"
+    standard_output_path = out_dir / "experiment_b_result.json"
     text_output_path = out_dir / "sequence_story.txt"
+    standard_text_output_path = out_dir / "experiment_b_story.txt"
+    standard_html_output_path = out_dir / "experiment_b_story.html"
     run_record = {
-        "experiment": "sequence",
+        "experiment": "B",
+        "vision_model": "BLIP/OpenCLIP",
+        "llm_model": "EXAONE GGUF via llama.cpp",
         "story_backend": story_backend,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "image_order": [path.name for path in image_paths],
         "step_output_dir": str(stage_dir),
         "story_text_output": str(text_output_path),
         "scenes": scene_records,
+        "prompt_strategy": "blip_openclip_structured_sequence_story",
+        "parsed_result": {
+            "scene_records": scene_records,
+            "story_text": story_final,
+        },
+        "json_repair_used": any(
+            "[json_repair_response]" in str(scene.get("exaone_raw_response", ""))
+            for scene in scene_records
+        ),
         "story_final": story_final,
+        "story": normalized_story,
+        "structure": {
+            "mode": "blip_openclip_structured_sequence",
+            "scene_count": len(scene_records),
+        },
+        "plan": {
+            "method": (
+                "BLIP/OpenCLIP vision JSON -> EXAONE structured/plan JSON per scene -> "
+                "EXAONE sequence story -> normalized D-aligned story fields"
+            ),
+            "scene_order": [path.name for path in image_paths],
+        },
+        "validation_policy": "d_aligned_story_fields",
         "finalizer": finalizer,
         "sequence_exaone_raw_response": sequence_raw_response,
         "sequence_llama_runtime": sequence_llama_runtime,
+        "experiment_method": "Experiment_B",
     }
 
     _save_step_records(stage_dir, sequence_steps)
     _write_json(stage_dir / "run_record.json", run_record)
     _write_json(output_path, run_record)
+    _write_json(standard_output_path, run_record)
     _write_text(text_output_path, story_final)
+    _write_text(
+        standard_text_output_path,
+        f"[title]\n{normalized_story['title']}\n\n[story]\n{normalized_story['body']}",
+    )
+    _write_story_html(standard_html_output_path, "Experiment_B", run_record)
     log_stage(f"saved JSON: {output_path}", step="B-save", model="output")
     log_stage(f"saved story text: {text_output_path}", step="B-save", model="output")
     log_stage(f"saved step records: {stage_dir}", step="B-save", model="output")

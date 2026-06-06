@@ -449,7 +449,8 @@ def _run_exaone_experiment(
             story = _story_from_payload(payload, len(scenes))
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
             raise RuntimeError(
-                "EXAONE did not return valid required JSON, and JSON repair also failed. "
+                "EXAONE did not return valid D-aligned story JSON, and JSON repair also failed. "
+                "Required fields are story.title, story.body, and one story.scene_sentences item per input scene. "
                 f"initial_error={exc}; repair_error={repair_exc}; "
                 f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
             ) from repair_exc

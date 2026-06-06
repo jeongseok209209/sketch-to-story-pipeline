@@ -1,0 +1,83 @@
+{
+  "status": "completed",
+  "pipeline_version": "2026.06.05-independent-exaone-gguf",
+  "started_at": "2026-06-06T06:28:06.348467+00:00",
+  "ended_at": "2026-06-06T07:02:11.018342+00:00",
+  "output_root": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs",
+  "success_count": 6,
+  "failure_count": 3,
+  "experiments": [
+    {
+      "experiment": "A",
+      "status": "success",
+      "started_at": "2026-06-06T06:28:06.348467+00:00",
+      "ended_at": "2026-06-06T06:32:46.653315+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\A"
+    },
+    {
+      "experiment": "B",
+      "status": "failed",
+      "started_at": "2026-06-06T06:32:46.653315+00:00",
+      "ended_at": "2026-06-06T06:35:13.574104+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\B",
+      "failure_file": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\B\\failure.json",
+      "error_type": "RuntimeError",
+      "error_message": "EXAONE GGUF did not return a valid sequence story after rewrite. raw_response_head=\"> 아래는 순서가 있는 아이 손그림 장면들입니다.\\n각 장면을 01, 02, 03 순서대로 이어서 하나의 한국어 동화로 써 주세요.\\n조건:\\n- 템플릿처럼 '첫 번째 장면', '그다음 장면'을 반복하지 마세요.\\n- 장면마다 달라지는 사건이 자연스럽게 이어져야 합니다.\\n- BLIP이 잘못 본 단서는 과하게 확정하지 말고, 보이는 핵심 등장인물과 분위기를 중심으로 쓰세요.\\n- 각 장면마다 반드시 어린이� ... (truncated)\\n\\n첫 번째 장면에서 여자아이는 공원에서 혼자 그림을 그리며 하늘을 바라보고 있어요. 그녀의 그림에는 밤하늘의 별들이 섬세하게 표현되어 있고, 주변에 흙과 꽃들이 놓여 있어요. 이 장면은 자연 속에서의 평화로운 꿈을 나누는 순간을 담고 있어요. 다음으로 여자아이는 공원으로 나와 흙 속에 있는 꽃들을 관찰하며 그림을 그어요. 그녀의 손에 묻은 흙은 마치 시간의 흐름처럼 보이네요. 이제 그녀는 더 큰 모험을 시작해요!\"; rewrite_response_head='> 아래 모델 응답은 최종 동화 본문으로 쓰기에 부족합니다.\\nordered_scenes의 순서와 시각 근거만 사용해서 한국어 동화 본문만 다시 작성하세요.\\n제목, JSON, 마크다운, 설명, 프롬프트 반복 없이 본문만 출력하세요.\\n최소 10문장 이상으로 쓰고, 각 장면의 사건이 자연스럽게 이어져야 합니다.\\n\\nordered_scenes:\\n[\\n  {\\n    \"scene_index\": 1,\\n    \"image_id\": \"1.png\",\\n    \"caption\": \"a children \\' s drawing of a girl wit ... (truncated)\\n\\n첫 번째 장면에서 여자아이는 공원에서 혼자 그림을 그리며 밤하늘의 별들을 관찰하는 모습을 보인다. 그림 위에 핀 꽃들과 흙 더미가 배경으로 등장하자, 그녀는 손가락으로 흙을 묻으며 상상력을 확장해이다. 다음 장면에서는 아이가 더 넓은 공원으로 나가 꽃들이 많은 밭을 찾아간다. 이 공간에서도 별과 달은 여전히 선명하게 빛나고 있어, 마치 무한한 우주 위에 서 있는 듯한 느낌을 준다. 그녀의 그림에는 먼 미래의 행성 같은 풍경도 추가되었다. 이후 공원에 도착한 아이는 흙 속에 숨은 작은 곤충을 발견하고, 그 모습을 따라 그리기 시작한다. 이 작은 생명체의 움직임을 세밀하게 묘사하며, 자연의 신비로움에 빠져든다.'"
+    },
+    {
+      "experiment": "C",
+      "status": "failed",
+      "started_at": "2026-06-06T06:35:13.577094+00:00",
+      "ended_at": "2026-06-06T06:37:25.881285+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\C",
+      "failure_file": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\C\\failure.json",
+      "error_type": "RuntimeError",
+      "error_message": "EXAONE did not return valid D-aligned story JSON, and JSON repair also failed. Required fields are story.title, story.body, and one story.scene_sentences item per input scene. initial_error=Expecting property name enclosed in double quotes: line 2 column 17 (char 18); repair_error=Expecting ',' delimiter: line 9 column 4 (char 137); raw_response_head='> 실험 C: Qwen이 읽은 아이 손그림 장면 목록을 보고 간단히 구조를 잡은 뒤 하나의 한국어 동화를 작성하세요.\\n전략: 전체 장면을 한 번에 보고, 단순한 처음-중간-끝 구조로 정리합니다.\\n하드코딩된 줄거리나 외부 지식 없이 scenes 안의 시각 단서만 사용하세요.\\n\\n반드시 아래 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\\nJSON 필드:\\n{\\n  \"structure\": {...},\\n  \"plan\": ... (truncated)\\n\\n```json\\n{\\n  \"structure\": [\"관찰 -> 중간점 발견 -> 해결\", \"밝은 이미지 -> 자연 요소 활용 -> 감정 변화\", \"단순한 사건 흐름 유지\"],\\n  \"plan\": \"1. 평화로운 마을에서 시작해 숲속으로 이동하며 자연 관찰 → 꽃 찾기 과정 → 나무 심기 → 별 보며 놀이 → 완성\",\\n  \"story\": {\\n    \"title\": \"별빛 정원의 소녀\",\\n    \"body\": \"어느 맑은 날, 노란 옷을 입은 소녀는 산 정상에서 출발했다. 나무 사이로 빛나는 하늘을 바라보며 미소를 지었다. 숲속에 핀 꽃들을 찾아 걷던 중, 노란 가방을 메고 나무 아래로 들어가 흙을 파내었다. 나중에 토끼와 새를 보며 별을 흔들며 웃었다. 모든 순간이 평화로웠다.\",\\n    \"scene_sentences\": [\\n      \"그림 1 요약문\",\\n      \"그림 2 요약문\",\\n      \"그림 3 요약문\",\\n      \"그림 4 요약문\",\\n      \"그림 5 요약문\",\\n      \"그림 6 요약문\",\\n      \"그림 7 요약문\",\\n   '; repair_response_head='> You are a strict JSON repair tool. Convert the model response below into one valid JSON object only.\\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\\nAll object keys must use double quotes. Remove trailing commas. Escape line breaks inside strings.\\nThe story.scene_sentences array must contain exactly 10 strings.\\nRequired shape:\\n{\\n  \"structure\": {},\\n  \"plan\": {},\\n  \"story\": {\\n    \"title\": \"\",\\n    \"body\": \"\",\\n    \"scene_sentences\": [],\\n    \"grounding_notes\": []\\n   ... (truncated)\\n\\n```json\\n{\\n  \"structure\": [\"관찰 -> 중간점 발견 -> 해결\", \"밝은 이미지 -> 자연 요소 활용 -> 감정 변화\", \"단순한 사건 흐름 유지\"],\\n  \"plan\": \"1. 평화로운 마을에서 시작해 숲속으로 이동하며 자연 관찰 → 꽃 찾기 과정 → 나무 심기 → 별 보며 놀이 → 완성\",\\n  \"story\": {\\n    \"title\": \"별빛 정원의 소녀\",\\n    \"body\": \"어느 맑은 날, 노란 옷을 입은 소녀는 산 정상에서 출발했다. 나무 사이로 빛나는 하늘을 바라보'"
+    },
+    {
+      "experiment": "D",
+      "status": "success",
+      "started_at": "2026-06-06T06:37:25.893830+00:00",
+      "ended_at": "2026-06-06T06:40:14.357377+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\D"
+    },
+    {
+      "experiment": "E",
+      "status": "success",
+      "started_at": "2026-06-06T06:40:14.357377+00:00",
+      "ended_at": "2026-06-06T06:44:25.829965+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\E"
+    },
+    {
+      "experiment": "F",
+      "status": "success",
+      "started_at": "2026-06-06T06:44:25.829965+00:00",
+      "ended_at": "2026-06-06T06:48:41.746974+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\F"
+    },
+    {
+      "experiment": "G",
+      "status": "success",
+      "started_at": "2026-06-06T06:48:41.746974+00:00",
+      "ended_at": "2026-06-06T06:53:42.045952+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\G"
+    },
+    {
+      "experiment": "H",
+      "status": "failed",
+      "started_at": "2026-06-06T06:53:42.045952+00:00",
+      "ended_at": "2026-06-06T06:57:41.900171+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\H",
+      "failure_file": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\H\\failure.json",
+      "error_type": "RuntimeError",
+      "error_message": "EXAONE scene 3 did not return valid scene JSON, and JSON repair also failed. initial_error=EXAONE response did not contain a JSON object.; repair_error=EXAONE response did not contain a JSON object.; raw_response_head=\"> Experiment H: You are a warm Korean fairy-tale writer for children's drawings.\\nWrite one Korean fairy-tale paragraph for the current scene JSON only.\\nUse only the current scene JSON and scene position nuance. Do not use any whole-story caption in this initial pass.\\nInternally check visible clues, scene position, sentence count, and placeholders. Do not output these steps.\\nScene position nuance: 이 장면은 앞뒤 흐름 속에서 자연스럽게 이어지는 중간 장면입니다. 너무 구� ... (truncated)\\n\\n```json\"; repair_response_head='> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\\nConvert the model response below into one valid JSON object only.\\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\\nThe JSON must contain exactly these keys: scene_index, story_sentence.\\nscene_index must be 3.\\nScene position nuance: 이 장면은 앞뒤 흐름 속에서 자연스럽게 이어지는 중간 장면입니다. 너무 구체적인 단계나 사건을 강제하지 마세요.\\nUse only ... (truncated)\\n\\n```json'"
+    },
+    {
+      "experiment": "I",
+      "status": "success",
+      "started_at": "2026-06-06T06:57:41.902164+00:00",
+      "ended_at": "2026-06-06T07:02:11.018342+00:00",
+      "output_dir": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\outputs\\I"
+    }
+  ]
+}

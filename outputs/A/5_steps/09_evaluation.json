@@ -3,9 +3,9 @@
   "name": "평가 지표 계산",
   "output": "metrics",
   "metrics": {
-    "object_coverage": 0.4666666666666667,
+    "object_coverage": 0.5714285714285714,
     "object_coverage_mode": "nllb_translation",
-    "char_count": 422,
+    "char_count": 554,
     "paragraph_count": 1
   }
 }

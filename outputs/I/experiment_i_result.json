@@ -1,0 +1,490 @@
+{
+  "experiment": "Experiment_I",
+  "vision_model": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "llm_model": "EXAONE GGUF via llama.cpp",
+  "timestamp": "2026-06-06T07:02:11.014355+00:00",
+  "image_order": [
+    "1.png",
+    "2.png",
+    "3.png",
+    "4.png",
+    "5.png",
+    "6.png",
+    "7.png",
+    "8.png",
+    "9.png",
+    "10.png"
+  ],
+  "scenes": [
+    {
+      "scene_index": 1,
+      "image_id": "1.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\1.png",
+      "scene_summary": "그림에는 한 소녀가 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다. 주변은 푸른 하늘과 흰 구름으로, 산과 나무들이 보입니다.",
+      "characters": [
+        "사람"
+      ],
+      "objects": [
+        "길, 나무, 소녀"
+      ],
+      "setting": "산과 나무가 있는 야외 장소",
+      "mood": "밝음",
+      "emotion": "행복하고 안전",
+      "story_role": "주인공이 걷고 있는 길을 따라 가는 소녀",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다. 주변은 푸른 하늘과 흰 구름으로, 산과 나무들이 보입니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"길, 나무, 소녀\"],\n  \"setting\": \"산과 나무가 있는 야외 장소\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복하고 안전\",\n  \"story_role\": \"주인공이 걷고 있는 길을 따라 가는 소녀\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 2,
+      "image_id": "2.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\2.png",
+      "scene_summary": "그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다.",
+      "characters": [
+        "사람"
+      ],
+      "objects": [
+        "꽃, 배낭, 나무"
+      ],
+      "setting": "숲",
+      "mood": "밝음",
+      "emotion": "행복",
+      "story_role": "주인공이 꽃을 찾는 과정에서의 감정 변화를 나타내는 장면",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"꽃, 배낭, 나무\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"주인공이 꽃을 찾는 과정에서의 감정 변화를 나타내는 장면\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 3,
+      "image_id": "3.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\3.png",
+      "scene_summary": "아이가 숲속에서 꽃을 따려고 노을을 들고 있습니다.",
+      "characters": [
+        "아이"
+      ],
+      "objects": [
+        "노을",
+        "꽃"
+      ],
+      "setting": "숲",
+      "mood": "밝음",
+      "emotion": "행복",
+      "story_role": "이 그림은 주인공이 꽃을 따려고 노을을 들고 있는 상황을 나타냅니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"아이가 숲속에서 꽃을 따려고 노을을 들고 있습니다.\",\n  \"characters\": [\"아이\"],\n  \"objects\": [\"노을\", \"꽃\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 따려고 노을을 들고 있는 상황을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 4,
+      "image_id": "4.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\4.png",
+      "scene_summary": "그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 보입니다. 소녀는 올바른 옷을 입고 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.",
+      "characters": [
+        "사람",
+        "동물"
+      ],
+      "objects": [
+        "나무",
+        "식물",
+        "물병"
+      ],
+      "setting": "숲",
+      "mood": "밝음",
+      "emotion": "행복",
+      "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 묘사합니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 보입니다. 소녀는 올바른 옷을 입고 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.\",\n  \"characters\": [\"사람\", \"동물\"],\n  \"objects\": [\"나무\", \"식물\", \"물병\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 묘사합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 5,
+      "image_id": "5.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\5.png",
+      "scene_summary": "그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흙바닥에 심은 식물이 있고, 뒤쪽에는 나무와 꽃들이 보입니다.",
+      "characters": [
+        "사람"
+      ],
+      "objects": [
+        "식물, 나무, 꽃"
+      ],
+      "setting": "산책 중인 소녀와 그녀 주변의 자연 환경",
+      "mood": "밝음",
+      "emotion": "행복, 편안함",
+      "story_role": "이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흙바닥에 심은 식물이 있고, 뒤쪽에는 나무와 꽃들이 보입니다.\",\n  \"characters\": [\"사람\"],\n  \"objects\": [\"식물, 나무, 꽃\"],\n  \"setting\": \"산책 중인 소녀와 그녀 주변의 자연 환경\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 6,
+      "image_id": "6.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\6.png",
+      "scene_summary": "그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 몇 개 보입니다.",
+      "characters": [
+        "사람/동물/말하는 사물"
+      ],
+      "objects": [
+        "중요한 사물"
+      ],
+      "setting": "나무와 꽃으로 가득 찬 숲속",
+      "mood": "밝음",
+      "emotion": "행복/ concentration",
+      "story_role": "이 그림은 주인공이 꽃을 찾고 있는 과정을 나타냅니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 몇 개 보입니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"나무와 꽃으로 가득 찬 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 찾고 있는 과정을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 7,
+      "image_id": "7.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\7.png",
+      "scene_summary": "그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.",
+      "characters": [
+        "사람/동물/말하는 사물"
+      ],
+      "objects": [
+        "중요한 사물"
+      ],
+      "setting": "숲",
+      "mood": "밝음",
+      "emotion": "행복/ concentration",
+      "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 8,
+      "image_id": "8.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\8.png",
+      "scene_summary": "그림에는 어린이가 별을 흔들고 있는 모습이 보이며, 나무와 나비, 그리고 작은 동물들이 보입니다.",
+      "characters": [
+        "사람/동물/말하는 사물"
+      ],
+      "objects": [
+        "중요한 사물"
+      ],
+      "setting": "밤의 숲속",
+      "mood": "밝음",
+      "emotion": "행복/흥미",
+      "story_role": "이 그림은 주인공이 별을 흔들며 즐거워하는 모습을 보여줍니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 어린이가 별을 흔들고 있는 모습이 보이며, 나무와 나비, 그리고 작은 동물들이 보입니다.\",\n  \"characters\": [\"사람/동물/말하는 사물\"],\n  \"objects\": [\"중요한 사물\"],\n  \"setting\": \"밤의 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/흥미\",\n  \"story_role\": \"이 그림은 주인공이 별을 흔들며 즐거워하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 9,
+      "image_id": "9.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\9.png",
+      "scene_summary": "그림에는 어린이가 나무 아래에서 놀고 있는 모습이 보입니다. 주변에는 여러 동물들이 있으며, 밤하늘에는 별이 빛나고 있습니다.",
+      "characters": [
+        "사람: 어린이",
+        "동물: 토끼, 개, 고양이, 사슴"
+      ],
+      "objects": [
+        "중요한 사물: 나무, 별, 별빛"
+      ],
+      "setting": "밤의 숲",
+      "mood": "밝음",
+      "emotion": "행복, 편안함",
+      "story_role": "이 그림은 어린이가 숲에서 즐거운 시간을 보내는 장면을 묘사하며, 주인공이 느낄 법한 감정을 표현합니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 어린이가 나무 아래에서 놀고 있는 모습이 보입니다. 주변에는 여러 동물들이 있으며, 밤하늘에는 별이 빛나고 있습니다.\",\n  \"characters\": [\"사람: 어린이\", \"동물: 토끼, 개, 고양이, 사슴\"],\n  \"objects\": [\"중요한 사물: 나무, 별, 별빛\"],\n  \"setting\": \"밤의 숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 어린이가 숲에서 즐거운 시간을 보내는 장면을 묘사하며, 주인공이 느낄 법한 감정을 표현합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    },
+    {
+      "scene_index": 10,
+      "image_id": "10.png",
+      "image_path": "C:\\Users\\AEM\\Documents\\GitHub\\sketch-to-story-pipeline\\inputs\\7. 새로운 이야기\\10.png",
+      "scene_summary": "그림에는 한 소녀가 나무 아래에 앉아 있고, 주변에는 여러 동물들이 서 있습니다.",
+      "characters": [
+        "소녀",
+        "토끼",
+        "강아지",
+        "원숭이",
+        "개"
+      ],
+      "objects": [
+        "나무",
+        "꽃",
+        "돌",
+        "별"
+      ],
+      "setting": "숲",
+      "mood": "밝음",
+      "emotion": "행복",
+      "story_role": "이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 장면으로, 주변 동물들과 상호작용하는 모습을 보여줍니다.",
+      "uncertain": "~처럼 보임",
+      "raw_response": "```json\n{\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에 앉아 있고, 주변에는 여러 동물들이 서 있습니다.\",\n  \"characters\": [\"소녀\", \"토끼\", \"강아지\", \"원숭이\", \"개\"],\n  \"objects\": [\"나무\", \"꽃\", \"돌\", \"별\"],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 장면으로, 주변 동물들과 상호작용하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n```"
+    }
+  ],
+  "prompt_strategy": "generic_position_quality_gated_sequential_refinement",
+  "story_caption": "작은 아이가 숲에서 발견한 별씨앗을 정성껏 키워 어두운 숲과 길 잃은 동물들을 밝혀 주는 이야기",
+  "weak_story_direction": "A gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.",
+  "exaone_prompt": {
+    "weak_story_direction": "A gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.",
+    "initial_scene_prompts": [
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nopening: introduce the main presence, place, and mood. Do not rush into a large event.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 1.\n\nscene:\n{\n  \"scene_index\": 1,\n  \"image_id\": \"1.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다. 주변은 푸른 하늘과 흰 구름으로, 산과 나무들이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"길, 나무, 소녀\"\n  ],\n  \"setting\": \"산과 나무가 있는 야외 장소\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복하고 안전\",\n  \"story_role\": \"주인공이 걷고 있는 길을 따라 가는 소녀\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nearly story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 2.\n\nscene:\n{\n  \"scene_index\": 2,\n  \"image_id\": \"2.png\",\n  \"scene_summary\": \"그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"꽃, 배낭, 나무\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"주인공이 꽃을 찾는 과정에서의 감정 변화를 나타내는 장면\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nearly story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 3.\n\nscene:\n{\n  \"scene_index\": 3,\n  \"image_id\": \"3.png\",\n  \"scene_summary\": \"아이가 숲속에서 꽃을 따려고 노을을 들고 있습니다.\",\n  \"characters\": [\n    \"아이\"\n  ],\n  \"objects\": [\n    \"노을\",\n    \"꽃\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 따려고 노을을 들고 있는 상황을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 4.\n\nscene:\n{\n  \"scene_index\": 4,\n  \"image_id\": \"4.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 보입니다. 소녀는 올바른 옷을 입고 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.\",\n  \"characters\": [\n    \"사람\",\n    \"동물\"\n  ],\n  \"objects\": [\n    \"나무\",\n    \"식물\",\n    \"물병\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 묘사합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 5.\n\nscene:\n{\n  \"scene_index\": 5,\n  \"image_id\": \"5.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흙바닥에 심은 식물이 있고, 뒤쪽에는 나무와 꽃들이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"식물, 나무, 꽃\"\n  ],\n  \"setting\": \"산책 중인 소녀와 그녀 주변의 자연 환경\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 6.\n\nscene:\n{\n  \"scene_index\": 6,\n  \"image_id\": \"6.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 몇 개 보입니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"나무와 꽃으로 가득 찬 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 찾고 있는 과정을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 7.\n\nscene:\n{\n  \"scene_index\": 7,\n  \"image_id\": \"7.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 8.\n\nscene:\n{\n  \"scene_index\": 8,\n  \"image_id\": \"8.png\",\n  \"scene_summary\": \"그림에는 어린이가 별을 흔들고 있는 모습이 보이며, 나무와 나비, 그리고 작은 동물들이 보입니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"밤의 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/흥미\",\n  \"story_role\": \"이 그림은 주인공이 별을 흔들며 즐거워하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 9.\n\nscene:\n{\n  \"scene_index\": 9,\n  \"image_id\": \"9.png\",\n  \"scene_summary\": \"그림에는 어린이가 나무 아래에서 놀고 있는 모습이 보입니다. 주변에는 여러 동물들이 있으며, 밤하늘에는 별이 빛나고 있습니다.\",\n  \"characters\": [\n    \"사람: 어린이\",\n    \"동물: 토끼, 개, 고양이, 사슴\"\n  ],\n  \"objects\": [\n    \"중요한 사물: 나무, 별, 별빛\"\n  ],\n  \"setting\": \"밤의 숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 어린이가 숲에서 즐거운 시간을 보내는 장면을 묘사하며, 주인공이 느낄 법한 감정을 표현합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports them.\nA good paragraph may contain none of the caption words.\nPriority: current scene JSON > scene_position_role > weak_story_direction.\nThis is the last scene. Make the paragraph feel like a warm ending with gentle afterglow. Do not start a new event.\nUse scene_summary, characters, objects, setting, and mood before story_role. Treat story_role as weak analysis only.\nInternally check visible clues, caption overuse, scene position, sentence count, and placeholders. Do not output these steps.\nscene_position_role:\nending: close the story warmly without starting a new event. Leave calm afterglow.\n\nweak_story_direction:\nA gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.\n\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nDo not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 10.\n\nscene:\n{\n  \"scene_index\": 10,\n  \"image_id\": \"10.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에 앉아 있고, 주변에는 여러 동물들이 서 있습니다.\",\n  \"characters\": [\n    \"소녀\",\n    \"토끼\",\n    \"강아지\",\n    \"원숭이\",\n    \"개\"\n  ],\n  \"objects\": [\n    \"나무\",\n    \"꽃\",\n    \"돌\",\n    \"별\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 장면으로, 주변 동물들과 상호작용하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n"
+    ],
+    "refinement_prompts": [
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 2.\n\nscene_position_role:\nearly story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\n\nprevious_final_story_sentence:\n푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.\n\ncurrent_initial_story_sentence:\n작은 꽃 한 송이가 그의 손에 살짝 닿자, 바람이 속삭였다. 너는 처음엔 몰랐지.\n\ncurrent_scene:\n{\n  \"scene_index\": 2,\n  \"image_id\": \"2.png\",\n  \"scene_summary\": \"그림에는 한 소년이 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"꽃, 배낭, 나무\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"주인공이 꽃을 찾는 과정에서의 감정 변화를 나타내는 장면\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 3.\n\nscene_position_role:\nearly story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\n\nprevious_final_story_sentence:\n새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다.\n\ncurrent_initial_story_sentence:\n아이가 부드러운 노을 빛으로 꽃의 향기를 맡았다. 작은 손으로 흙을 더듬으며 씨앗을 캐고 있었지.\n\ncurrent_scene:\n{\n  \"scene_index\": 3,\n  \"image_id\": \"3.png\",\n  \"scene_summary\": \"아이가 숲속에서 꽃을 따려고 노을을 들고 있습니다.\",\n  \"characters\": [\n    \"아이\"\n  ],\n  \"objects\": [\n    \"노을\",\n    \"꽃\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 따려고 노을을 들고 있는 상황을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 4.\n\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nprevious_final_story_sentence:\n아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다.\n\ncurrent_initial_story_sentence:\n나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다.\n\ncurrent_scene:\n{\n  \"scene_index\": 4,\n  \"image_id\": \"4.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 물을 주는 모습이 보입니다. 소녀는 올바른 옷을 입고 있으며, 주변에는 여러 가지 식물과 동물들이 있습니다.\",\n  \"characters\": [\n    \"사람\",\n    \"동물\"\n  ],\n  \"objects\": [\n    \"나무\",\n    \"식물\",\n    \"물병\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 돌보는 모습을 묘사합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 5.\n\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nprevious_final_story_sentence:\n나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.\n\ncurrent_initial_story_sentence:\n바람에 흔들리는 나뭇잎이 바람에 맞춰 부드럽게 흔들리고, 소녀는 그 소리를 들으며 미소 지었다. 작은 새들이 날개를 펼치며 날아다녔고, 흙냄새가 코를 자극하는 듯 따뜻함이 느껴졌다.\n\ncurrent_scene:\n{\n  \"scene_index\": 5,\n  \"image_id\": \"5.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흙바닥에 심은 식물이 있고, 뒤쪽에는 나무와 꽃들이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"식물, 나무, 꽃\"\n  ],\n  \"setting\": \"산책 중인 소녀와 그녀 주변의 자연 환경\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 6.\n\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nprevious_final_story_sentence:\n나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\n\ncurrent_initial_story_sentence:\n나무 줄기에 앉아 작은 꽃 한 송이를 보니 마음이 차분해졌다. 바람이 스치며 꽃잎이 흩날렸고, 하늘은 아직도 그 아름다움을 간직하고 있었다.\n\ncurrent_scene:\n{\n  \"scene_index\": 6,\n  \"image_id\": \"6.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에서 꽃을 집어 들고 있는 모습이 보입니다. 주변에는 여러 개의 나무와 꽃들이 있고, 하늘에는 구름이 몇 개 보입니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"나무와 꽃으로 가득 찬 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 주인공이 꽃을 찾고 있는 과정을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 7.\n\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nprevious_final_story_sentence:\n꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지.\n\ncurrent_initial_story_sentence:\n바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\n\ncurrent_scene:\n{\n  \"scene_index\": 7,\n  \"image_id\": \"7.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무를 심고 있는 모습이 보입니다. 소녀는 노란색 상의와 파란색 바지를 입고 있으며, 머리는 짧고 검은색입니다. 그녀의 옆에는 흰색 털을 가진 토끼가 서 있습니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/ concentration\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무를 심는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 8.\n\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nprevious_final_story_sentence:\n바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\n\ncurrent_initial_story_sentence:\n별들이 바람에 흔들리며 반짝이는 소리가 났고, 나비들이 날아오르고 작은 새들도 함께 움직이는 모습이 보였다.\n\ncurrent_scene:\n{\n  \"scene_index\": 8,\n  \"image_id\": \"8.png\",\n  \"scene_summary\": \"그림에는 어린이가 별을 흔들고 있는 모습이 보이며, 나무와 나비, 그리고 작은 동물들이 보입니다.\",\n  \"characters\": [\n    \"사람/동물/말하는 사물\"\n  ],\n  \"objects\": [\n    \"중요한 사물\"\n  ],\n  \"setting\": \"밤의 숲속\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복/흥미\",\n  \"story_role\": \"이 그림은 주인공이 별을 흔들며 즐거워하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 9.\n\nscene_position_role:\nlate story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\n\nprevious_final_story_sentence:\n별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지.\n\ncurrent_initial_story_sentence:\n별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃었고, 개와 고양이는 조용히 주변을 돌았다.\n\ncurrent_scene:\n{\n  \"scene_index\": 9,\n  \"image_id\": \"9.png\",\n  \"scene_summary\": \"그림에는 어린이가 나무 아래에서 놀고 있는 모습이 보입니다. 주변에는 여러 동물들이 있으며, 밤하늘에는 별이 빛나고 있습니다.\",\n  \"characters\": [\n    \"사람: 어린이\",\n    \"동물: 토끼, 개, 고양이, 사슴\"\n  ],\n  \"objects\": [\n    \"중요한 사물: 나무, 별, 별빛\"\n  ],\n  \"setting\": \"밤의 숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 어린이가 숲에서 즐거운 시간을 보내는 장면을 묘사하며, 주인공이 느낄 법한 감정을 표현합니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThis is the final scene. Close the story warmly with relief and afterglow. Do not start a new event. Do not simply list visible characters or objects.\nDo not copy or lightly paraphrase the previous final paragraph; write a distinct final paragraph grounded in scene 10.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grounded in the current drawing.\nReflect at least one new visible clue from the current scene JSON that was not central in the previous final paragraph.\nUse scene_position_role only for rhythm and story function, not to force a plot event.\nUse soft sensory details, natural emotional flow, and short rhythmic sentences.\nAvoid report-like, explanatory, evaluative, or stiff wording.\nDo not add events or objects that are not supported by the current scene JSON.\nstory_sentence must be Korean fairy-tale prose with 2 to 5 short sentences, preferably exactly 3 sentences.\nOutput exactly one JSON object only. Do not add markdown, explanations, or code fences.\nThe JSON must contain only scene_index and story_sentence, and scene_index must be 10.\n\nscene_position_role:\nending: close the story warmly without starting a new event. Leave calm afterglow.\n\nprevious_final_story_sentence:\n별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.\n\ncurrent_initial_story_sentence:\n별이 빛나는 밤에 꽃을 필 때, 소녀는 발아래로 떨어진 돌을 주웠다. 토끼가 살짝 웃으며 눈을 반짝였고, 강아지는 귀를 살짝 흔들며 꼬리를 흔들었다. 원숭이는 호기심 가득한 눈으로 주변을 바라보았지만, 그 순간부터 모두가 평화로운 숲 속의 평화로운 밤으로 기울었다.\n\ncurrent_scene:\n{\n  \"scene_index\": 10,\n  \"image_id\": \"10.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 나무 아래에 앉아 있고, 주변에는 여러 동물들이 서 있습니다.\",\n  \"characters\": [\n    \"소녀\",\n    \"토끼\",\n    \"강아지\",\n    \"원숭이\",\n    \"개\"\n  ],\n  \"objects\": [\n    \"나무\",\n    \"꽃\",\n    \"돌\",\n    \"별\"\n  ],\n  \"setting\": \"숲\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 나무 아래에 앉아 있는 장면으로, 주변 동물들과 상호작용하는 모습을 보여줍니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n"
+    ],
+    "cleanup_prompts": [
+      "Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\nRewrite current_story_sentence into clean Korean children's fairy-tale prose.\nCleanup reasons: sentence_count\nRemove all English words. Replace them with natural Korean words.\nRemove meta or analysis language such as '이 장면은', '그림에는', scene, mood, emotion, story_role, or story_sentence.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nThe current scene JSON and previous final sentence are the main sources.\nDo not copy the previous final sentence. Use at least one concrete visual clue from the current scene JSON.\nUse scene_position_role only for story rhythm, not as a plot requirement.\nKeep the paragraph warm, concrete, and easy for a child to read.\nstory_sentence must contain 2 to 5 short Korean sentences, preferably exactly 3.\nOutput exactly one JSON object only with scene_index and story_sentence.\nscene_index must be 1.\n\nscene_position_role:\nopening: introduce the main presence, place, and mood. Do not rush into a large event.\n\nprevious_final_story_sentence:\n\n\ncurrent_story_sentence:\n푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람에 흔들리는 나뭇잎 소리를 듣는다.\n\ncurrent_scene:\n{\n  \"scene_index\": 1,\n  \"image_id\": \"1.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 길을 걷고 있는 모습이 보입니다. 그녀는 노란 상의와 파란색 바지를 입고 있으며, 머리에는 검은색 모자를 쓰고 있습니다. 주변은 푸른 하늘과 흰 구름으로, 산과 나무들이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"길, 나무, 소녀\"\n  ],\n  \"setting\": \"산과 나무가 있는 야외 장소\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복하고 안전\",\n  \"story_role\": \"주인공이 걷고 있는 길을 따라 가는 소녀\",\n  \"uncertain\": \"~처럼 보임\"\n}\n",
+      "Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\nRewrite current_story_sentence into clean Korean children's fairy-tale prose.\nCleanup reasons: english\nRemove all English words. Replace them with natural Korean words.\nRemove meta or analysis language such as '이 장면은', '그림에는', scene, mood, emotion, story_role, or story_sentence.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nThe current scene JSON and previous final sentence are the main sources.\nDo not copy the previous final sentence. Use at least one concrete visual clue from the current scene JSON.\nUse scene_position_role only for story rhythm, not as a plot requirement.\nKeep the paragraph warm, concrete, and easy for a child to read.\nstory_sentence must contain 2 to 5 short Korean sentences, preferably exactly 3.\nOutput exactly one JSON object only with scene_index and story_sentence.\nscene_index must be 5.\n\nscene_position_role:\nmiddle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.\n\nprevious_final_story_sentence:\n나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.\n\ncurrent_story_sentence:\n나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\n\ncurrent_scene:\n{\n  \"scene_index\": 5,\n  \"image_id\": \"5.png\",\n  \"scene_summary\": \"그림에는 한 소녀가 산책을 하고 있으며, 그녀 옆에는 흙바닥에 심은 식물이 있고, 뒤쪽에는 나무와 꽃들이 보입니다.\",\n  \"characters\": [\n    \"사람\"\n  ],\n  \"objects\": [\n    \"식물, 나무, 꽃\"\n  ],\n  \"setting\": \"산책 중인 소녀와 그녀 주변의 자연 환경\",\n  \"mood\": \"밝음\",\n  \"emotion\": \"행복, 편안함\",\n  \"story_role\": \"이 그림은 이야기의 중간부분에서 소녀가 산책을 하는 장면을 나타냅니다.\",\n  \"uncertain\": \"~처럼 보임\"\n}\n"
+    ],
+    "ending_cleanup_prompt": "",
+    "title_prompt": "당신은 어린이 동화를 쓰는 따뜻한 동화작가입니다.\n아래 한국어 동화 전체 본문을 읽고 짧은 한국어 제목 하나를 만드세요.\n먼저 내부적으로 이야기의 중심 정서와 1번부터 10번까지의 흐름을 확인하세요.\n단, 이 점검 과정은 출력하지 말고 최종 JSON에만 반영하세요.\n제목은 15자 이내가 좋고, 아이가 읽고 싶어지는 동화 느낌이어야 합니다.\n반드시 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n{\n  \"title\": \"짧은 한국어 동화 제목\"\n}\n\nstory_body:\n푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.\n\n새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다.\n\n아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다.\n\n나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.\n\n나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\n\n꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지.\n\n바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\n\n별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지.\n\n별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.\n\n별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다.\n"
+  },
+  "exaone_raw_response": "[initial scene 1]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 1,\n  \"story_sentence\": \"푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람에 흔들리는 나뭇잎 소리를 듣는다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 1.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: opening: introduce the main presence, place, and mood. Do not rush into a large event.\nUse the curre ... (truncated)\n\n```json\n\n[initial scene 2]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\"scene_index\": 2, \"story_sentence\": \"작은 꽃 한 송이가 그의 손에 살짝 닿자, 바람이 속삭였다. 너는 처음엔 몰랐지.\"}\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 2.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in thi ... (truncated)\n\n```json\n\n[initial scene 3]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 3,\n  \"story_sentence\": \"아이가 부드러운 노을 빛으로 꽃의 향기를 맡았다. 작은 손으로 흙을 더듬으며 씨앗을 캐고 있었지.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 3.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in thi ... (truncated)\n\n```json\n\n[initial scene 4]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\"scene_index\": 4, \"story_sentence\": \"소녀의 손으로 나무 가지를 gently 잡았고, 물을 주는 소리가 공기를 가득 채웠다. 주변의 꽃들은 눈금처럼 정교하게 배열되어 있었다.\"}\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 4.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force  ... (truncated)\n\n```json\n{\n  \"scene_index\": 4,\n  \"story_sentence\": \"나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다.\"\n}\n```\n\n[initial scene 5]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 5,\n  \"story_sentence\": \"바람에 흔들리는 나뭇잎이 바람에 맞춰 부드럽게 흔들리고, 소녀는 그 소리를 들으며 미소 지었다. 작은 새들이 날개를 펼치며 날아다녔고, 흙냄새가 코를 자극하는 듯 따뜻함이 느껴졌다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 5.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force  ... (truncated)\n\n```json\n\n[initial scene 6]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\"scene_index\": 6, \"story_sentence\": \"나무 줄기에 앉아 작은 꽃 한 송이를 보니 마음이 차분해졌다. 바람이 스치며 꽃잎이 흩날렸고, 하늘은 아직도 그 아름다움을 간직하고 있었다.\"}\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 6.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force  ... (truncated)\n\n```json\n\n[initial scene 7]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 7,\n  \"story_sentence\": \"바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\"\n}\n```\n\n[initial scene 8]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 8,\n  \"story_sentence\": \"별들이 바람에 흔들리며 반짝이는 소리가 났고, 나비들이 날아오르고 작은 새들도 함께 움직이는 모습이 보였다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 8.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem. ... (truncated)\n\n```json\n\n[initial scene 9]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n```json\n{\n  \"scene_index\": 9,\n  \"story_sentence\": \"별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃었고, 개와 고양이는 조용히 주변을 돌았다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 9.\nDo not use story_caption or any external caption in this repair.\nscene_position_role: late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem. ... (truncated)\n\n```json\n\n[initial scene 10]\n> Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\nWrite one Korean fairy-tale paragraph for the current scene JSON.\nUse scene_position_role only to control the story rhythm, not to force plot events.\nUse weak_story_direction only as a broad consistency hint.\nweak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\nDo not use caption-derived nouns or expressions unless the current scene JSON directly supports  ... (truncated)\n\n{\" scene_index\": 10, \"story_sentence\": \"별이 빛나는 밤에 꽃을 필 때, 소녀는 발아래로 떨어진 돌을 주웠다. 토끼가 살짝 웃으며 눈을 반짝였고, 강아지는 귀를 살짝 흔들며 꼬리를 흔들었다. 원숭이는 호기심 가득한 눈으로 주변을 바라보았지만, 그 순간부터 모두가 평화로운 숲 속의 평화로운 밤으로 기울었다.\" }\n\n[refine scene 2]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\"scene_index\": 2, \"story_sentence\": \"바람 소리가 그의 귀를 스쳤고, 꽃 한 송이가 부드럽게 기울었다. 처음엔 신기했지만 점점 익숙해졌다.\"}\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 2.\nDo not use story_caption in this repair.\nscene_position_role: early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\nTh ... (truncated)\n\n```json\n{\n  \"scene_index\": 2,\n  \"story_sentence\": \"새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다.\"\n}\n\n[refine scene 3]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\n  \"scene_index\": 3,\n  \"story_sentence\": \"아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 3.\nDo not use story_caption in this repair.\nscene_position_role: early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.\nTh ... (truncated)\n\n```json\n\n[refine scene 4]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\"scene_index\": 4, \"story_sentence\": \"소녀의 fingers traced the bark softly, listening to the breeze carry petals like whispered secrets.\"}\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 4.\nDo not use story_caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force a specific pl ... (truncated)\n\n```json\n{\n  \"scene_index\": 4,\n  \"story_sentence\": \"나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.\"\n}\n```\n\n[refine scene 5]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\n  \"scene_index\": 5,\n  \"story_sentence\": \"나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 5.\nDo not use story_caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force a specific pl ... (truncated)\n\n```json\n{\n  \"scene_index\": 5,\n  \"story_sentence\": \"나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\"\n}\n```\n\n[refine scene 6]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\n  \"scene_index\": 6,\n  \"story_sentence\": \"바람이 속삭여 꽃잎이 흩날렸고, 하늘은 마치 오래된 노래를 부르는 듯했지. 나무들 사이로 새는 소리가 흐르는 것 같았어.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 6.\nDo not use story_caption in this repair.\nscene_position_role: middle story: let something already noticed or started move, grow, or change a little. Do not force a specific pl ... (truncated)\n\n```json\n{\n  \"scene_index\": 6,\n  \"story_sentence\": \"꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지.\"\n}\n```\n\n[refine scene 7]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\n  \"scene_index\": 7,\n  \"story_sentence\": \"소녀의 손으로 흙을 파내면서 바람이 부는 소리가 들릴 것 같았어. 토끼가 옆에서 웃으며 말했지, '네 나무는 새들도 사랑할 거야.'\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 7.\nDo not use story_caption in this repair.\nscene_position_role: late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\nThe revised  ... (truncated)\n\n```json\n{\n  \"scene_index\": 7,\n  \"story_sentence\": \"바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\"\n}\n\n[refine scene 8]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\n  \"scene_index\": 8,\n  \"story_sentence\": \"별들도 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 새들도 작은 소리로 뛰어다녔지.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 8.\nDo not use story_caption in this repair.\nscene_position_role: late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\nThe revised  ... (truncated)\n\n```json\n{\n  \"scene_index\": 8,\n  \"story_sentence\": \"별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지.\"\n}\n```\n\n[refine scene 9]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThe previous final paragraph is only a bridge. Do not copy its expressions, motifs, sentence shape, or visual details.\nConnect naturally after it while staying grou ... (truncated)\n\n```json\n{\"scene_index\": 9, \"story_sentence\": \"별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.\"}```\n\n[json_repair_response]\n> You are a strict JSON repair tool and a warm Korean children's fairy-tale writer.\nConvert the model response below into one valid JSON object only.\nDo not add markdown. Do not explain. Do not include any text before or after JSON.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 9.\nDo not use story_caption in this repair.\nscene_position_role: late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.\nThe revised  ... (truncated)\n\n```json\n{\"scene_index\": 9, \"story_sentence\": \"별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.\"}\n\n[refine scene 10]\n> Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\nRewrite only the current scene paragraph as gentle Korean fairy-tale prose.\nUse the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\nDo not use story_caption in this second pass.\nThis is the final scene. Close the story warmly with relief and afterglow. Do not start a new event. Do not simply list visible characters or objects.\nDo not copy o ... (truncated)\n\n```json\n{\"scene_index\": 10, \"story_sentence\": \"별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다.\"}```\n\n[cleanup initial scene 1]\n> Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\nRewrite current_story_sentence into clean Korean children's fairy-tale prose.\nCleanup reasons: sentence_count\nRemove all English words. Replace them with natural Korean words.\nRemove meta or analysis language such as '이 장면은', '그림에는', scene, mood, emotion, story_role, or story_sentence.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nThe current sc ... (truncated)\n\n```json\n{\n  \"scene_index\": 1,\n  \"story_sentence\": \"푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and Korean fairy-tale cleanup writer.\nReturn one valid JSON object only. No markdown. No explanation.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 1.\nCleanup reasons: sentence_count\nstory_sentence must be Korean only, with no English words or meta/analysis language.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nscene_position_role: opening: introduce the main pr ... (truncated)\n\n```json\n{\n  \"scene_index\": 1,\n  \"story_sentence\": \"푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.\"\n}\n```\n\n[cleanup refinement scene 5]\n> Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\nRewrite current_story_sentence into clean Korean children's fairy-tale prose.\nCleanup reasons: english\nRemove all English words. Replace them with natural Korean words.\nRemove meta or analysis language such as '이 장면은', '그림에는', scene, mood, emotion, story_role, or story_sentence.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nThe current scene JSO ... (truncated)\n\n```json\n{\n  \"scene_index\": 5,\n  \"story_sentence\": \"나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\"\n}\n```\n\n[json_repair_response]\n> You are a strict JSON repair tool and Korean fairy-tale cleanup writer.\nReturn one valid JSON object only. No markdown. No explanation.\nThe JSON must contain exactly these keys: scene_index, story_sentence.\nscene_index must be 5.\nCleanup reasons: english\nstory_sentence must be Korean only, with no English words or meta/analysis language.\nDo not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\nscene_position_role: middle story: let something already n ... (truncated)\n\n```json\n{\n  \"scene_index\": 5,\n  \"story_sentence\": \"나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\"\n}\n```\n\n[title]\n> 당신은 어린이 동화를 쓰는 따뜻한 동화작가입니다.\n아래 한국어 동화 전체 본문을 읽고 짧은 한국어 제목 하나를 만드세요.\n먼저 내부적으로 이야기의 중심 정서와 1번부터 10번까지의 흐름을 확인하세요.\n단, 이 점검 과정은 출력하지 말고 최종 JSON에만 반영하세요.\n제목은 15자 이내가 좋고, 아이가 읽고 싶어지는 동화 느낌이어야 합니다.\n반드시 JSON 객체 하나만 출력하세요.  ... (truncated)\n\n{\n  \"title\": \"바람과 별이 노래하는 숲의 소녀\"\n}",
+  "llama_runtime": {
+    "mode": "gpu",
+    "gpu_layers": 999,
+    "cpu_retry_used": false
+  },
+  "parsed_result": {
+    "story_caption": "작은 아이가 숲에서 발견한 별씨앗을 정성껏 키워 어두운 숲과 길 잃은 동물들을 밝혀 주는 이야기",
+    "weak_story_direction": "A gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.",
+    "initial_scene_results": [
+      {
+        "scene_index": 1,
+        "story_sentence": "푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람에 흔들리는 나뭇잎 소리를 듣는다."
+      },
+      {
+        "scene_index": 2,
+        "story_sentence": "작은 꽃 한 송이가 그의 손에 살짝 닿자, 바람이 속삭였다. 너는 처음엔 몰랐지."
+      },
+      {
+        "scene_index": 3,
+        "story_sentence": "아이가 부드러운 노을 빛으로 꽃의 향기를 맡았다. 작은 손으로 흙을 더듬으며 씨앗을 캐고 있었지."
+      },
+      {
+        "scene_index": 4,
+        "story_sentence": "나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다."
+      },
+      {
+        "scene_index": 5,
+        "story_sentence": "바람에 흔들리는 나뭇잎이 바람에 맞춰 부드럽게 흔들리고, 소녀는 그 소리를 들으며 미소 지었다. 작은 새들이 날개를 펼치며 날아다녔고, 흙냄새가 코를 자극하는 듯 따뜻함이 느껴졌다."
+      },
+      {
+        "scene_index": 6,
+        "story_sentence": "나무 줄기에 앉아 작은 꽃 한 송이를 보니 마음이 차분해졌다. 바람이 스치며 꽃잎이 흩날렸고, 하늘은 아직도 그 아름다움을 간직하고 있었다."
+      },
+      {
+        "scene_index": 7,
+        "story_sentence": "바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'"
+      },
+      {
+        "scene_index": 8,
+        "story_sentence": "별들이 바람에 흔들리며 반짝이는 소리가 났고, 나비들이 날아오르고 작은 새들도 함께 움직이는 모습이 보였다."
+      },
+      {
+        "scene_index": 9,
+        "story_sentence": "별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃었고, 개와 고양이는 조용히 주변을 돌았다."
+      },
+      {
+        "scene_index": 10,
+        "story_sentence": "별이 빛나는 밤에 꽃을 필 때, 소녀는 발아래로 떨어진 돌을 주웠다. 토끼가 살짝 웃으며 눈을 반짝였고, 강아지는 귀를 살짝 흔들며 꼬리를 흔들었다. 원숭이는 호기심 가득한 눈으로 주변을 바라보았지만, 그 순간부터 모두가 평화로운 숲 속의 평화로운 밤으로 기울었다."
+      }
+    ],
+    "refined_scene_results": [
+      {
+        "scene_index": 2,
+        "story_sentence": "새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다."
+      },
+      {
+        "scene_index": 3,
+        "story_sentence": "아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다."
+      },
+      {
+        "scene_index": 4,
+        "story_sentence": "나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다."
+      },
+      {
+        "scene_index": 5,
+        "story_sentence": "나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지."
+      },
+      {
+        "scene_index": 6,
+        "story_sentence": "꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지."
+      },
+      {
+        "scene_index": 7,
+        "story_sentence": "바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'"
+      },
+      {
+        "scene_index": 8,
+        "story_sentence": "별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지."
+      },
+      {
+        "scene_index": 9,
+        "story_sentence": "별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지."
+      },
+      {
+        "scene_index": 10,
+        "story_sentence": "별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다."
+      }
+    ],
+    "cleanup_results": [
+      {
+        "stage": "initial",
+        "scene_index": 1,
+        "reasons": [
+          "sentence_count"
+        ],
+        "remaining_reasons": [
+          "sentence_count"
+        ],
+        "parsed_result": {
+          "scene_index": 1,
+          "story_sentence": "푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다."
+        }
+      },
+      {
+        "stage": "refinement",
+        "scene_index": 5,
+        "reasons": [
+          "english"
+        ],
+        "remaining_reasons": [
+          "english"
+        ],
+        "parsed_result": {
+          "scene_index": 5,
+          "story_sentence": "나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지."
+        }
+      }
+    ],
+    "ending_cleanup_result": {},
+    "final_scene_results": [
+      {
+        "scene_index": 1,
+        "story_sentence": "푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다."
+      },
+      {
+        "scene_index": 2,
+        "story_sentence": "새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다."
+      },
+      {
+        "scene_index": 3,
+        "story_sentence": "아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다."
+      },
+      {
+        "scene_index": 4,
+        "story_sentence": "나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다."
+      },
+      {
+        "scene_index": 5,
+        "story_sentence": "나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지."
+      },
+      {
+        "scene_index": 6,
+        "story_sentence": "꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지."
+      },
+      {
+        "scene_index": 7,
+        "story_sentence": "바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'"
+      },
+      {
+        "scene_index": 8,
+        "story_sentence": "별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지."
+      },
+      {
+        "scene_index": 9,
+        "story_sentence": "별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지."
+      },
+      {
+        "scene_index": 10,
+        "story_sentence": "별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다."
+      }
+    ],
+    "title_result": {
+      "title": "바람과 별이 노래하는 숲의 소녀"
+    },
+    "title_fallback_used": false
+  },
+  "json_repair_used": true,
+  "story": {
+    "title": "바람과 별이 노래하는 숲의 소녀",
+    "body": "푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.\n\n새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다.\n\n아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다.\n\n나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.\n\n나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.\n\n꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지.\n\n바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'\n\n별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지.\n\n별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.\n\n별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다.",
+    "scene_sentences": [
+      "푸른 하늘 아래 노란 옷을 입은 소녀가 발걸음마다 바람 소리를 듣고 행복해진다.",
+      "새로운 향기가 그의 코를 스쳤고, 꽃이 살짝 기울었다. 처음엔 이상했지만 점점 자연스러워졌다.",
+      "아이의 코를 스치는 노을 향기가 부드럽게 느껴졌다. 흙 속에서 작은 씨앗을 찾으려는 손가락 움직임이 따뜻해졌다.",
+      "나무 아래에서 소녀는 올바른 옷을 입고 나무를 돌보았다. 새들은 부드러운 소리로 관찰했고, 꽃들은 아름다운 배열을 이루고 있었다. 숲 속은 평화롭게 가득했고, 햇살이 부드럽게 비치며 나뭇잎들이 반짝이고 있었다.",
+      "나뭇잎 소리가 바람처럼 흔들리며 flowing되는 소리에 소녀는 귀를 기울이고 웃었다. 흙 냄새가 코를 자극하는 듯 따뜻한 바람이 그녀의 등을 감싸고 있었지.",
+      "꽃잎이 바람에 흔들리며 살짝 움직이는 소리가 났어. 하늘은 구름 사이로 비치는 햇살처럼 따뜻했지.",
+      "바람에 흔들리는 나뭇잎 소리가 고요한 숲 속을 가득 채우고, 소녀는 뿌리를 묻는 손으로 흙을 파내었다. 토끼가 그녀 옆에 기대어 살짝 웃으며 말했다. '잘했어, 이 나무는 영원히 살 거야.'",
+      "별들이 바람에 흔들리며 반짝이는 소리가 났어. 나비들이 날개를 펼치고, 작은 새들도 함께 움직이는 모습이 보였지.",
+      "별빛이 나무 줄기를 따라 반짝이며, 어린이는 그 리듬에 맞춰 손을 흔들었다. 토끼 무리는 반짝이는 별을 바라보며 웃음을 터뜨렸고, 개와 고양이도 별을 배경으로 조용히 춤을 추었지.",
+      "별빛이 나무 줄기를 따라 반짝이며, 소녀의 웃음소리가 바람에 실려 흩어졌다. 돌을 주운 손가락이 흙탕물을 타고 흐르는 듯했고, 원숭이의 눈에 비친 별이 그녀의 등을 감쌌다. 밤이 깊어질수록 모든 소리가 하나로 모았다."
+    ],
+    "grounding_notes": []
+  },
+  "structure": {
+    "mode": "generic_position_quality_gated_sequential_refinement",
+    "scene_count": 10,
+    "story_caption_used": true,
+    "story_caption_stage": "initial_weak_direction_only",
+    "story_caption_policy": "weak_direction_not_verbatim_caption",
+    "scene_position_roles_used": true,
+    "quality_gates": [
+      "repetition",
+      "caption_overuse",
+      "english",
+      "meta_language",
+      "sentence_count",
+      "ending"
+    ],
+    "exaone_initial_scene_calls": 10,
+    "exaone_refinement_calls": 9,
+    "cleanup_calls": 2,
+    "ending_cleanup_calls": 0,
+    "exaone_title_calls": 1,
+    "exaone_total_calls": 22
+  },
+  "plan": {
+    "method": "Qwen scene JSON -> EXAONE initial per-scene paragraphs with generic scene_position_role and weak_story_direction -> EXAONE sequential refinement without story_caption -> quality-gated cleanup -> optional ending cleanup -> code joins body -> EXAONE title",
+    "story_caption": "작은 아이가 숲에서 발견한 별씨앗을 정성껏 키워 어두운 숲과 길 잃은 동물들을 밝혀 주는 이야기",
+    "weak_story_direction": "A gentle movement from uncertainty toward comfort may fit the whole story. A small discovery or meeting may feel meaningful if it is visible or naturally implied. Do not copy concrete nouns from the caption unless they are visible in the current scene JSON.",
+    "story_caption_stage": "initial_weak_direction_only",
+    "story_caption_policy": "weak_direction_not_verbatim_caption",
+    "scene_position_roles": {
+      "1": "opening: introduce the main presence, place, and mood. Do not rush into a large event.",
+      "2": "early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.",
+      "3": "early story: show a small interest, action, meeting, or situation beginning. Keep it grounded in this drawing.",
+      "4": "middle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.",
+      "5": "middle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.",
+      "6": "middle story: let something already noticed or started move, grow, or change a little. Do not force a specific plot.",
+      "7": "late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.",
+      "8": "late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.",
+      "9": "late story: show a result, response, or movement toward closure. Avoid starting a brand-new problem.",
+      "10": "ending: close the story warmly without starting a new event. Leave calm afterglow."
+    },
+    "scene_order": [
+      "1.png",
+      "2.png",
+      "3.png",
+      "4.png",
+      "5.png",
+      "6.png",
+      "7.png",
+      "8.png",
+      "9.png",
+      "10.png"
+    ],
+    "scene_max_new_tokens": 350,
+    "refinement_max_new_tokens": 500,
+    "cleanup_max_new_tokens": 300,
+    "title_max_new_tokens": 120
+  },
+  "experiment_method": "Experiment_I"
+}
