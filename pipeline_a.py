@@ -33,8 +33,12 @@ BASE_DIR = Path(__file__).resolve().parent
 def _ensure_local_venv_python() -> None:
     """Re-run this script with the project virtualenv Python when available."""
     # 프로젝트 안에 .venv가 있으면 의존성 충돌을 줄이기 위해 그 Python으로 재실행합니다.
-    venv_python = BASE_DIR / ".venv" / "bin" / "python"
-    if not venv_python.exists():
+    candidates = [
+        BASE_DIR / ".venv" / "Scripts" / "python.exe",
+        BASE_DIR / ".venv" / "bin" / "python",
+    ]
+    venv_python = next((candidate for candidate in candidates if candidate.exists()), None)
+    if venv_python is None:
         return
 
     current_python = Path(sys.executable).resolve()

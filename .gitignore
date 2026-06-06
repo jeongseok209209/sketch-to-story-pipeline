@@ -8,6 +8,7 @@ venv/
 env/
 
 results/
+outputs/
 
 .local_models/**/*.gguf
 .local_models/**/*.bin

@@ -5,12 +5,15 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import random
 import re
+import shutil
 import subprocess
 import sys
 import traceback
 from datetime import datetime, timezone
+from importlib import metadata
 from pathlib import Path
 from typing import Any, Callable
 
@@ -20,13 +23,17 @@ from run_experiments_cd_qwen3b import run_selected_experiments
 from utils import (
     BLIP_CAPTION_MODEL,
     BLIP_VQA_MODEL,
+    DEFAULT_EXAONE_GGUF_PATH,
     GPT2_MODEL,
+    LLAMA_CLI_PATH,
+    LOCAL_HF_MODEL_DIR,
     NLLB_MODEL,
     PIPELINE_VERSION,
     QWEN25_VL_MODEL,
     ensure_huggingface_model_snapshots,
     ensure_openclip_pretrained,
     ensure_runtime_ready,
+    has_nvidia_gpu,
     log_stage,
     set_step_context,
 )
@@ -117,6 +124,13 @@ def _build_parser() -> argparse.ArgumentParser:
         default="exaone_gguf_structured",
     )
     all_evaluate_parser.add_argument("--port", type=int, default=8501, help="Streamlit server port.")
+
+    check_parser = subparsers.add_parser(
+        "check",
+        help="Check the local setup without downloading models or changing packages.",
+    )
+    check_parser.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="Story input root.")
+    check_parser.add_argument("--story", help="Optional story folder to inspect.")
 
     evaluate_parser = subparsers.add_parser("evaluate", help="Run the blind evaluation dashboard.")
     evaluate_parser.add_argument("--port", type=int, default=8501, help="Streamlit server port.")
@@ -392,6 +406,128 @@ def _run_evaluate(args: argparse.Namespace) -> None:
     except KeyboardInterrupt:
         set_step_context(experiment="EVALUATE", phase="dashboard")
         log_stage("evaluation dashboard stopped by user", step="evaluate", event="stopped")
+
+
+def _check_line(label: str, ok: bool, detail: str = "") -> None:
+    status = "OK" if ok else "WARN"
+    suffix = f" - {detail}" if detail else ""
+    print(f"[{status}] {label}{suffix}")
+
+
+def _format_bytes(value: int) -> str:
+    units = ("B", "KB", "MB", "GB", "TB")
+    amount = float(value)
+    for unit in units:
+        if amount < 1024 or unit == units[-1]:
+            return f"{amount:.1f} {unit}"
+        amount /= 1024
+    return f"{amount:.1f} TB"
+
+
+def _package_version(name: str) -> str | None:
+    try:
+        return metadata.version(name)
+    except metadata.PackageNotFoundError:
+        return None
+
+
+def _check_packages() -> bool:
+    packages = [
+        "torch",
+        "transformers",
+        "open_clip_torch",
+        "Pillow",
+        "sentencepiece",
+        "protobuf",
+        "huggingface_hub",
+        "qwen-vl-utils",
+        "streamlit",
+    ]
+    all_ok = True
+    print("\nPython packages")
+    for package in packages:
+        version = _package_version(package)
+        ok = version is not None
+        all_ok = all_ok and ok
+        _check_line(package, ok, version or "not installed")
+    return all_ok
+
+
+def _check_torch_cuda() -> None:
+    print("\nCompute")
+    nvidia_detected = has_nvidia_gpu()
+    _check_line("NVIDIA GPU detection", nvidia_detected, "found" if nvidia_detected else "not found; CPU mode is supported")
+    try:
+        import torch
+    except Exception as exc:
+        _check_line("torch import", False, str(exc))
+        return
+    cuda_available = bool(torch.cuda.is_available())
+    detail = torch.cuda.get_device_name(0) if cuda_available else "CUDA not available; CPU mode will be used"
+    _check_line("torch CUDA", cuda_available, detail)
+
+
+def _check_inputs(input_root: Path, story: str | None) -> bool:
+    print("\nInputs")
+    _check_line("input root", input_root.exists() and input_root.is_dir(), str(input_root))
+    if not input_root.exists() or not input_root.is_dir():
+        return False
+
+    root_images = _iter_images(input_root)
+    folders = _story_folders(input_root)
+    if root_images:
+        _check_line("root images", True, f"{len(root_images)} image(s)")
+    _check_line("story folders", bool(folders), f"{len(folders)} folder(s)")
+    for index, folder in enumerate(folders, start=1):
+        images = _iter_images(folder)
+        caption = folder / STORY_CAPTION_FILENAME
+        caption_note = "caption.txt yes" if caption.exists() and caption.read_text(encoding="utf-8").strip() else "caption.txt no"
+        _check_line(f"story {index}: {folder.name}", bool(images), f"{len(images)} image(s), {caption_note}")
+
+    if story:
+        try:
+            selected = _match_story_folder(input_root, story)
+        except ValueError as exc:
+            _check_line("selected story", False, str(exc))
+            return False
+        selected_images = _iter_images(selected)
+        _check_line("selected story", bool(selected_images), f"{selected} ({len(selected_images)} image(s))")
+
+    return bool(root_images or folders)
+
+
+def _check_local_assets() -> None:
+    print("\nLocal generated assets")
+    hf_ready = LOCAL_HF_MODEL_DIR.exists() and any(LOCAL_HF_MODEL_DIR.iterdir())
+    _check_line("Hugging Face cache", hf_ready, str(LOCAL_HF_MODEL_DIR) if hf_ready else "will be created on first model preflight")
+
+    gguf_path = Path(os.environ.get("EXAONE_GGUF_MODEL_PATH") or DEFAULT_EXAONE_GGUF_PATH).expanduser()
+    _check_line("EXAONE GGUF", gguf_path.exists(), str(gguf_path) if gguf_path.exists() else "will be downloaded on first EXAONE GGUF run")
+
+    llama_cli = Path(os.environ.get("LLAMA_CLI_PATH") or LLAMA_CLI_PATH).expanduser()
+    _check_line("llama-cli", llama_cli.exists(), str(llama_cli) if llama_cli.exists() else "will be prepared on first EXAONE GGUF run when possible")
+
+
+def _run_check(args: argparse.Namespace) -> None:
+    """Inspect clone/setup state without network downloads or package changes."""
+    print(f"Sketch to Story setup check ({PIPELINE_VERSION})")
+    print(f"Project root: {BASE_DIR}")
+    print(f"Python: {sys.executable}")
+    print(f"Python version: {sys.version.split()[0]}")
+    free_bytes = shutil.disk_usage(BASE_DIR).free
+    _check_line("free disk space", free_bytes >= 30 * 1024**3, f"{_format_bytes(free_bytes)} available; 30GB+ recommended")
+
+    packages_ok = _check_packages()
+    _check_torch_cuda()
+    inputs_ok = _check_inputs(_resolve_workspace_path(args.input_dir), getattr(args, "story", None))
+    _check_local_assets()
+
+    print("\nResult")
+    if packages_ok and inputs_ok:
+        print("OK: basic setup looks ready. The first real run may still download model files.")
+        return
+    print("WARN: fix the warnings above before running a full experiment.")
+    raise SystemExit(1)
 
 
 def _preflight_a_models() -> None:
@@ -823,8 +959,15 @@ def _run_all_evaluate(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    ensure_runtime_ready()
     args = _build_parser().parse_args()
+    if args.experiment == "check":
+        _run_check(args)
+        return
+    if args.experiment == "evaluate":
+        _run_evaluate(args)
+        return
+
+    ensure_runtime_ready()
     _resolve_story_input(args)
     _preflight_for_experiment(args)
     if args.experiment == "a":
@@ -847,8 +990,6 @@ def main() -> None:
         _run_all(args)
     elif args.experiment == "all-evaluate":
         _run_all_evaluate(args)
-    elif args.experiment == "evaluate":
-        _run_evaluate(args)
 
 
 if __name__ == "__main__":
