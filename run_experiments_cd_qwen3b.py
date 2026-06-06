@@ -1,4 +1,4 @@
-"""Run independent C/D/E/F/G/H/I experiments with Qwen vision and EXAONE GGUF writing."""
+"""Run independent C/D/E/F/G/H/I/J experiments with Qwen vision and EXAONE GGUF writing."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -28,6 +29,7 @@ VISION_MODEL_ID = QWEN25_VL_MODEL
 LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 BASE_DIR = Path(__file__).resolve().parent
 INPUT_DIR = BASE_DIR / "inputs"
+COLLAGE_ROOT = BASE_DIR / "collages"
 OUTPUT_ROOT = BASE_DIR / "outputs"
 COMMON_OUTPUT_DIR = OUTPUT_ROOT / "qwen25_vl_3b_story"
 SHARED_DIR = COMMON_OUTPUT_DIR / "scene_descriptions"
@@ -36,7 +38,10 @@ QWEN3B_LOCAL_DIR = local_huggingface_model_path(VISION_MODEL_ID)
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 QWEN_IMAGE_MAX_SIDE = 384
 QWEN_MAX_PIXELS = QWEN_IMAGE_MAX_SIDE * QWEN_IMAGE_MAX_SIDE
+QWEN_COLLAGE_MAX_SIDE = 1600
+QWEN_COLLAGE_MAX_PIXELS = QWEN_COLLAGE_MAX_SIDE * QWEN_COLLAGE_MAX_SIDE
 STORY_CAPTION_FILENAME = "caption.txt"
+COLLAGE_FILENAME = "collage_2x5_scene_order.png"
 H_REFINEMENT_MAX_NEW_TOKENS = 450
 I_REFINEMENT_MAX_NEW_TOKENS = 500
 I_ENDING_MAX_NEW_TOKENS = 500
@@ -66,26 +71,37 @@ def _snapshot_dir(model_cache: Path | str) -> Path | str:
 
 def _iter_images(directory: Path) -> list[Path]:
     numbered: dict[int, Path] = {}
-    others: list[Path] = []
     for path in sorted(directory.iterdir()):
         if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS:
             if path.stem.isdigit():
                 numbered[int(path.stem)] = path
-            else:
-                others.append(path)
-    return [numbered[key] for key in sorted(numbered)] + sorted(others)
+    return [numbered[key] for key in sorted(numbered)]
 
 
 def _read_story_caption(input_dir: Path) -> str:
     caption_path = input_dir / STORY_CAPTION_FILENAME
     if not caption_path.exists():
         raise FileNotFoundError(
-            f"Experiment H/I requires {STORY_CAPTION_FILENAME} in the selected story folder: {caption_path}"
+            f"Experiment H/I/J requires {STORY_CAPTION_FILENAME} in the selected story folder: {caption_path}"
         )
     caption = caption_path.read_text(encoding="utf-8").strip()
     if not caption:
-        raise ValueError(f"Experiment H/I requires a non-empty story caption: {caption_path}")
+        raise ValueError(f"Experiment H/I/J requires a non-empty story caption: {caption_path}")
     return caption
+
+
+def _collage_story_dir(input_dir: Path) -> Path:
+    return COLLAGE_ROOT / input_dir.name
+
+
+def _resolve_collage_path(input_dir: Path) -> Path:
+    collage_path = _collage_story_dir(input_dir) / COLLAGE_FILENAME
+    if not collage_path.exists():
+        raise FileNotFoundError(
+            "Experiment J requires a story collage outside inputs so other experiments do not read it. "
+            f"Expected: {collage_path}"
+        )
+    return collage_path
 
 
 def _prepare_image(image_path: Path) -> Path:
@@ -101,6 +117,22 @@ def _prepare_image(image_path: Path) -> Path:
         image = image.convert("RGB")
         image.thumbnail((QWEN_IMAGE_MAX_SIDE, QWEN_IMAGE_MAX_SIDE))
         image.save(target, format="JPEG", quality=90)
+    return target
+
+
+def _prepare_collage_image(image_path: Path, output_dir: Path) -> Path:
+    """Resize the story collage less aggressively than individual scene images."""
+    from PIL import Image
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    source_key = hashlib.sha1(str(image_path.resolve()).encode("utf-8")).hexdigest()[:10]
+    target = output_dir / f"{image_path.stem}_{source_key}.jpg"
+    if target.exists() and target.stat().st_mtime >= image_path.stat().st_mtime:
+        return target
+    with Image.open(image_path) as image:
+        image = image.convert("RGB")
+        image.thumbnail((QWEN_COLLAGE_MAX_SIDE, QWEN_COLLAGE_MAX_SIDE))
+        image.save(target, format="JPEG", quality=92)
     return target
 
 
@@ -195,6 +227,26 @@ def _prompt_g_cot_persona(index: int) -> str:
         '  "emotion": "주인공이 느낄 법한 감정",\n'
         '  "story_role": "이 그림이 이야기에서 맡을 역할",\n'
         '  "uncertain": "확실하지 않은 부분"\n'
+        "}"
+    )
+
+
+def _prompt_j_collage() -> str:
+    return (
+        "Experiment J collage analysis: You are a careful visual story analyst for a 2x5 collage of child drawings.\n"
+        "The collage contains Scene 1 through Scene 10 labels. Read the panels in numeric order only.\n"
+        "Analyze the whole sequence at once, but do not invent details that are not visible.\n"
+        "Use the collage as a broad continuity map. Individual scene JSON will still be the main evidence later.\n"
+        "Output exactly one Korean JSON object only. Do not add markdown, explanations, or code fences.\n"
+        "Required shape:\n"
+        "{\n"
+        '  "overall_story_arc": "10장 전체가 어떻게 시작-전개-마무리로 이어지는지 3문장",\n'
+        '  "scene_order_summary": ["1번부터 10번까지 각 장면을 한 문장씩 요약"],\n'
+        '  "recurring_characters": ["반복 등장하는 인물/동물"],\n'
+        '  "visual_continuity": ["장면 사이에 이어지는 시각 단서"],\n'
+        '  "turning_points": ["이야기의 변화 지점"],\n'
+        '  "ending_read": "마지막 장면이 어떤 정서로 끝나는지",\n'
+        '  "uncertainty_notes": ["작게 보이거나 확실하지 않은 부분"]\n'
         "}"
     )
 
@@ -294,6 +346,24 @@ def _normalize_scene(index: int, image_path: Path, payload: dict[str, Any], raw:
     }
 
 
+def _normalize_collage_analysis(collage_path: Path, payload: dict[str, Any], raw: str) -> dict[str, Any]:
+    scene_summaries = payload.get("scene_order_summary")
+    if not isinstance(scene_summaries, list):
+        scene_summaries = _listify(scene_summaries)
+    return {
+        "collage_image_id": collage_path.name,
+        "collage_image_path": str(collage_path.resolve()),
+        "overall_story_arc": str(payload.get("overall_story_arc", "")).strip(),
+        "scene_order_summary": [str(item).strip() for item in scene_summaries if str(item).strip()],
+        "recurring_characters": _listify(payload.get("recurring_characters")),
+        "visual_continuity": _listify(payload.get("visual_continuity")),
+        "turning_points": _listify(payload.get("turning_points")),
+        "ending_read": str(payload.get("ending_read", "")).strip(),
+        "uncertainty_notes": _listify(payload.get("uncertainty_notes")),
+        "raw_response": raw.strip(),
+    }
+
+
 def _run_qwen_scene(
     model: Any,
     processor: Any,
@@ -325,6 +395,63 @@ def _run_qwen_scene(
     trimmed = [out[len(inp) :] for inp, out in zip(inputs.input_ids, generated)]
     raw = processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
     return _normalize_scene(index, image_path, _extract_json(raw), raw)
+
+
+def _run_qwen_collage_analysis(
+    image_path: Path,
+    output_dir: Path,
+    max_new_tokens: int = 520,
+) -> dict[str, Any]:
+    import torch
+    from qwen_vl_utils import process_vision_info
+    from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
+
+    model_source = _snapshot_dir(local_huggingface_model_path(VISION_MODEL_ID))
+    log_stage(f"loading collage vision model from {model_source}", step="J-collage-load", model=VISION_MODEL_ID)
+    local_only = isinstance(model_source, Path)
+    with timed_step("J-collage-load", "Qwen2.5-VL collage model load", model=VISION_MODEL_ID):
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+            model_source,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else "auto",
+            local_files_only=local_only,
+        )
+        if torch.cuda.is_available():
+            model = model.to("cuda")
+        model.eval()
+        processor = AutoProcessor.from_pretrained(
+            model_source,
+            local_files_only=local_only,
+            max_pixels=QWEN_COLLAGE_MAX_PIXELS,
+        )
+
+    prepared_path = _prepare_collage_image(image_path, output_dir / "_resized_collage")
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": str(prepared_path.resolve())},
+                {"type": "text", "text": _prompt_j_collage()},
+            ],
+        }
+    ]
+    text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    image_inputs, video_inputs = process_vision_info(messages)
+    inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt")
+    if torch.cuda.is_available():
+        inputs = inputs.to("cuda")
+    with timed_step("J-collage", "Qwen collage sequence analysis", model=VISION_MODEL_ID):
+        with torch.inference_mode():
+            generated = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
+    trimmed = [out[len(inp) :] for inp, out in zip(inputs.input_ids, generated)]
+    raw = processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+    analysis = _normalize_collage_analysis(image_path, _extract_json(raw), raw)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "qwen25_vl_3b_collage_analysis.json").write_text(
+        json.dumps(analysis, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (output_dir / "collage_raw.txt").write_text(raw, encoding="utf-8")
+    return analysis
 
 
 def _compact_scene(scene: dict[str, Any]) -> dict[str, Any]:
@@ -3059,14 +3186,41 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
     }
 
 
-def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_caption: str) -> dict[str, Any]:
+def _collage_direction_hint(collage_analysis: dict[str, Any] | None) -> str:
+    if not collage_analysis:
+        return ""
+    parts: list[str] = []
+    for key in ("overall_story_arc", "ending_read"):
+        value = str(collage_analysis.get(key, "")).strip()
+        if value:
+            parts.append(value)
+    for key in ("visual_continuity", "turning_points"):
+        values = collage_analysis.get(key)
+        if isinstance(values, list):
+            parts.extend(str(item).strip() for item in values[:3] if str(item).strip())
+    return " / ".join(parts[:8])
+
+
+def _run_exaone_i_quality_gated_experiment(
+    scenes: list[dict[str, Any]],
+    story_caption: str,
+    experiment_name: str = "Experiment_I",
+    collage_analysis: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     _ensure_exaone_gguf_available()
-    experiment_name = "Experiment_I"
     story_caption = story_caption.strip()
     if not story_caption:
-        raise ValueError("Experiment I requires a non-empty story caption.")
+        raise ValueError(f"{experiment_name} requires a non-empty story caption.")
 
     weak_story_direction = _weak_story_direction(story_caption)
+    collage_direction = _collage_direction_hint(collage_analysis)
+    if collage_direction:
+        weak_story_direction = (
+            f"{weak_story_direction}\n"
+            "Collage sequence hint for Experiment J. Use only as weak continuity guidance, "
+            "and keep individual scene JSON as primary evidence:\n"
+            f"{collage_direction}"
+        )
     ordered_scenes = [
         {
             **scene,
@@ -3188,8 +3342,10 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
         "prompt_strategy": "generic_position_quality_gated_sequential_refinement",
         "story_caption": story_caption,
         "weak_story_direction": weak_story_direction,
+        "collage_analysis": collage_analysis or {},
         "exaone_prompt": {
             "weak_story_direction": weak_story_direction,
+            "collage_analysis": collage_analysis or {},
             "initial_scene_prompts": [item["prompt"] for item in initial_results],
             "refinement_prompts": [item["prompt"] for item in refined_results],
             "cleanup_prompts": [item["prompt"] for item in cleanup_results],
@@ -3214,6 +3370,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
         "parsed_result": {
             "story_caption": story_caption,
             "weak_story_direction": weak_story_direction,
+            "collage_analysis": collage_analysis or {},
             "initial_scene_results": [item["parsed_result"] for item in initial_results],
             "refined_scene_results": [item["parsed_result"] for item in refined_results],
             "cleanup_results": [
@@ -3247,6 +3404,8 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             "story_caption_stage": "initial_weak_direction_only",
             "story_caption_policy": "weak_direction_not_verbatim_caption",
             "scene_position_roles_used": True,
+            "collage_analysis_used": bool(collage_analysis),
+            "collage_analysis_stage": "weak_direction_hint" if collage_analysis else "",
             "quality_gates": [
                 "repetition",
                 "caption_overuse",
@@ -3280,6 +3439,9 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             ),
             "story_caption": story_caption,
             "weak_story_direction": weak_story_direction,
+            "collage_analysis": collage_analysis or {},
+            "collage_direction": collage_direction,
+            "collage_analysis_stage": "weak_direction_hint" if collage_analysis else "",
             "story_caption_stage": "initial_weak_direction_only",
             "story_caption_policy": "weak_direction_not_verbatim_caption",
             "scene_position_roles": {
@@ -3448,6 +3610,20 @@ def build_experiment_i(scenes: list[dict[str, Any]], story_caption: str) -> dict
     return _run_exaone_i_quality_gated_experiment(scenes, story_caption)
 
 
+def build_experiment_j(
+    scenes: list[dict[str, Any]],
+    story_caption: str,
+    collage_analysis: dict[str, Any],
+) -> dict[str, Any]:
+    """Experiment J: Experiment I plus one-pass Qwen collage continuity analysis."""
+    return _run_exaone_i_quality_gated_experiment(
+        scenes,
+        story_caption,
+        experiment_name="Experiment_J",
+        collage_analysis=collage_analysis,
+    )
+
+
 def _html_escape(value: Any) -> str:
     return (
         str(value or "")
@@ -3545,6 +3721,7 @@ def _experiment_dirs(output_root: Path) -> dict[str, Path]:
         "g": output_root / "G",
         "h": output_root / "H",
         "i": output_root / "I",
+        "j": output_root / "J",
     }
 
 
@@ -3557,6 +3734,7 @@ def _experiment_builders() -> dict[str, tuple[str, Any]]:
         "g": ("Experiment_G", build_experiment_g),
         "h": ("Experiment_H", build_experiment_h),
         "i": ("Experiment_I", build_experiment_i),
+        "j": ("Experiment_J", build_experiment_j),
     }
 
 
@@ -3628,6 +3806,58 @@ def _ensure_scenes(
     return scenes
 
 
+def _try_reuse_scene_cache(
+    source_common_output_dir: Path,
+    input_dir: Path,
+    common_output_dir: Path,
+    shared_dir: Path,
+) -> list[dict[str, Any]] | None:
+    source_path = source_common_output_dir / "qwen25_vl_3b_scene_descriptions.json"
+    if not source_path.exists():
+        return None
+
+    source_scenes = json.loads(source_path.read_text(encoding="utf-8"))
+    if not isinstance(source_scenes, list):
+        return None
+
+    image_by_name = {image.name: image for image in _iter_images(input_dir)}
+    if len(source_scenes) != len(image_by_name):
+        return None
+
+    scenes: list[dict[str, Any]] = []
+    for scene in source_scenes:
+        if not isinstance(scene, dict):
+            return None
+        image_id = str(scene.get("image_id") or "")
+        image_path = image_by_name.get(image_id)
+        if image_path is None:
+            return None
+        patched = dict(scene)
+        patched["image_path"] = str(image_path.resolve())
+        scenes.append(patched)
+
+    scenes.sort(key=lambda item: int(item["scene_index"]))
+    common_output_dir.mkdir(parents=True, exist_ok=True)
+    shared_dir.mkdir(parents=True, exist_ok=True)
+    (common_output_dir / "qwen25_vl_3b_scene_descriptions.json").write_text(
+        json.dumps(scenes, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (shared_dir / "scenes.json").write_text(json.dumps(scenes, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    source_shared_dir = source_common_output_dir / "scene_descriptions"
+    if source_shared_dir.exists():
+        for source_raw in sorted(source_shared_dir.glob("*_raw.txt")):
+            shutil.copy2(source_raw, shared_dir / source_raw.name)
+    log_stage(
+        f"reused scene analysis cache from {source_path}",
+        step="Qwen-cache",
+        model=VISION_MODEL_ID,
+        event="cache-hit",
+    )
+    return scenes
+
+
 def prepare_qwen_scenes_for_experiment(
     experiment: str,
     input_dir: str | Path = INPUT_DIR,
@@ -3639,13 +3869,23 @@ def prepare_qwen_scenes_for_experiment(
     common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story"
     shared_dir = common_output_dir / "scene_descriptions"
     resized_dir = common_output_dir / "_resized_input"
+    if key == "j":
+        reused_scenes = _try_reuse_scene_cache(
+            _experiment_dirs(output_root)["i"] / "qwen25_vl_3b_story",
+            input_dir,
+            common_output_dir,
+            shared_dir,
+        )
+        if reused_scenes is not None:
+            return reused_scenes
+
     if key == "e":
         prompt_builder = _prompt_e_visual_cot
         qwen_max_new_tokens = 240
     elif key == "f":
         prompt_builder = _prompt_f_fairy_tale_image_analyst
         qwen_max_new_tokens = 240
-    elif key in {"g", "h", "i"}:
+    elif key in {"g", "h", "i", "j"}:
         prompt_builder = _prompt_g_cot_persona
         qwen_max_new_tokens = 240
     else:
@@ -3661,11 +3901,26 @@ def prepare_qwen_scenes_for_experiment(
     )
 
 
+def prepare_qwen_collage_for_experiment(
+    input_dir: str | Path,
+    output_root: str | Path = OUTPUT_ROOT,
+) -> dict[str, Any]:
+    output_root = Path(output_root)
+    input_dir = Path(input_dir)
+    collage_path = _resolve_collage_path(input_dir)
+    common_output_dir = _experiment_dirs(output_root)["j"] / "qwen25_vl_3b_story" / "collage_analysis"
+    log_stage(f"start Experiment J collage analysis: {collage_path}", step="J-collage", event="start")
+    analysis = _run_qwen_collage_analysis(collage_path, common_output_dir)
+    log_stage("Experiment J collage analysis succeeded", step="J-collage", event="success")
+    return analysis
+
+
 def run_experiment_with_scenes(
     experiment: str,
     scenes: list[dict[str, Any]],
     output_root: str | Path = OUTPUT_ROOT,
     story_caption: str | None = None,
+    collage_analysis: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     output_root = Path(output_root)
     key = experiment.lower()
@@ -3674,7 +3929,9 @@ def run_experiment_with_scenes(
     experiment_name, builder = builders[key]
     set_step_context(experiment=experiment_name, phase="generation")
     log_stage(f"building {experiment_name}", step=key.upper(), model="Qwen scenes + EXAONE GGUF")
-    if key in {"h", "i"}:
+    if key == "j":
+        result = builder(scenes, story_caption or "", collage_analysis or {})
+    elif key in {"h", "i"}:
         result = builder(scenes, story_caption or "")
     else:
         result = builder(scenes)
@@ -3684,7 +3941,7 @@ def run_experiment_with_scenes(
 
 
 def run_selected_experiments(
-    experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f", "g", "h", "i"),
+    experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f", "g", "h", "i", "j"),
     input_dir: str | Path = INPUT_DIR,
     output_root: str | Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
@@ -3692,11 +3949,11 @@ def run_selected_experiments(
     input_dir = Path(input_dir)
     selected = [experiment.lower() for experiment in experiments]
     if "all" in selected:
-        selected = ["c", "d", "e", "f", "g", "h", "i"]
+        selected = ["c", "d", "e", "f", "g", "h", "i", "j"]
 
     results: dict[str, Any] = {}
     for key in selected:
-        story_caption = _read_story_caption(input_dir) if key in {"h", "i"} else None
+        story_caption = _read_story_caption(input_dir) if key in {"h", "i", "j"} else None
         set_step_context(experiment=key.upper(), phase="vision")
         log_stage(f"start Experiment {key.upper()} Qwen scene generation", step="Qwen", event="start")
         scenes = prepare_qwen_scenes_for_experiment(
@@ -3704,6 +3961,7 @@ def run_selected_experiments(
             input_dir=input_dir,
             output_root=output_root,
         )
+        collage_analysis = prepare_qwen_collage_for_experiment(input_dir, output_root) if key == "j" else None
         set_step_context(experiment=key.upper(), phase="vision")
         log_stage(f"Experiment {key.upper()} Qwen scene generation succeeded", step="Qwen", event="success")
         results[key] = run_experiment_with_scenes(
@@ -3711,16 +3969,17 @@ def run_selected_experiments(
             scenes,
             output_root=output_root,
             story_caption=story_caption,
+            collage_analysis=collage_analysis,
         )
     return results
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run independent Qwen + EXAONE GGUF experiments C/D/E/F/G/H/I.")
+    parser = argparse.ArgumentParser(description="Run independent Qwen + EXAONE GGUF experiments C/D/E/F/G/H/I/J.")
     parser.add_argument(
         "experiments",
         nargs="*",
-        choices=("c", "d", "e", "f", "g", "h", "i", "all"),
+        choices=("c", "d", "e", "f", "g", "h", "i", "j", "all"),
         default=["all"],
         help="Experiments to run. Defaults to all.",
     )

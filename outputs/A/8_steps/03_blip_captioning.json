@@ -1,9 +1,0 @@
-{
-  "step": 3,
-  "name": "BLIP captioning",
-  "output": "자유 캡션",
-  "prefix": "a children's drawing of",
-  "num_beams": 5,
-  "max_length": 50,
-  "raw_caption": "a children ' s drawing of a girl standing next to a tree and a rabbit"
-}

@@ -1,4 +1,4 @@
-"""Unified command runner for experiments A/B/C/D/E/F/G/H/I."""
+"""Unified command runner for experiments A/B/C/D/E/F/G/H/I/J."""
 
 from __future__ import annotations
 
@@ -41,9 +41,11 @@ from utils import (
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_SEQUENCE = BASE_DIR / "inputs"
+DEFAULT_COLLAGE_ROOT = BASE_DIR / "collages"
 DEFAULT_OUTPUT_ROOT = BASE_DIR / "outputs"
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 STORY_CAPTION_FILENAME = "caption.txt"
+COLLAGE_FILENAME = "collage_2x5_scene_order.png"
 EVALUATION_DIR = DEFAULT_OUTPUT_ROOT / "evaluations"
 EVALUATION_MAPPING_FILE = EVALUATION_DIR / "blind_mapping.json"
 EVALUATION_RECORDS_FILE = EVALUATION_DIR / "evaluation_records.jsonl"
@@ -63,7 +65,7 @@ def _add_story_input_args(parser: argparse.ArgumentParser, *, help_text: str) ->
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run sketch-to-story experiments by selecting a, b, c, d, e, f, g, h, i, all, or all-evaluate."
+        description="Run sketch-to-story experiments by selecting a, b, c, d, e, f, g, h, i, j, all, or all-evaluate."
     )
     subparsers = parser.add_subparsers(dest="experiment", required=True)
 
@@ -98,12 +100,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     b_parser.add_argument("--story-max-new-tokens", type=int)
 
-    for name in ("c", "d", "e", "f", "g", "h", "i"):
+    for name in ("c", "d", "e", "f", "g", "h", "i", "j"):
         sub = subparsers.add_parser(name, help=f"Run Experiment {name.upper()}.")
         _add_story_input_args(sub, help_text="Ordered image directory or story root.")
         sub.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
 
-    all_parser = subparsers.add_parser("all", help="Run A, B, C, D, E, F, G, H, and I in order.")
+    all_parser = subparsers.add_parser("all", help="Run A, B, C, D, E, F, G, H, I, and J in order.")
     _add_story_input_args(all_parser, help_text="Ordered image directory or story root.")
     all_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
     all_parser.add_argument("--clip-threshold", type=float, default=0.22)
@@ -112,7 +114,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     all_evaluate_parser = subparsers.add_parser(
         "all-evaluate",
-        help="Run A-I, rebuild blind evaluation from successful results, then launch the dashboard.",
+        help="Run A-J, rebuild blind evaluation from successful results, then launch the dashboard.",
     )
     _add_story_input_args(all_evaluate_parser, help_text="Ordered image directory or story root.")
     all_evaluate_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
@@ -553,12 +555,19 @@ def _preflight_exaone_gguf() -> None:
 def _preflight_for_experiment(args: argparse.Namespace) -> None:
     """Prepare required downloads/tools before actual generation begins."""
     set_step_context(experiment=args.experiment.upper(), phase="preflight")
-    if args.experiment in {"h", "i"}:
+    if args.experiment in {"h", "i", "j"}:
         caption_path = Path(args.input_dir) / STORY_CAPTION_FILENAME
         if not caption_path.exists():
             raise FileNotFoundError(f"Experiment {args.experiment.upper()} requires {caption_path}")
         if not caption_path.read_text(encoding="utf-8").strip():
             raise ValueError(f"Experiment {args.experiment.upper()} requires a non-empty caption file: {caption_path}")
+    if args.experiment == "j":
+        collage_path = DEFAULT_COLLAGE_ROOT / Path(args.input_dir).name / COLLAGE_FILENAME
+        if not collage_path.exists():
+            raise FileNotFoundError(
+                "Experiment J requires a collage image outside inputs so A-I do not read it: "
+                f"{collage_path}"
+            )
 
     if args.experiment in {"all", "all-evaluate"}:
         log_stage("preparing all downloads and runtime checks before generation", step="preflight")
@@ -574,7 +583,7 @@ def _preflight_for_experiment(args: argparse.Namespace) -> None:
         _preflight_exaone_gguf()
     elif args.experiment == "b" and getattr(args, "story_backend", "") == "exaone_gguf_structured":
         _preflight_exaone_gguf()
-    elif args.experiment in {"c", "d", "e", "f", "g", "h", "i"}:
+    elif args.experiment in {"c", "d", "e", "f", "g", "h", "i", "j"}:
         _preflight_qwen_model()
         _preflight_exaone_gguf()
 
@@ -831,7 +840,7 @@ def _run_guarded_experiment(
 
 def _run_cdef_guarded(args: argparse.Namespace) -> list[dict[str, Any]]:
     output_root = Path(args.output_root)
-    experiments = ["C", "D", "E", "F", "G", "H", "I"]
+    experiments = ["C", "D", "E", "F", "G", "H", "I", "J"]
     summaries = []
     for index, experiment in enumerate(experiments):
         next_experiment = experiments[index + 1] if index + 1 < len(experiments) else None
@@ -978,7 +987,7 @@ def main() -> None:
         set_step_context(experiment="B", phase="generation")
         log_stage(f"start Experiment B backend={args.story_backend}", step="B")
         _run_b(args)
-    elif args.experiment in {"c", "d", "e", "f", "g", "h", "i"}:
+    elif args.experiment in {"c", "d", "e", "f", "g", "h", "i", "j"}:
         set_step_context(experiment=args.experiment.upper(), phase="generation")
         log_stage(f"start Experiment {args.experiment.upper()}", step=args.experiment.upper())
         run_selected_experiments(

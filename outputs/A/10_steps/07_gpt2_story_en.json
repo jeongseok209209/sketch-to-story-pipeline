@@ -1,7 +1,0 @@
-{
-  "step": 7,
-  "name": "GPT-2 영문 동화 생성",
-  "output": "story_en",
-  "max_new_tokens": 200,
-  "story_en": "A children's story.\n\nOnce upon a time, there was a children ' s drawing of a girl sitting on the ground surrounded by animals. The main character was girl and two children, children playing in park. The mood was happy.\n\nThe story begins:"
-}
