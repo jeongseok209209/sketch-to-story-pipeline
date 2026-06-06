@@ -11,7 +11,7 @@ Git에 포함되는 파일:
 - Python 실행 코드: `run.py`, `pipeline_a.py`, `generators.py`, `utils.py`, `vision.py`, `run_experiments_cd_qwen3b.py`
 - 문서: `README.md`, `SETUP.md`, `USAGE.md`
 - 의존성 목록: `requirements.txt`
-- Windows 세팅 도우미: `setup_windows.ps1`
+- Windows 세팅 도우미: `setup.bat`, `setup_windows.ps1`
 - 예제 입력 데이터: `inputs/`
 
 Git에 포함하지 않는 로컬 생성물:
@@ -28,11 +28,10 @@ Windows PowerShell에서:
 ```powershell
 git clone https://github.com/jeongseok209209/sketch-to-story-pipeline.git
 cd sketch-to-story-pipeline
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe run.py check
+.\setup.bat
 ```
+
+VS Code/Cursor에서 저장소 폴더를 연 뒤 터미널에 `.\setup.bat` 한 줄만 입력해도 같은 세팅이 진행됩니다.
 
 가장 작은 실행 테스트:
 

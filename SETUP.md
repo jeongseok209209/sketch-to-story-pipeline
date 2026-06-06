@@ -19,7 +19,32 @@ git clone https://github.com/jeongseok209209/sketch-to-story-pipeline.git
 cd sketch-to-story-pipeline
 ```
 
-## 2. Create Virtual Environment
+## 2. One-Command Setup
+
+VS Code, Cursor, PowerShell, 또는 Windows Terminal에서 프로젝트 폴더를 열고 아래 명령 하나만 실행하세요.
+
+```powershell
+.\setup.bat
+```
+
+CMD 터미널에서는 `setup.bat`라고 입력해도 됩니다.
+
+이 명령은 내부적으로 다음 작업을 합니다.
+
+- Python 3.12 확인
+- `.venv` 생성
+- pip 업그레이드
+- `requirements.txt` 설치
+- NVIDIA GPU가 있으면 `nvidia-smi` 출력
+- `run.py check`로 환경 점검
+
+완료 후 작은 실행 테스트 명령을 화면에 보여줍니다.
+
+## Manual Setup
+
+자동 세팅이 아니라 직접 단계별로 실행하고 싶을 때만 아래 명령을 사용하세요.
+
+### 1. Create Virtual Environment
 
 ```powershell
 py -3.12 -m venv .venv
@@ -31,14 +56,14 @@ PowerShell 스크립트 활성화는 필요하지 않습니다. 아래처럼 프
 .\.venv\Scripts\python.exe --version
 ```
 
-## 3. Install Dependencies
+### 2. Install Dependencies
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-## 4. Check Environment
+### 3. Check Environment
 
 ```powershell
 .\.venv\Scripts\python.exe run.py check
@@ -46,9 +71,9 @@ PowerShell 스크립트 활성화는 필요하지 않습니다. 아래처럼 프
 
 `check`는 모델 다운로드나 자동 설치를 하지 않고 현재 상태만 확인합니다. Python 패키지, 입력 이미지, GPU/CPU 상태, 로컬 모델 캐시, llama.cpp 위치를 점검합니다.
 
-## 5. Optional Setup Script
+## PowerShell Script Directly
 
-수동 명령 대신 기본 세팅 스크립트를 사용할 수도 있습니다.
+`setup.bat` 대신 PowerShell 스크립트를 직접 실행할 수도 있습니다.
 
 ```powershell
 .\setup_windows.ps1
