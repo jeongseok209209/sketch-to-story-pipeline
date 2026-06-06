@@ -901,9 +901,6 @@ def _collect_story_qualitative(case: EvaluationCase) -> dict[str, str]:
 
 def _render_summary(summary: dict[str, Any]) -> None:
     st.divider()
-    _render_story_image_overview(current_case)
-
-    st.divider()
     st.markdown("## 분석 요약")
     st.caption("이 영역은 모든 case 평가가 저장된 뒤에만 실제 실험명 기준으로 표시됩니다.")
 
@@ -997,7 +994,7 @@ def _render_results_dashboard(
                 counts = fields.get(key, {})
                 if not counts:
                     continue
-                distribution = ", ".join(f"{label}: {count}" for label, count in counts.items())
+                distribution = ", ".join(str(label) for label in counts)
                 rows.append({"항목": config["label"], "분포": distribution})
             if rows:
                 st.markdown(f"#### {experiment}")
@@ -1059,6 +1056,8 @@ def main() -> None:
             _render_scene(scene, existing_record, current_case.case_id)
 
     st.divider()
+    _render_story_image_overview(current_case)
+    st.divider()
     st.markdown("## 전체 이야기")
     st.write(current_case.full_story or "전체 이야기 본문이 없습니다.")
     _render_qualitative_form(current_case, existing_record)
@@ -1089,7 +1088,10 @@ def main() -> None:
         st.rerun()
 
     if all(case.case_id in latest_records for case in cases):
-        _render_results_dashboard(mapping, latest_records)
+        st.info("모든 case 평가가 저장되었습니다. 결과 화면에서 점수표와 그래프를 확인할 수 있습니다.")
+        if st.button("결과 화면 보기", width="stretch"):
+            st.session_state.view_mode = "results"
+            st.rerun()
     else:
         st.info("모든 case 평가를 저장하면 실험명 기준 분석 요약이 표시됩니다.")
 
