@@ -965,6 +965,82 @@ def _build_i_english_translation_repair_prompt(raw_response: str, scene: dict[st
     )
 
 
+def _build_i_english_term_translation_prompt(terms: list[str], sentence: str) -> str:
+    return (
+        "Experiment I English term translation: Translate only the listed English-containing terms/fragments into Korean.\n"
+        "Do not decide whether English exists; the caller already detected these terms/fragments in Python.\n"
+        "Return exactly one JSON object only. Do not add markdown, explanations, or code fences.\n"
+        "The JSON object must have this shape:\n"
+        "{\n"
+        '  "translations": {\n'
+        '    "EnglishTerm": "KoreanTranslation"\n'
+        "  }\n"
+        "}\n"
+        "Rules:\n"
+        "- Translate each listed item 1:1 into Korean replacement text.\n"
+        "- Values must not contain English letters.\n"
+        "- Do not rewrite the sentence.\n"
+        "- If an item mixes English with a Korean suffix, translate the whole listed item into one natural Korean replacement.\n\n"
+        f"terms:\n{json.dumps(terms, ensure_ascii=False)}\n\n"
+        f"sentence:\n{sentence}\n"
+    )
+
+
+def _build_i_english_term_translation_repair_prompt(
+    raw_response: str,
+    terms: list[str],
+    sentence: str,
+) -> str:
+    return (
+        "You are a strict JSON repair tool.\n"
+        "Convert the model response into one valid JSON object only. No markdown. No explanation.\n"
+        "The JSON object must contain a translations object mapping every listed item to Korean.\n"
+        "Translation values must not contain English letters.\n\n"
+        "Required shape:\n"
+        "{\n"
+        '  "translations": {\n'
+        '    "EnglishTerm": "KoreanTranslation"\n'
+        "  }\n"
+        "}\n\n"
+        f"terms:\n{json.dumps(terms, ensure_ascii=False)}\n\n"
+        f"sentence:\n{sentence}\n\n"
+        "MODEL_RESPONSE_TO_REPAIR:\n"
+        f"{raw_response}\n"
+    )
+
+
+def _extract_i_english_translations(raw_response: str, terms: list[str]) -> dict[str, str]:
+    term_keys = {term.lower(): term for term in terms}
+    last_error: Exception | None = None
+    for candidate in reversed(_json_object_candidates(raw_response)):
+        try:
+            payload = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            continue
+        if not isinstance(payload, dict):
+            last_error = ValueError("translation response was not a JSON object")
+            continue
+        raw_translations = payload.get("translations", payload)
+        if not isinstance(raw_translations, dict):
+            last_error = ValueError("translation response did not contain a translations object")
+            continue
+        translations: dict[str, str] = {}
+        lowered_payload = {str(key).lower(): value for key, value in raw_translations.items()}
+        for lower_term, original_term in term_keys.items():
+            value = lowered_payload.get(lower_term)
+            translated = str(value or "").strip()
+            if not translated or _english_words(translated):
+                continue
+            translations[original_term] = translated
+        if translations:
+            return translations
+        last_error = ValueError("translation response did not include usable Korean translations")
+    if last_error:
+        raise last_error
+    raise ValueError("translation response did not contain a JSON object")
+
+
 def _build_i_opening_refinement_prompt(scene: dict[str, Any]) -> str:
     scene_index = int(scene["scene_index"])
     initial_sentence = str(scene.get("_g_initial_sentence") or "").strip()
@@ -1362,6 +1438,41 @@ def _looks_like_placeholder(value: str) -> bool:
 
 def _english_words(value: str) -> list[str]:
     return re.findall(r"[A-Za-z]{2,}", value)
+
+
+def _unique_english_words(value: str) -> list[str]:
+    terms: list[str] = []
+    seen: set[str] = set()
+    for term in _english_words(value):
+        key = term.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        terms.append(term)
+    return terms
+
+
+def _unique_english_replacement_units(value: str) -> list[str]:
+    units: list[str] = []
+    seen: set[str] = set()
+    for unit in re.findall(r"[A-Za-z]{2,}(?:[\uac00-\ud7a3]+)?", value):
+        key = unit.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        units.append(unit)
+    return units
+
+
+def _replace_english_terms(value: str, translations: dict[str, str]) -> str:
+    result = value
+    for term in sorted(translations, key=len, reverse=True):
+        translated = translations[term].strip()
+        if not translated:
+            continue
+        pattern = re.compile(rf"(?<![A-Za-z]){re.escape(term)}(?![A-Za-z])", flags=re.I)
+        result = pattern.sub(translated, result)
+    return result
 
 
 def _has_meta_language(value: str) -> bool:
@@ -2448,7 +2559,7 @@ def _maybe_run_i_cleanup(
     return cleaned, cleanup_record
 
 
-def _maybe_run_i_quality_cleanup(
+def _run_i_english_term_translation(
     scene: dict[str, Any],
     parsed_result: dict[str, Any],
     *,
@@ -2459,6 +2570,94 @@ def _maybe_run_i_quality_cleanup(
     caption_usage_counts: dict[str, int],
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     sentence = str(parsed_result.get("story_sentence") or "")
+    terms = _unique_english_replacement_units(sentence)
+    if not terms:
+        return parsed_result, None
+
+    scene_index = int(scene["scene_index"])
+    prompt = _build_i_english_term_translation_prompt(terms, sentence)
+    raw_response = ""
+    json_repair_used = False
+    fallback_error = ""
+    translations: dict[str, str] = {}
+    with timed_step(
+        f"EXAONE-english-terms-{stage}-{scene_index:02d}",
+        f"{experiment_name} {stage} scene {scene_index} English term translation",
+        experiment=experiment_name,
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+    ):
+        raw_response = _run_exaone_gguf_prompt(
+            prompt,
+            max_new_tokens=180,
+            timeout=300,
+            context_size=4096,
+        )
+    try:
+        translations = _extract_i_english_translations(raw_response, terms)
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        repair_prompt = _build_i_english_term_translation_repair_prompt(raw_response, terms, sentence)
+        with timed_step(
+            f"EXAONE-english-terms-{stage}-{scene_index:02d}-repair",
+            f"{experiment_name} {stage} scene {scene_index} English term translation JSON repair",
+            experiment=experiment_name,
+            model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        ):
+            repair_response = _run_exaone_gguf_prompt(
+                repair_prompt,
+                max_new_tokens=180,
+                timeout=300,
+                context_size=4096,
+            )
+        json_repair_used = True
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
+        try:
+            translations = _extract_i_english_translations(repair_response, terms)
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            fallback_error = f"initial_error={exc}; repair_error={repair_exc}"
+
+    translated_sentence = _replace_english_terms(sentence, translations) if translations else sentence
+    translated_result = {
+        **parsed_result,
+        "scene_index": scene_index,
+        "story_sentence": translated_sentence,
+    }
+    remaining_reasons = _i_quality_gate_reasons(
+        translated_sentence,
+        scene,
+        story_caption,
+        caption_usage_counts,
+        previous_sentence=previous_final_sentence,
+        check_ending=False,
+    )
+    record = {
+        "stage": f"{stage}_english_translation",
+        "scene_index": scene_index,
+        "reasons": ["english"],
+        "remaining_reasons": remaining_reasons,
+        "english_terms": terms,
+        "translations": translations,
+        "prompt": prompt,
+        "raw_response": raw_response,
+        "parsed_result": translated_result,
+        "json_repair_used": json_repair_used,
+        "fallback_used": not bool(translations),
+        "fallback_error": fallback_error,
+    }
+    return translated_result, record
+
+
+def _maybe_run_i_quality_cleanup(
+    scene: dict[str, Any],
+    parsed_result: dict[str, Any],
+    *,
+    experiment_name: str,
+    stage: str,
+    previous_final_sentence: str,
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    cleanup_records: list[dict[str, Any]] = []
+    sentence = str(parsed_result.get("story_sentence") or "")
     reasons = _i_quality_gate_reasons(
         sentence,
         scene,
@@ -2467,8 +2666,29 @@ def _maybe_run_i_quality_cleanup(
         previous_sentence=previous_final_sentence,
         check_ending=False,
     )
+    if "english" in reasons:
+        parsed_result, english_record = _run_i_english_term_translation(
+            scene,
+            parsed_result,
+            experiment_name=experiment_name,
+            stage=stage,
+            previous_final_sentence=previous_final_sentence,
+            story_caption=story_caption,
+            caption_usage_counts=caption_usage_counts,
+        )
+        if english_record:
+            cleanup_records.append(english_record)
+        sentence = str(parsed_result.get("story_sentence") or "")
+        reasons = _i_quality_gate_reasons(
+            sentence,
+            scene,
+            story_caption,
+            caption_usage_counts,
+            previous_sentence=previous_final_sentence,
+            check_ending=False,
+        )
     if not reasons:
-        return parsed_result, None
+        return parsed_result, cleanup_records
 
     cleanup_scene = {
         **scene,
@@ -2507,7 +2727,20 @@ def _maybe_run_i_quality_cleanup(
         "fallback_used": cleanup_result.get("fallback_used", False),
         "fallback_error": cleanup_result.get("fallback_error", ""),
     }
-    return cleaned, cleanup_record
+    cleanup_records.append(cleanup_record)
+    if "english" in remaining_reasons:
+        cleaned, english_record = _run_i_english_term_translation(
+            scene,
+            cleaned,
+            experiment_name=experiment_name,
+            stage=f"{stage}_post_cleanup",
+            previous_final_sentence=previous_final_sentence,
+            story_caption=story_caption,
+            caption_usage_counts=caption_usage_counts,
+        )
+        if english_record:
+            cleanup_records.append(english_record)
+    return cleaned, cleanup_records
 
 
 def _maybe_run_i_ending_cleanup(
@@ -2859,7 +3092,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
     cleanup_results: list[dict[str, Any]] = []
     caption_usage_counts: dict[str, int] = {}
     first_scene = ordered_scenes[0]
-    first_final, first_cleanup = _maybe_run_i_quality_cleanup(
+    first_final, first_cleanup_records = _maybe_run_i_quality_cleanup(
         first_scene,
         initial_results[0]["parsed_result"],
         experiment_name=experiment_name,
@@ -2868,8 +3101,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
         story_caption=story_caption,
         caption_usage_counts=caption_usage_counts,
     )
-    if first_cleanup:
-        cleanup_results.append(first_cleanup)
+    cleanup_results.extend(first_cleanup_records)
     final_scene_results = [first_final]
     _record_caption_usage(first_final["story_sentence"], story_caption, caption_usage_counts)
     refined_results: list[dict[str, Any]] = []
@@ -2893,7 +3125,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             step_label="refinement scene",
         )
         refined_results.append(refined_result)
-        cleaned_refined, cleanup_record = _maybe_run_i_quality_cleanup(
+        cleaned_refined, cleanup_records = _maybe_run_i_quality_cleanup(
             scene,
             refined_result["parsed_result"],
             experiment_name=experiment_name,
@@ -2902,8 +3134,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             story_caption=story_caption,
             caption_usage_counts=caption_usage_counts,
         )
-        if cleanup_record:
-            cleanup_results.append(cleanup_record)
+        cleanup_results.extend(cleanup_records)
         final_scene_results.append(cleaned_refined)
         previous_final_sentence = cleaned_refined["story_sentence"]
         if scene_index != 10:
@@ -2923,6 +3154,18 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
         )
         if ending_cleanup_result:
             final_scene_results[-1] = ending_cleaned
+            ending_translated, ending_translation_record = _run_i_english_term_translation(
+                ending_scene,
+                ending_cleaned,
+                experiment_name=experiment_name,
+                stage="ending_post_cleanup",
+                previous_final_sentence=ending_previous_sentence,
+                story_caption=story_caption,
+                caption_usage_counts=caption_usage_counts,
+            )
+            if ending_translation_record:
+                cleanup_results.append(ending_translation_record)
+                final_scene_results[-1] = ending_translated
     if final_scene_results:
         _record_caption_usage(final_scene_results[-1]["story_sentence"], story_caption, caption_usage_counts)
 
@@ -2979,6 +3222,8 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
                     "scene_index": item["scene_index"],
                     "reasons": item["reasons"],
                     "remaining_reasons": item["remaining_reasons"],
+                    "english_terms": item.get("english_terms", []),
+                    "translations": item.get("translations", {}),
                     "parsed_result": item["parsed_result"],
                 }
                 for item in cleanup_results
@@ -3013,6 +3258,9 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             "exaone_initial_scene_calls": len(initial_results),
             "exaone_refinement_calls": len(refined_results),
             "cleanup_calls": len(cleanup_results),
+            "english_translation_calls": sum(
+                1 for item in cleanup_results if "english_translation" in str(item.get("stage", ""))
+            ),
             "ending_cleanup_calls": 1 if ending_cleanup_result else 0,
             "exaone_title_calls": 1,
             "exaone_total_calls": (
@@ -3027,7 +3275,7 @@ def _run_exaone_i_quality_gated_experiment(scenes: list[dict[str, Any]], story_c
             "method": (
                 "Qwen scene JSON -> EXAONE initial per-scene paragraphs with generic scene_position_role "
                 "and weak_story_direction -> EXAONE sequential refinement without story_caption -> "
-                "quality-gated cleanup -> optional ending cleanup -> "
+                "Python English detection with EXAONE term translation -> quality-gated cleanup -> optional ending cleanup -> "
                 "code joins body -> EXAONE title"
             ),
             "story_caption": story_caption,
