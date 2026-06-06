@@ -15,7 +15,6 @@ from evaluate import evaluate
 from generators import (
     generate_sequence_story_exaone_gguf,
     generate_story_en,
-    generate_story_ko_exaone,
     generate_structured_plan_exaone_gguf,
     get_last_llama_runtime,
     translate_en_ko,
@@ -150,7 +149,6 @@ def run_experiment_a(
     image_path: str,
     output_dir: str = "results/A",
     clip_threshold: float = 0.22,
-    story_backend: str = "gpt2_nllb",
     story_max_new_tokens: int | None = None,
 ) -> dict[str, Any]:
     """Run the full Experiment A pipeline and save the run record as JSON."""
@@ -164,48 +162,32 @@ def run_experiment_a(
 
     # 1단계: 이미지에서 object/scene/mood 등 이야기 생성을 위한 vision 정보를 추출합니다.
     vision, steps = recognize_with_steps(str(image), clip_threshold=clip_threshold)
-    if story_backend == "exaone":
-        # EXAONE은 vision JSON을 받아 한국어 동화를 직접 생성합니다.
-        token_budget = story_max_new_tokens or 60
-        clear_vision_model_caches()
-        story_en = ""
-        story_final = generate_story_ko_exaone(vision, max_new_tokens=token_budget)
-        steps["07_exaone_story_ko"] = {
-            "step": 7,
-            "name": "EXAONE 한국어 동화 직접 생성",
-            "output": "story_final",
-            "max_new_tokens": token_budget,
-            "story_final": story_final,
-        }
-    elif story_backend == "gpt2_nllb":
-        # 2단계: vision 정보를 바탕으로 먼저 영어 동화를 생성합니다.
-        token_budget = story_max_new_tokens or 200
-        story_en = generate_story_en(vision, max_new_tokens=token_budget)
-        steps["07_gpt2_story_en"] = {
-            "step": 7,
-            "name": "GPT-2 영문 동화 생성",
-            "output": "story_en",
-            "max_new_tokens": token_budget,
-            "story_en": story_en,
-        }
-        # 3단계: 생성된 영어 이야기를 최종 제출용 한국어 이야기로 번역합니다.
-        story_final = translate_en_ko(story_en)
-        steps["08_nllb_translation_ko"] = {
-            "step": 8,
-            "name": "NLLB 영한 번역",
-            "output": "story_final",
-            "story_final": story_final,
-        }
-
-    else:
-        raise ValueError(f"Unsupported Experiment A story backend: {story_backend}")
+    story_backend = "gpt2_nllb"
+    # 2단계: vision 정보를 바탕으로 먼저 영어 동화를 생성합니다.
+    token_budget = story_max_new_tokens or 200
+    story_en = generate_story_en(vision, max_new_tokens=token_budget)
+    steps["07_gpt2_story_en"] = {
+        "step": 7,
+        "name": "GPT-2 영문 동화 생성",
+        "output": "story_en",
+        "max_new_tokens": token_budget,
+        "story_en": story_en,
+    }
+    # 3단계: 생성된 영어 이야기를 최종 제출용 한국어 이야기로 번역합니다.
+    story_final = translate_en_ko(story_en)
+    steps["08_nllb_translation_ko"] = {
+        "step": 8,
+        "name": "NLLB 영한 번역",
+        "output": "story_final",
+        "story_final": story_final,
+    }
 
     with timed_step(10, "evaluation and JSON save"):
         # object 반영률과 기본 분량 지표를 계산해 실험 결과 비교에 사용합니다.
         metrics = evaluate(
             vision,
             story_final,
-            translate_objects=story_backend == "gpt2_nllb",
+            translate_objects=True,
         )
         evaluation_key = "09_evaluation"
         steps[evaluation_key] = {
@@ -514,21 +496,9 @@ def _build_parser() -> argparse.ArgumentParser:
         help="OpenCLIP cosine threshold for accepting candidate words.",
     )
     parser.add_argument(
-        "--story-backend",
-        choices=(
-            "gpt2_nllb",
-            "exaone",
-        ),
-        default="gpt2_nllb",
-        help="Story generator to use: GPT-2 + NLLB or direct EXAONE.",
-    )
-    parser.add_argument(
         "--story-max-new-tokens",
         type=int,
-        help=(
-            "Override story generation token budget. Defaults: 200 for gpt2_nllb, "
-            "60 for exaone."
-        ),
+        help="Override Experiment A story generation token budget. Default: 200.",
     )
     return parser
 
@@ -545,7 +515,6 @@ def main() -> None:
             str(image_path),
             output_dir=args.output_dir,
             clip_threshold=args.clip_threshold,
-            story_backend=args.story_backend,
             story_max_new_tokens=args.story_max_new_tokens,
         )
         return
@@ -555,7 +524,6 @@ def main() -> None:
             image_dir=args.sequence_dir,
             output_dir=args.output_dir,
             clip_threshold=args.clip_threshold,
-            story_backend=args.story_backend,
             story_max_new_tokens=args.story_max_new_tokens,
         )
         return
@@ -576,7 +544,6 @@ def main() -> None:
                 str(image_path),
                 output_dir=args.output_dir,
                 clip_threshold=args.clip_threshold,
-                story_backend=args.story_backend,
                 story_max_new_tokens=args.story_max_new_tokens,
             )
             return
@@ -590,7 +557,6 @@ def main() -> None:
             str(image_path),
             output_dir=args.output_dir,
             clip_threshold=args.clip_threshold,
-            story_backend=args.story_backend,
             story_max_new_tokens=args.story_max_new_tokens,
         )
 

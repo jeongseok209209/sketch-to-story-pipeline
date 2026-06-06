@@ -19,6 +19,7 @@ from utils import (
     QWEN25_VL_MODEL,
     local_huggingface_model_path,
     ensure_exaone_gguf_model,
+    log_model_device,
     log_stage,
     set_step_context,
     timed_step,
@@ -334,11 +335,7 @@ def _extract_json(text: str) -> dict[str, Any]:
     return value if isinstance(value, dict) else {"scene_summary": text.strip()}
 
 
-def _json_object_candidates(text: str) -> list[str]:
-    """Return balanced JSON-object-looking substrings from model text."""
-    cleaned = text.strip()
-    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-    cleaned = re.sub(r"\s*```$", "", cleaned)
+def _balanced_json_object_candidates(cleaned: str) -> list[str]:
     candidates: list[str] = []
     start: int | None = None
     depth = 0
@@ -371,19 +368,53 @@ def _json_object_candidates(text: str) -> list[str]:
     return candidates
 
 
+def _json_object_candidates(text: str) -> list[str]:
+    """Return balanced JSON-object-looking substrings from model text."""
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```[A-Za-z0-9_-]*\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    candidates = _balanced_json_object_candidates(cleaned)
+    for start in [match.start() for match in re.finditer(r"\{", cleaned)][-80:]:
+        suffix_candidates = _balanced_json_object_candidates(cleaned[start:])
+        if suffix_candidates:
+            candidates.append(suffix_candidates[0])
+    for match in re.finditer(r"```[A-Za-z0-9_-]*\s*(.*?)\s*```", text, flags=re.S):
+        candidates.extend(_balanced_json_object_candidates(match.group(1).strip()))
+    return candidates
+
+
+def _last_jsonish_fragment(text: str, limit: int = 6000) -> str:
+    fenced_blocks = [
+        match.group(1).strip()
+        for match in re.finditer(r"```[A-Za-z0-9_-]*\s*(.*?)\s*```", text, flags=re.S)
+        if match.group(1).strip()
+    ]
+    if fenced_blocks:
+        return fenced_blocks[-1][-limit:]
+    candidates = _json_object_candidates(text)
+    if candidates:
+        return candidates[-1][-limit:]
+    cleaned = text.strip()
+    return cleaned[-limit:] if len(cleaned) > limit else cleaned
+
+
 def _extract_required_json(text: str) -> dict[str, Any]:
     candidates = _json_object_candidates(text)
     if not candidates:
         raise ValueError("EXAONE response did not contain a JSON object.")
     last_error: Exception | None = None
-    for candidate in candidates:
+    for candidate in reversed(candidates):
         try:
             value = json.loads(candidate)
         except json.JSONDecodeError as exc:
             last_error = exc
             continue
         if isinstance(value, dict):
-            return value
+            story = value.get("story") if isinstance(value.get("story"), dict) else value
+            if any(key in story for key in ("title", "body", "scene_sentences")):
+                return value
+            last_error = ValueError("EXAONE JSON response was not a story object.")
+            continue
         last_error = ValueError("EXAONE JSON response was not an object.")
     if last_error:
         raise last_error
@@ -440,6 +471,7 @@ def _run_qwen_scene(
     index: int,
     prompt_builder: Callable[[int], str] = _prompt,
     max_new_tokens: int = 220,
+    device: str = "cpu",
 ) -> dict[str, Any]:
     import torch
     from qwen_vl_utils import process_vision_info
@@ -457,7 +489,7 @@ def _run_qwen_scene(
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     image_inputs, video_inputs = process_vision_info(messages)
     inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt")
-    if torch.cuda.is_available():
+    if device == "cuda":
         inputs = inputs.to("cuda")
     with torch.inference_mode():
         generated = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
@@ -479,15 +511,30 @@ def _run_qwen_collage_analysis(
     model_source = _snapshot_dir(local_huggingface_model_path(VISION_MODEL_ID))
     log_stage(f"loading collage vision model from {model_source}", step="J-collage-load", model=VISION_MODEL_ID)
     local_only = isinstance(model_source, Path)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     with timed_step("J-collage-load", "Qwen2.5-VL collage model load", model=VISION_MODEL_ID):
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_source,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else "auto",
+            torch_dtype=torch.float16 if device == "cuda" else "auto",
             local_files_only=local_only,
         )
-        if torch.cuda.is_available():
-            model = model.to("cuda")
+        if device == "cuda":
+            try:
+                model = model.to("cuda")
+            except Exception as exc:
+                device = "cpu"
+                log_stage(f"Qwen CUDA move failed; reloading on CPU: {exc}", step="J-collage-device", model=VISION_MODEL_ID)
+                try:
+                    torch.cuda.empty_cache()
+                except Exception:
+                    pass
+                model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                    model_source,
+                    torch_dtype="auto",
+                    local_files_only=local_only,
+                )
         model.eval()
+        log_model_device(VISION_MODEL_ID, device, phase="vision")
         processor = AutoProcessor.from_pretrained(
             model_source,
             local_files_only=local_only,
@@ -507,7 +554,7 @@ def _run_qwen_collage_analysis(
     text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     image_inputs, video_inputs = process_vision_info(messages)
     inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt")
-    if torch.cuda.is_available():
+    if device == "cuda":
         inputs = inputs.to("cuda")
     with timed_step("J-collage", "Qwen collage sequence analysis", model=VISION_MODEL_ID):
         with torch.inference_mode():
@@ -573,30 +620,113 @@ def _ensure_exaone_gguf_available() -> None:
         )
 
 
+def _has_korean_text(value: str, minimum_chars: int = 4) -> bool:
+    return len(re.findall(r"[\uac00-\ud7a3]", value)) >= minimum_chars
+
+
+def _global_story_invalid_reasons(value: str, *, field_name: str) -> list[str]:
+    reasons: list[str] = []
+    cleaned = re.sub(r"\s+", " ", str(value or "")).strip()
+    lowered = cleaned.lower()
+    if not cleaned:
+        reasons.append("empty")
+    if not _has_korean_text(cleaned, minimum_chars=4):
+        reasons.append("not_korean_prose")
+    if _looks_like_placeholder(cleaned):
+        reasons.append("placeholder")
+    schema_markers = (
+        "one non-empty korean",
+        "actual korean story",
+        "actual korean prose",
+        "write real korean prose",
+        "for this scene",
+        "story.scene_sentences",
+        "scene_sentences",
+        "story_sentence",
+        "grounding_notes",
+        "json",
+        "objects",
+        "characters",
+        "setting",
+        "qwen",
+        "\uadf8\ub9bc \uadfc\uac70\ub97c \uc5b4\ub5bb\uac8c \ubc18\uc601",
+        "\uac01 \uadf8\ub9bc\uc758 objects",
+    )
+    if any(marker in lowered for marker in schema_markers):
+        reasons.append("schema_or_meta_language")
+    if field_name == "scene_sentences" and _has_meta_language(cleaned):
+        reasons.append("meta_language")
+    return reasons
+
+
+def _validate_global_story_text(value: str, *, field_name: str, scene_index: int | None = None) -> None:
+    reasons = _global_story_invalid_reasons(value, field_name=field_name)
+    if reasons:
+        location = f" scene {scene_index}" if scene_index is not None else ""
+        raise ValueError(
+            f"exaone_output_invalid: EXAONE story.{field_name}{location} is not valid story prose "
+            f"({', '.join(sorted(set(reasons)))}): {value[:160]!r}"
+        )
+
+
 def _story_from_payload(payload: dict[str, Any], scene_count: int) -> dict[str, Any]:
     story = payload.get("story") if isinstance(payload.get("story"), dict) else payload
     title = str(story.get("title") or "").strip()
     if not title:
         raise ValueError("EXAONE story.title is required.")
+    if _looks_like_placeholder(title) or not _has_korean_text(title, minimum_chars=2):
+        raise ValueError(f"exaone_output_invalid: EXAONE story.title is not usable: {title[:160]!r}")
     body = str(story.get("body") or "").strip()
     if not body:
         raise ValueError("EXAONE story.body is required.")
+    _validate_global_story_text(body, field_name="body")
     scene_sentences = story.get("scene_sentences")
     if not isinstance(scene_sentences, list):
-        scene_sentences = []
+        raise ValueError("EXAONE story.scene_sentences must be a list.")
     scene_sentences = [str(sentence).strip() for sentence in scene_sentences if str(sentence).strip()]
-    if not scene_sentences and body:
-        scene_sentences = [part.strip() for part in re.split(r"\n\s*\n", body) if part.strip()]
     if len(scene_sentences) != scene_count:
         raise ValueError(
             f"EXAONE returned {len(scene_sentences)} scene_sentences for {scene_count} scenes."
         )
+    for index, sentence in enumerate(scene_sentences, start=1):
+        _validate_global_story_text(sentence, field_name="scene_sentences", scene_index=index)
     grounding_notes = story.get("grounding_notes")
     return {
         "title": title,
         "body": body,
         "scene_sentences": scene_sentences,
         "grounding_notes": grounding_notes if grounding_notes is not None else [],
+    }
+
+
+def _global_story_json_schema(scene_count: int) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "structure": {},
+            "plan": {},
+            "story": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "minLength": 1},
+                    "body": {"type": "string", "minLength": 1},
+                    "scene_sentences": {
+                        "type": "array",
+                        "items": {"type": "string", "minLength": 1},
+                        "minItems": scene_count,
+                        "maxItems": scene_count,
+                    },
+                    "grounding_notes": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                },
+                "required": ["title", "body", "scene_sentences"],
+                "additionalProperties": True,
+            },
+        },
+        "required": ["story"],
+        "additionalProperties": True,
     }
 
 
@@ -609,6 +739,7 @@ def _run_exaone_experiment(
     context_size: int = 8192,
 ) -> dict[str, Any]:
     _ensure_exaone_gguf_available()
+    json_schema = _global_story_json_schema(len(scenes))
     with timed_step(
         "EXAONE",
         f"{experiment_name} EXAONE GGUF generation",
@@ -620,6 +751,7 @@ def _run_exaone_experiment(
             max_new_tokens=max_new_tokens,
             timeout=300,
             context_size=context_size,
+            json_schema=json_schema,
         )
     llama_runtime = get_last_llama_runtime()
     json_repair_used = False
@@ -627,7 +759,7 @@ def _run_exaone_experiment(
         payload = _extract_required_json(raw_response)
         story = _story_from_payload(payload, len(scenes))
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        repair_prompt = _build_json_repair_prompt(raw_response, len(scenes))
+        repair_prompt = _build_json_repair_prompt(raw_response, len(scenes), scenes)
         with timed_step(
             "EXAONE-repair",
             f"{experiment_name} EXAONE JSON repair",
@@ -639,6 +771,7 @@ def _run_exaone_experiment(
                 max_new_tokens=max_new_tokens,
                 timeout=300,
                 context_size=context_size,
+                json_schema=json_schema,
             )
         json_repair_used = True
         try:
@@ -646,10 +779,11 @@ def _run_exaone_experiment(
             story = _story_from_payload(payload, len(scenes))
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
             raise RuntimeError(
-                "EXAONE did not return valid D-aligned story JSON, and JSON repair also failed. "
+                "json_repair_failed: EXAONE did not return valid D-aligned story JSON, and JSON repair also failed. "
                 "Required fields are story.title, story.body, and one story.scene_sentences item per input scene. "
                 f"initial_error={exc}; repair_error={repair_exc}; "
-                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+                f"cleaned_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}; "
+                f"llama_runtime={get_last_llama_runtime()!r}"
             ) from repair_exc
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return {
@@ -1648,6 +1782,25 @@ def _looks_like_placeholder(value: str) -> bool:
     text = value.strip()
     if not text:
         return True
+    lowered = text.lower()
+    robust_placeholder_patterns = (
+        "\ud574\ub2f9\ud558\ub294 \ubb38\ub2e8",
+        "\ub3d9\ud654 \ubb38\uc7a5",
+        "\uc2e4\uc81c \ub3d9\ud654 \ubb38\ub2e8",
+        "\ud55c\uad6d\uc5b4 \ub3d9\ud654 \uc81c\ubaa9",
+        "\ube48 \ubb38\uc790\uc5f4",
+        "one non-empty korean",
+        "actual korean story",
+        "actual korean prose",
+        "write real korean prose",
+        "for this scene",
+        "non-empty korean",
+        "story_sentence",
+        "placeholder",
+        "...",
+    )
+    if any(pattern in lowered for pattern in robust_placeholder_patterns):
+        return True
     placeholder_patterns = (
         "해당하는 문단",
         "동화 문장",
@@ -1701,6 +1854,17 @@ def _replace_english_terms(value: str, translations: dict[str, str]) -> str:
 
 def _has_meta_language(value: str) -> bool:
     lowered = value.lower()
+    robust_meta_patterns = (
+        "\uc774 \uc7a5\uba74\uc740",
+        "\uadf8\ub9bc\uc5d0\ub294",
+        "\uadf8\ub9bc\uc5d0\uc11c",
+        "\ubcf4\uc785\ub2c8\ub2e4",
+        "\uc124\uba85\ud569\ub2c8\ub2e4",
+        "\ubb18\uc0ac\ud569\ub2c8\ub2e4",
+        "\uadf8\ub9bc \uadfc\uac70",
+    )
+    if any(pattern in lowered for pattern in robust_meta_patterns):
+        return True
     meta_patterns = (
         "이 장면은",
         "그림에는",
@@ -2013,93 +2177,6 @@ def _has_korean(value: str) -> bool:
     return bool(re.search(r"[가-힣]", value))
 
 
-def _clean_fallback_text(value: Any) -> str:
-    text = str(value or "").strip()
-    text = re.sub(r"[A-Za-z_/]+", "", text)
-    text = re.sub(r"\s+", " ", text)
-    text = text.replace("그림에는", "").replace("그림에는", "")
-    text = text.replace("그림은", "").replace("그림에는", "")
-    text = text.replace("보입니다", "").replace("나타냅니다", "")
-    text = text.replace("~처럼 보임", "")
-    return text.strip(" .。")
-
-
-def _fallback_scene_subject(scene: dict[str, Any]) -> str:
-    text = json.dumps(_compact_scene(scene), ensure_ascii=False)
-    if "소녀" in text:
-        return "소녀는"
-    if "소년" in text:
-        return "소년은"
-    if "아이" in text or "어린" in text:
-        return "아이는"
-    if "고양이" in text:
-        return "고양이는"
-    if "강아지" in text:
-        return "강아지는"
-    if "동물" in text:
-        return "동물 친구들은"
-    return "아이는"
-
-
-def _fallback_scene_place(scene: dict[str, Any]) -> str:
-    setting = _clean_fallback_text(scene.get("setting", ""))
-    summary = _clean_fallback_text(scene.get("scene_summary", ""))
-    if setting and _has_korean(setting) and "중요" not in setting:
-        return setting
-    if "숲" in summary:
-        return "숲속"
-    if "나무" in summary:
-        return "나무 아래"
-    if "하늘" in summary:
-        return "밝은 하늘 아래"
-    return "작은 길 위"
-
-
-def _fallback_scene_focus(scene: dict[str, Any]) -> str:
-    text = json.dumps(_compact_scene(scene), ensure_ascii=False)
-    for keyword, phrase in (
-        ("별", "반짝이는 빛"),
-        ("꽃", "작은 꽃"),
-        ("나무", "푸른 나무"),
-        ("열매", "동그란 열매"),
-        ("동물", "동물 친구들"),
-        ("하늘", "밝은 하늘"),
-        ("구름", "하얀 구름"),
-        ("물", "맑은 물"),
-    ):
-        if keyword in text:
-            return phrase
-    return "작은 발견"
-
-
-def _fallback_scene_story_payload(scene: dict[str, Any]) -> dict[str, Any]:
-    scene_index = int(scene["scene_index"])
-    subject = _fallback_scene_subject(scene)
-    place = _fallback_scene_place(scene)
-    focus = _fallback_scene_focus(scene)
-
-    if scene_index == 1:
-        sentences = [
-            f"{subject} {place}에서 조용히 걸음을 멈추었다.",
-            f"눈앞의 {focus} 덕분에 작은 이야기가 살며시 시작되었다.",
-            "따뜻한 마음이 바람처럼 아이 곁에 머물렀다.",
-        ]
-    elif scene_index == 10 or bool(scene.get("_i_ending_scene")):
-        sentences = [
-            f"{subject} {place}에서 편안히 숨을 고르며 미소 지었다.",
-            f"눈앞의 {focus} 덕분에 지나온 길이 따뜻하게 느껴졌다.",
-            "모두의 마음에는 오래도록 반짝이는 여운이 남았다.",
-        ]
-    else:
-        sentences = [
-            f"{subject} {place}에서 잠시 멈춰 섰다.",
-            f"눈앞의 {focus} 덕분에 마음이 조금씩 밝아졌다.",
-            "아이는 그 빛을 따라 다음 걸음을 천천히 옮겼다.",
-        ]
-
-    return {"scene_index": scene_index, "story_sentence": " ".join(sentences)}
-
-
 def _decode_json_string_fragment(raw: str) -> str:
     fragment = re.split(r"\s*```", raw, maxsplit=1)[0].strip()
     fragment = re.sub(r"[\s,}\]]+$", "", fragment).strip()
@@ -2233,7 +2310,6 @@ def _run_exaone_scene_story(
     experiment_name: str = "Experiment_E",
     scene_prompt_builder: Callable[[dict[str, Any]], str] = _build_e_scene_prompt,
     repair_prompt_builder: Callable[[str, dict[str, Any]], str] = _build_e_scene_repair_prompt,
-    fallback_payload_builder: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     max_new_tokens: int = 350,
     step_prefix: str = "EXAONE",
     step_label: str = "scene",
@@ -2297,35 +2373,13 @@ def _run_exaone_scene_story(
                     "raw_response": raw_response,
                     "parsed_result": parsed,
                     "json_repair_used": json_repair_used,
-                    "fallback_used": False,
-                    "fallback_error": "",
-                    "llama_runtime": get_last_llama_runtime(),
-                }
-            if fallback_payload_builder is not None:
-                fallback_payload = fallback_payload_builder(scene)
-                fallback_parsed = _scene_story_from_payload(
-                    fallback_payload,
-                    scene_index,
-                    enforce_sentence_count=True,
-                )
-                raw_response = (
-                    f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
-                    f"\n\n[fallback_scene_story]\n{json.dumps(fallback_payload, ensure_ascii=False, indent=2)}"
-                )
-                return {
-                    "scene_index": scene_index,
-                    "prompt": prompt,
-                    "raw_response": raw_response,
-                    "parsed_result": fallback_parsed,
-                    "json_repair_used": json_repair_used,
-                    "fallback_used": True,
-                    "fallback_error": f"initial_error={exc}; repair_error={repair_exc}",
                     "llama_runtime": get_last_llama_runtime(),
                 }
             raise RuntimeError(
-                f"EXAONE scene {scene_index} did not return valid scene JSON, and JSON repair also failed. "
+                f"json_repair_failed: EXAONE scene {scene_index} did not return valid scene JSON, and JSON repair also failed. "
                 f"initial_error={exc}; repair_error={repair_exc}; "
-                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
+                f"cleaned_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}; "
+                f"llama_runtime={get_last_llama_runtime()!r}"
             ) from repair_exc
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return {
@@ -2334,8 +2388,6 @@ def _run_exaone_scene_story(
         "raw_response": raw_response,
         "parsed_result": parsed,
         "json_repair_used": json_repair_used,
-        "fallback_used": False,
-        "fallback_error": "",
         "llama_runtime": get_last_llama_runtime(),
     }
 
@@ -2385,7 +2437,6 @@ def _generate_e_title(
     *,
     experiment_name: str = "Experiment_E",
     title_prompt_builder: Callable[[str], str] = _build_e_title_prompt,
-    default_title: str = "그림 속 작은 이야기",
 ) -> dict[str, Any]:
     prompt = title_prompt_builder(body)
     with timed_step(
@@ -2400,20 +2451,19 @@ def _generate_e_title(
             timeout=120,
             context_size=4096,
         )
-    title = default_title
-    parse_error = ""
     try:
         payload, title = _extract_title_json(raw_response)
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        parse_error = str(exc)
-        payload = {}
+        raise RuntimeError(
+            "json_parse_failed: EXAONE title response did not contain a usable title JSON. "
+            f"parse_error={exc}; cleaned_response_head={raw_response[:800]!r}; "
+            f"llama_runtime={get_last_llama_runtime()!r}"
+        ) from exc
     return {
         "prompt": prompt,
         "raw_response": raw_response,
         "parsed_result": payload,
         "title": title,
-        "fallback_used": title == default_title,
-        "parse_error": parse_error,
         "llama_runtime": get_last_llama_runtime(),
     }
 
@@ -2457,7 +2507,6 @@ def _run_exaone_per_scene_experiment(
         "parsed_result": {
             "scene_results": [item["parsed_result"] for item in scene_results],
             "title_result": title_result["parsed_result"],
-            "title_fallback_used": title_result["fallback_used"],
         },
         "json_repair_used": json_repair_used,
         "story": {
@@ -2552,7 +2601,6 @@ def _run_exaone_g_experiment(scenes: list[dict[str, Any]]) -> dict[str, Any]:
             "refined_scene_results": [item["parsed_result"] for item in refined_results],
             "final_scene_results": final_scene_results,
             "title_result": title_result["parsed_result"],
-            "title_fallback_used": title_result["fallback_used"],
         },
         "json_repair_used": json_repair_used,
         "story": {
@@ -2663,7 +2711,6 @@ def _run_exaone_h_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             "refined_scene_results": [item["parsed_result"] for item in refined_results],
             "final_scene_results": final_scene_results,
             "title_result": title_result["parsed_result"],
-            "title_fallback_used": title_result["fallback_used"],
         },
         "json_repair_used": json_repair_used,
         "story": {
@@ -2735,7 +2782,6 @@ def _maybe_run_i_cleanup(
         experiment_name=experiment_name,
         scene_prompt_builder=_build_i_captionless_cleanup_prompt,
         repair_prompt_builder=_build_i_captionless_cleanup_repair_prompt,
-        fallback_payload_builder=_fallback_scene_story_payload,
         max_new_tokens=I_CLEANUP_MAX_NEW_TOKENS,
         step_prefix=f"EXAONE-cleanup-{stage}",
         step_label=f"{stage} cleanup",
@@ -2748,26 +2794,14 @@ def _maybe_run_i_cleanup(
         caption_usage_counts,
         check_ending=check_ending,
     )
-    fallback_used = cleanup_result.get("fallback_used", False)
-    fallback_error = cleanup_result.get("fallback_error", "")
     if remaining_reasons:
-        fallback_payload = _fallback_scene_story_payload({**scene, "_i_ending_scene": check_ending})
-        fallback_cleaned = _scene_story_from_payload(
-            fallback_payload,
-            int(scene["scene_index"]),
-            enforce_sentence_count=True,
+        raise RuntimeError(
+            "exaone_output_invalid: EXAONE cleanup response did not satisfy quality gates. "
+            f"scene_index={int(scene['scene_index'])}; stage={stage}; "
+            f"initial_reasons={reasons!r}; remaining_reasons={remaining_reasons!r}; "
+            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
+            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
         )
-        fallback_remaining = _quality_gate_reasons(
-            str(fallback_cleaned.get("story_sentence") or ""),
-            scene,
-            story_caption,
-            caption_usage_counts,
-            check_ending=check_ending,
-        )
-        cleaned = fallback_cleaned
-        fallback_used = True
-        fallback_error = "quality_gate_after_cleanup=" + ",".join(remaining_reasons)
-        remaining_reasons = fallback_remaining
     cleanup_record = {
         "stage": stage,
         "scene_index": int(scene["scene_index"]),
@@ -2777,8 +2811,6 @@ def _maybe_run_i_cleanup(
         "raw_response": cleanup_result["raw_response"],
         "parsed_result": cleaned,
         "json_repair_used": cleanup_result["json_repair_used"],
-        "fallback_used": fallback_used,
-        "fallback_error": fallback_error,
     }
     return cleaned, cleanup_record
 
@@ -2802,7 +2834,6 @@ def _run_i_english_term_translation(
     prompt = _build_i_english_term_translation_prompt(terms, sentence)
     raw_response = ""
     json_repair_used = False
-    fallback_error = ""
     translations: dict[str, str] = {}
     with timed_step(
         f"EXAONE-english-terms-{stage}-{scene_index:02d}",
@@ -2837,9 +2868,23 @@ def _run_i_english_term_translation(
         try:
             translations = _extract_i_english_translations(repair_response, terms)
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            fallback_error = f"initial_error={exc}; repair_error={repair_exc}"
+            raise RuntimeError(
+                "json_repair_failed: EXAONE English term translation JSON repair failed. "
+                f"scene_index={scene_index}; stage={stage}; terms={terms!r}; "
+                f"initial_error={exc}; repair_error={repair_exc}; "
+                f"cleaned_response_head={raw_response[:800]!r}; "
+                f"llama_runtime={get_last_llama_runtime()!r}"
+            ) from repair_exc
 
-    translated_sentence = _replace_english_terms(sentence, translations) if translations else sentence
+    if not translations:
+        raise RuntimeError(
+            "json_parse_failed: EXAONE English term translation returned no usable translations. "
+            f"scene_index={scene_index}; stage={stage}; terms={terms!r}; "
+            f"cleaned_response_head={raw_response[:800]!r}; "
+            f"llama_runtime={get_last_llama_runtime()!r}"
+        )
+
+    translated_sentence = _replace_english_terms(sentence, translations)
     translated_result = {
         **parsed_result,
         "scene_index": scene_index,
@@ -2853,6 +2898,12 @@ def _run_i_english_term_translation(
         previous_sentence=previous_final_sentence,
         check_ending=False,
     )
+    if remaining_reasons:
+        raise RuntimeError(
+            "exaone_output_invalid: EXAONE English term translation did not satisfy quality gates. "
+            f"scene_index={scene_index}; stage={stage}; remaining_reasons={remaining_reasons!r}; "
+            f"cleaned_response_head={raw_response[:800]!r}; llama_runtime={get_last_llama_runtime()!r}"
+        )
     record = {
         "stage": f"{stage}_english_translation",
         "scene_index": scene_index,
@@ -2864,8 +2915,6 @@ def _run_i_english_term_translation(
         "raw_response": raw_response,
         "parsed_result": translated_result,
         "json_repair_used": json_repair_used,
-        "fallback_used": not bool(translations),
-        "fallback_error": fallback_error,
     }
     return translated_result, record
 
@@ -2939,6 +2988,14 @@ def _maybe_run_i_quality_cleanup(
         previous_sentence=previous_final_sentence,
         check_ending=False,
     )
+    if remaining_reasons and "english" not in remaining_reasons:
+        raise RuntimeError(
+            "exaone_output_invalid: EXAONE cleanup response did not satisfy quality gates. "
+            f"scene_index={int(scene['scene_index'])}; stage={stage}; "
+            f"initial_reasons={reasons!r}; remaining_reasons={remaining_reasons!r}; "
+            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
+            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
+        )
     cleanup_record = {
         "stage": stage,
         "scene_index": int(scene["scene_index"]),
@@ -2948,8 +3005,6 @@ def _maybe_run_i_quality_cleanup(
         "raw_response": cleanup_result["raw_response"],
         "parsed_result": cleaned,
         "json_repair_used": cleanup_result["json_repair_used"],
-        "fallback_used": cleanup_result.get("fallback_used", False),
-        "fallback_error": cleanup_result.get("fallback_error", ""),
     }
     cleanup_records.append(cleanup_record)
     if "english" in remaining_reasons:
@@ -3007,6 +3062,13 @@ def _maybe_run_i_ending_cleanup(
     )
     cleaned = cleanup_result["parsed_result"]
     remaining_reasons = _ending_quality_reasons_for_gate(str(cleaned.get("story_sentence") or ""))
+    if remaining_reasons:
+        raise RuntimeError(
+            "exaone_output_invalid: EXAONE ending cleanup response did not satisfy quality gates. "
+            f"scene_index={int(scene['scene_index'])}; remaining_reasons={remaining_reasons!r}; "
+            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
+            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
+        )
     cleanup_record = {
         "stage": "ending",
         "scene_index": int(scene["scene_index"]),
@@ -3016,8 +3078,6 @@ def _maybe_run_i_ending_cleanup(
         "raw_response": cleanup_result["raw_response"],
         "parsed_result": cleaned,
         "json_repair_used": cleanup_result["json_repair_used"],
-        "fallback_used": cleanup_result.get("fallback_used", False),
-        "fallback_error": cleanup_result.get("fallback_error", ""),
     }
     return cleaned, cleanup_record
 
@@ -3051,7 +3111,6 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             experiment_name=experiment_name,
             scene_prompt_builder=_build_h_scene_prompt,
             repair_prompt_builder=_build_h_scene_repair_prompt,
-            fallback_payload_builder=_fallback_scene_story_payload,
             step_prefix="EXAONE-initial",
             step_label="initial scene",
         )
@@ -3076,7 +3135,6 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             experiment_name=experiment_name,
             scene_prompt_builder=_build_i_context_style_refinement_prompt,
             repair_prompt_builder=_build_i_context_style_repair_prompt,
-            fallback_payload_builder=_fallback_scene_story_payload,
             max_new_tokens=I_REFINEMENT_MAX_NEW_TOKENS,
             step_prefix="EXAONE-refine",
             step_label="context-style refinement scene",
@@ -3114,7 +3172,6 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             experiment_name=experiment_name,
             scene_prompt_builder=_build_i_final_ending_prompt,
             repair_prompt_builder=_build_i_final_ending_repair_prompt,
-            fallback_payload_builder=_fallback_scene_story_payload,
             max_new_tokens=I_ENDING_MAX_NEW_TOKENS,
             step_prefix="EXAONE-ending",
             step_label="final ending scene",
@@ -3154,40 +3211,8 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             "scene_index": item["scene_index"],
             "reasons": item["reasons"],
             "remaining_reasons": item["remaining_reasons"],
-            "fallback_used": item.get("fallback_used", False),
         }
         for item in cleanup_results
-    ]
-    fallback_summaries = [
-        {
-            "stage": "initial",
-            "scene_index": item["scene_index"],
-            "fallback_error": item.get("fallback_error", ""),
-        }
-        for item in initial_results
-        if item.get("fallback_used")
-    ] + [
-        {
-            "stage": "refined",
-            "scene_index": item["scene_index"],
-            "fallback_error": item.get("fallback_error", ""),
-        }
-        for item in refined_results
-        if item.get("fallback_used")
-    ] + ([
-        {
-            "stage": "ending",
-            "scene_index": ending_result["scene_index"],
-            "fallback_error": ending_result.get("fallback_error", ""),
-        }
-    ] if ending_result is not None and ending_result.get("fallback_used") else []) + [
-        {
-            "stage": f"cleanup_{item['stage']}",
-            "scene_index": item["scene_index"],
-            "fallback_error": item.get("fallback_error", ""),
-        }
-        for item in cleanup_results
-        if item.get("fallback_used")
     ]
     return {
         "prompt_strategy": "combined_context_style_refinement_500_quality_gate",
@@ -3226,13 +3251,11 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
                     "reasons": item["reasons"],
                     "remaining_reasons": item["remaining_reasons"],
                     "parsed_result": item["parsed_result"],
-                    "fallback_used": item.get("fallback_used", False),
                 }
                 for item in cleanup_results
             ],
             "final_scene_results": final_scene_results,
             "title_result": title_result["parsed_result"],
-            "title_fallback_used": title_result["fallback_used"],
         },
         "json_repair_used": json_repair_used,
         "story": {
@@ -3247,8 +3270,6 @@ def _run_exaone_i_experiment(scenes: list[dict[str, Any]], story_caption: str) -
             "quality_gates": list(I_QUALITY_GATES),
             "cleanup_calls": len(cleanup_results),
             "cleanup_scenes": cleanup_summaries,
-            "fallback_calls": len(fallback_summaries),
-            "fallback_scenes": fallback_summaries,
             "story_caption_used": True,
             "story_caption_stage": "refinement_only",
             "exaone_initial_scene_calls": len(initial_results),
@@ -3485,7 +3506,6 @@ def _run_exaone_i_quality_gated_experiment(
             "ending_cleanup_result": ending_cleanup_result["parsed_result"] if ending_cleanup_result else {},
             "final_scene_results": final_scene_results,
             "title_result": title_result["parsed_result"],
-            "title_fallback_used": title_result["fallback_used"],
         },
         "json_repair_used": json_repair_used,
         "story": {
@@ -3555,30 +3575,51 @@ def _run_exaone_i_quality_gated_experiment(
     }
 
 
-def _build_json_repair_prompt(raw_response: str, scene_count: int) -> str:
+def _build_json_repair_prompt(
+    raw_response: str,
+    scene_count: int,
+    scenes: list[dict[str, Any]] | None = None,
+) -> str:
+    repair_source = _last_jsonish_fragment(raw_response)
+    compact_scenes = [_compact_scene(scene) for scene in scenes] if scenes else []
+    scene_context = (
+        "SCENES_TO_USE_FOR_REWRITING:\n"
+        f"{json.dumps(compact_scenes, ensure_ascii=False, indent=2)}\n\n"
+        if compact_scenes
+        else ""
+    )
     return (
         "You are a strict JSON repair tool. Convert the model response below into one valid JSON object only.\n"
         "Do not add markdown. Do not explain. Do not include any text before or after JSON.\n"
         "All object keys must use double quotes. Remove trailing commas. Escape line breaks inside strings.\n"
         f"The story.scene_sentences array must contain exactly {scene_count} strings.\n"
+        "If any story.scene_sentences item is a placeholder, schema example, field name, or explanation, rewrite it into real Korean fairy-tale prose grounded in the matching scene.\n"
+        "Do not keep phrases like '1번 그림에 해당하는 문단', '동화 문장', 'one non-empty Korean sentence', 'story_sentence', 'objects', or '그림 근거를 어떻게 반영'.\n"
+        "Each story.scene_sentences item must be a natural Korean story paragraph for its scene, not a visual-analysis summary.\n"
         "Required shape:\n"
         "{\n"
         '  "structure": {},\n'
         '  "plan": {},\n'
         '  "story": {\n'
-        '    "title": "",\n'
-        '    "body": "",\n'
-        '    "scene_sentences": [],\n'
+        '    "title": "non-empty Korean title",\n'
+        '    "body": "non-empty Korean story body",\n'
+        '    "scene_sentences": ["<write real Korean prose for scene 1>", "<write real Korean prose for scene 2>"],\n'
         '    "grounding_notes": []\n'
         "  }\n"
         "}\n\n"
+        f"{scene_context}"
         "MODEL_RESPONSE_TO_REPAIR:\n"
-        f"{raw_response}\n"
+        f"{repair_source}\n"
     )
 
 
 def _base_json_instruction() -> str:
     return (
+        "Return exactly one JSON object only. Do not add markdown, explanations, or code fences.\n"
+        "story must contain title, body, scene_sentences, and grounding_notes.\n"
+        "scene_sentences must contain exactly one real Korean fairy-tale paragraph per input scene.\n"
+        "Do not output placeholder/schema/example text such as '1번 그림에 해당하는 문단', '동화 문장', 'one non-empty Korean sentence', 'story_sentence', or 'objects'.\n"
+        "Do not put grounding explanations inside scene_sentences; use grounding_notes only for brief evidence notes.\n"
         "반드시 아래 JSON 객체 하나만 출력하세요. 마크다운, 설명, 코드블록은 쓰지 마세요.\n"
         "JSON 필드:\n"
         "{\n"
@@ -3587,7 +3628,7 @@ def _base_json_instruction() -> str:
         '  "story": {\n'
         '    "title": "동화 제목",\n'
         '    "body": "장면 순서대로 이어지는 전체 동화 본문",\n'
-        '    "scene_sentences": ["1번 그림에 해당하는 문단", "2번 그림에 해당하는 문단"],\n'
+        '    "scene_sentences": ["<write real Korean prose for scene 1>", "<write real Korean prose for scene 2>"],\n'
         '    "grounding_notes": ["그림 근거를 어떻게 반영했는지"]\n'
         "  }\n"
         "}\n"
@@ -3764,7 +3805,9 @@ def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str,
               <div class="image-frame"><img src="{_html_escape(_file_url(image_path))}" alt="{_html_escape(scene['image_id'])}"></div>
               <div class="text">
                 <p class="no">{scene['scene_index']}번째 그림</p>
+                <p class="label">EXAONE 장면 문장</p>
                 <p class="sentence">{_html_escape(sentence)}</p>
+                <p class="summary-label">Qwen 시각 요약</p>
                 <p class="summary">{_html_escape(scene['scene_summary'])}</p>
               </div>
             </article>
@@ -3790,7 +3833,9 @@ section {{ margin-top:26px; }}
 .image-frame {{ aspect-ratio:4/3; border:1px solid #ddcfbd; border-radius:8px; background:white; overflow:hidden; }}
 .image-frame img {{ width:100%; height:100%; object-fit:contain; display:block; }}
 .no {{ margin:0 0 8px; color:#964b3f; font-weight:700; }}
+.label {{ margin:0 0 6px; color:#2f6652; font-size:13px; font-weight:700; }}
 .sentence {{ margin:0; font-size:clamp(18px,2.1vw,24px); word-break:keep-all; }}
+.summary-label {{ margin:16px 0 4px; color:#6f6257; font-size:12px; font-weight:700; }}
 .summary {{ margin:12px 0 0; color:#74695f; font-size:14px; }}
 @media (max-width:760px) {{ .scene {{ grid-template-columns:1fr; }} .image-frame {{ aspect-ratio:1/1; }} }}
 </style>
@@ -3802,7 +3847,7 @@ section {{ margin-top:26px; }}
 </header>
 <main>
 <section class="book"><h2>[동화]</h2>{story_paragraphs}</section>
-<section><h2>그림 옆 장면 문장</h2>{"".join(scene_cards)}</section>
+<section><h2>그림 옆 EXAONE 장면 문장</h2>{"".join(scene_cards)}</section>
 </main>
 </body>
 </html>"""
@@ -3860,15 +3905,30 @@ def _ensure_scenes(
     model_source = _snapshot_dir(local_huggingface_model_path(VISION_MODEL_ID))
     log_stage(f"loading vision model from {model_source}", step="Qwen-load", model=VISION_MODEL_ID)
     local_only = isinstance(model_source, Path)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     with timed_step("Qwen-load", "Qwen2.5-VL model load", model=VISION_MODEL_ID):
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_source,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else "auto",
+            torch_dtype=torch.float16 if device == "cuda" else "auto",
             local_files_only=local_only,
         )
-        if torch.cuda.is_available():
-            model = model.to("cuda")
+        if device == "cuda":
+            try:
+                model = model.to("cuda")
+            except Exception as exc:
+                device = "cpu"
+                log_stage(f"Qwen CUDA move failed; reloading on CPU: {exc}", step="Qwen-device", model=VISION_MODEL_ID)
+                try:
+                    torch.cuda.empty_cache()
+                except Exception:
+                    pass
+                model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                    model_source,
+                    torch_dtype="auto",
+                    local_files_only=local_only,
+                )
         model.eval()
+        log_model_device(VISION_MODEL_ID, device, phase="vision")
         processor = AutoProcessor.from_pretrained(
             model_source,
             local_files_only=local_only,
@@ -3884,6 +3944,7 @@ def _ensure_scenes(
                 index,
                 prompt_builder=prompt_builder,
                 max_new_tokens=qwen_max_new_tokens,
+                device=device,
             )
         scenes.append(scene)
         scenes.sort(key=lambda item: int(item["scene_index"]))

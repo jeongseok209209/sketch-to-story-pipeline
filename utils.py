@@ -49,13 +49,15 @@ PYTORCH_CUDA_INDEX_URL = "https://download.pytorch.org/whl/cu124"
 PYTORCH_CUDA_PACKAGES = ("torch==2.6.0", "torchvision==0.21.0", "torchaudio==2.6.0")
 TRANSFORMERS_VERSION_SPEC = "transformers>=4.54.0,<5"
 TORCH_MIN_SAFE_VERSION = (2, 6)
-PIPELINE_VERSION = "2026.06.05-independent-exaone-gguf"
+PIPELINE_VERSION = "2026.06.05-neutral-pipeline"
 STEP_LOG_VERSION = "step-log-v1"
 _STEP_CONTEXT: dict[str, str] = {
     "experiment": "",
     "model": "",
     "phase": "",
 }
+_CUDA_TORCH_INSTALL_ATTEMPTED = False
+_TRANSFORMERS_INSTALL_ATTEMPTED = False
 
 
 def set_step_context(
@@ -180,6 +182,43 @@ def _torch_cuda_status() -> tuple[bool, bool, str]:
         return True, False, str(exc)
 
 
+def torch_runtime_status() -> dict[str, Any]:
+    """Return PyTorch CUDA status for preflight and failure logs."""
+    torch_importable, cuda_available, detail = _torch_cuda_status()
+    return {
+        "torch_importable": torch_importable,
+        "torch_cuda_available": cuda_available,
+        "torch_device_name": detail if cuda_available else "",
+        "torch_detail": detail,
+        "nvidia_gpu_detected": has_nvidia_gpu(),
+    }
+
+
+def configured_llama_gpu_layers() -> int:
+    """Return the requested llama.cpp GPU layer count."""
+    raw_value = os.environ.get("LLAMA_GPU_LAYERS")
+    if raw_value is not None:
+        try:
+            return max(int(raw_value), 0)
+        except ValueError:
+            print(f"[llama] Ignoring invalid LLAMA_GPU_LAYERS={raw_value!r}; using auto mode.")
+    return 999 if has_nvidia_gpu() else 0
+
+
+def llama_runtime_status() -> dict[str, Any]:
+    """Return EXAONE llama.cpp GPU-offload status for diagnostics."""
+    gpu_layers = configured_llama_gpu_layers()
+    return {
+        "llama_mode": "gpu" if gpu_layers > 0 else "cpu",
+        "llama_gpu_layers": gpu_layers,
+    }
+
+
+def log_model_device(model_name: str, device: Any, phase: str = "model-load") -> None:
+    """Log the concrete device chosen for a model after load."""
+    log_stage(f"device selected: {device}", step="device", model=model_name, phase=phase)
+
+
 def _parse_major_minor(version: str) -> tuple[int, int] | None:
     """Parse the major/minor prefix from package versions such as 2.6.0+cu124."""
     version_core = version.split("+", 1)[0]
@@ -210,6 +249,13 @@ def _torch_needs_security_upgrade() -> tuple[bool, str]:
 
 def _install_cuda_torch() -> bool:
     """Install CUDA-enabled PyTorch into the current Python environment."""
+    global _CUDA_TORCH_INSTALL_ATTEMPTED
+
+    if _CUDA_TORCH_INSTALL_ATTEMPTED:
+        print("[runtime] CUDA PyTorch install already attempted in this process; skipping repeat attempt.")
+        return False
+    _CUDA_TORCH_INSTALL_ATTEMPTED = True
+
     index_url = os.environ.get("PYTORCH_CUDA_INDEX_URL", PYTORCH_CUDA_INDEX_URL)
     command = [
         sys.executable,
@@ -254,6 +300,13 @@ def _install_cpu_torch() -> bool:
 
 def _install_transformers_compat() -> bool:
     """Install a Transformers version compatible with the PyTorch runtime."""
+    global _TRANSFORMERS_INSTALL_ATTEMPTED
+
+    if _TRANSFORMERS_INSTALL_ATTEMPTED:
+        print("[runtime] Transformers compatibility install already attempted in this process; skipping repeat attempt.")
+        return False
+    _TRANSFORMERS_INSTALL_ATTEMPTED = True
+
     command = [
         sys.executable,
         "-m",
@@ -300,10 +353,19 @@ def _ensure_transformers_compat() -> tuple[bool, bool]:
 def ensure_runtime_ready() -> None:
     """Prepare the current runtime for CUDA when an NVIDIA GPU is available."""
     log_stage("runtime check start", step="runtime", model="Python/PyTorch/CUDA")
+    llama_status = llama_runtime_status()
+    print(
+        "[runtime] EXAONE llama.cpp GPU status: "
+        f"mode={llama_status['llama_mode']}, gpu_layers={llama_status['llama_gpu_layers']}"
+    )
     _transformers_compatible, package_changed = _ensure_transformers_compat()
     nvidia_available = has_nvidia_gpu()
     _torch_importable, cuda_available, torch_detail = _torch_cuda_status()
     torch_needs_upgrade, torch_version_detail = _torch_needs_security_upgrade()
+    print(
+        "[runtime] PyTorch CUDA status: "
+        f"{'available' if cuda_available else 'unavailable'} ({torch_detail})"
+    )
 
     if not _transformers_compatible:
         print("[runtime] Transformers compatibility is not ready; continuing may fail at model import.")
@@ -320,6 +382,10 @@ def ensure_runtime_ready() -> None:
 
         _torch_importable, cuda_available, torch_detail = _torch_cuda_status()
         torch_needs_upgrade, torch_version_detail = _torch_needs_security_upgrade()
+        print(
+            "[runtime] PyTorch CUDA status after compatibility check: "
+            f"{'available' if cuda_available else 'unavailable'} ({torch_detail})"
+        )
 
     if cuda_available and not package_changed and not torch_needs_upgrade:
         print(f"[runtime] CUDA ready: {torch_detail}")
@@ -349,7 +415,10 @@ def ensure_runtime_ready() -> None:
     if cuda_available:
         print(f"[runtime] CUDA ready: {torch_detail}")
     elif nvidia_available:
-        print(f"[runtime] CUDA still unavailable after install; continuing on CPU: {torch_detail}")
+        print(
+            "[runtime] PyTorch CUDA unavailable; PyTorch models will run on CPU. "
+            f"EXAONE GGUF may still use llama.cpp GPU offload. Detail: {torch_detail}"
+        )
     else:
         print("[runtime] CPU mode: no NVIDIA GPU detected.")
 
@@ -535,6 +604,7 @@ def get_caption_components() -> tuple[Any, Any]:
     model = BlipForConditionalGeneration.from_pretrained(model_source, local_files_only=local_only)
     model.to(device)
     model.eval()
+    log_model_device(BLIP_CAPTION_MODEL, device)
     return processor, model
 
 
@@ -551,6 +621,7 @@ def get_vqa_components() -> tuple[Any, Any]:
     model = BlipForQuestionAnswering.from_pretrained(model_source, local_files_only=local_only)
     model.to(device)
     model.eval()
+    log_model_device(BLIP_VQA_MODEL, device)
     return processor, model
 
 
@@ -569,6 +640,7 @@ def get_openclip_components() -> tuple[Any, Any, Any]:
     )
     tokenizer = open_clip.get_tokenizer(OPENCLIP_MODEL)
     model.eval()
+    log_model_device(f"OpenCLIP {OPENCLIP_MODEL}", device)
     return model, preprocess, tokenizer
 
 
@@ -585,6 +657,7 @@ def get_gpt2_components() -> tuple[Any, Any]:
     model = AutoModelForCausalLM.from_pretrained(model_source, local_files_only=local_only)
     model.to(device)
     model.eval()
+    log_model_device(GPT2_MODEL, device)
     if tokenizer.pad_token is None:
         # 일부 GPT-2 토크나이저에는 pad token이 없어 eos token을 대신 지정합니다.
         tokenizer.pad_token = tokenizer.eos_token
@@ -604,6 +677,7 @@ def get_nllb_components() -> tuple[Any, Any]:
     model = AutoModelForSeq2SeqLM.from_pretrained(model_source, local_files_only=local_only)
     model.to(device)
     model.eval()
+    log_model_device(NLLB_MODEL, device)
     return tokenizer, model
 
 
@@ -625,6 +699,7 @@ def get_exaone_components() -> tuple[Any, Any]:
     )
     model.to(device)
     model.eval()
+    log_model_device(EXAONE_MODEL, device)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer, model

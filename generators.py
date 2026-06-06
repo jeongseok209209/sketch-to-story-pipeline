@@ -10,13 +10,17 @@ import subprocess
 import tempfile
 import urllib.error
 import urllib.request
+import uuid
 import zipfile
+from pathlib import Path
 from typing import Any
 
 from utils import (
     DEFAULT_EXAONE_GGUF_PATH,
     LLAMA_CLI_FILENAME,
     LLAMA_CLI_PATH,
+    PROJECT_ROOT,
+    configured_llama_gpu_layers,
     ensure_exaone_gguf_model,
     get_device,
     get_exaone_components,
@@ -274,11 +278,7 @@ def _is_placeholder_text(text: str) -> bool:
     return not stripped or stripped in {"...", "…", "\"...\"", "['...']", "[\"...\"]"}
 
 
-def _json_object_candidates(text: str) -> list[str]:
-    """Return balanced JSON object candidates, preserving response order."""
-    cleaned = text.strip()
-    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-    cleaned = re.sub(r"\s*```$", "", cleaned)
+def _balanced_json_object_candidates(cleaned: str) -> list[str]:
     candidates: list[str] = []
     start: int | None = None
     depth = 0
@@ -304,6 +304,21 @@ def _json_object_candidates(text: str) -> list[str]:
             if depth == 0 and start is not None:
                 candidates.append(cleaned[start : index + 1])
                 start = None
+    return candidates
+
+
+def _json_object_candidates(text: str) -> list[str]:
+    """Return balanced JSON object candidates, preserving response order."""
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```[A-Za-z0-9_-]*\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    candidates = _balanced_json_object_candidates(cleaned)
+    for start in [match.start() for match in re.finditer(r"\{", cleaned)][-80:]:
+        suffix_candidates = _balanced_json_object_candidates(cleaned[start:])
+        if suffix_candidates:
+            candidates.append(suffix_candidates[0])
+    for match in re.finditer(r"```[A-Za-z0-9_-]*\s*(.*?)\s*```", text, flags=re.S):
+        candidates.extend(_balanced_json_object_candidates(match.group(1).strip()))
     return candidates
 
 
@@ -582,25 +597,37 @@ def get_last_llama_runtime() -> dict[str, Any]:
     return dict(LAST_LLAMA_RUNTIME)
 
 
-def _clean_llama_output(stdout: str) -> str:
+def _strip_outer_code_fence(text: str) -> str:
+    cleaned = text.strip()
+    cleaned = re.sub(r"^```[A-Za-z0-9_-]*\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    return cleaned.strip()
+
+
+def _llama_prompt_with_response_marker(prompt: str, marker: str) -> str:
+    return f"{prompt.rstrip()}\n{marker}\n"
+
+
+def _clean_llama_output(stdout: str, response_marker: str | None = None) -> tuple[str, bool]:
     raw_response = stdout.split("[ Prompt:", 1)[0]
-    raw_response = raw_response.replace("Exiting...", "").strip()
+    raw_response = raw_response.replace("Exiting...", "").replace("\r\n", "\n").strip()
     raw_response = re.sub(
         r"(?s)^.*?available commands:.*?\n\n",
         "",
         raw_response,
     )
-    return raw_response.strip()
+    marker_stripped = False
+    if response_marker and response_marker in raw_response:
+        raw_response = raw_response.rsplit(response_marker, 1)[-1]
+        marker_stripped = True
+    raw_response = raw_response.strip()
+    raw_response = re.sub(r"^__LLAMA_RESPONSE_START_[^\s\n]*\s*", "", raw_response).strip()
+    raw_response = re.sub(r"^\s*>\s*", "", raw_response).strip()
+    return _strip_outer_code_fence(raw_response), marker_stripped
 
 
 def _llama_gpu_layers() -> int:
-    raw_value = os.environ.get("LLAMA_GPU_LAYERS")
-    if raw_value is not None:
-        try:
-            return max(int(raw_value), 0)
-        except ValueError:
-            print(f"[llama] Ignoring invalid LLAMA_GPU_LAYERS={raw_value!r}; using auto mode.")
-    return 999 if has_nvidia_gpu() else 0
+    return configured_llama_gpu_layers()
 
 
 def _copy_llama_cli_candidate(candidate: str, llama_path: str) -> str | None:
@@ -829,6 +856,114 @@ def _llama_path_error(llama_cli: str, model_path: str) -> str | None:
     return None
 
 
+def _llama_cwd() -> str:
+    """Return the stable cwd used for llama.cpp invocations."""
+    return str(PROJECT_ROOT)
+
+
+def _path_for_llama_cli(path: str) -> str:
+    """Prefer project-relative paths so llama.cpp avoids non-ASCII absolute paths."""
+    resolved = Path(path).expanduser().resolve()
+    try:
+        return str(resolved.relative_to(PROJECT_ROOT))
+    except ValueError:
+        return str(resolved)
+
+
+def _local_exaone_gguf_copy_path(source_path: str) -> str:
+    """Copy an external GGUF into the project-local model folder for relative-path retry."""
+    source = Path(source_path).expanduser().resolve()
+    target = Path(DEFAULT_EXAONE_GGUF_PATH).expanduser().resolve().parent / source.name
+    if source == target:
+        return str(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists():
+        shutil.copy2(source, target)
+    return str(target)
+
+
+def _text_tail(value: Any, limit: int = 2000) -> str:
+    text = "" if value is None else str(value)
+    return text[-limit:] if len(text) > limit else text
+
+
+def _llama_failure_details(exc: BaseException) -> dict[str, Any]:
+    details: dict[str, Any] = {
+        "error_type": type(exc).__name__,
+        "error": str(exc),
+    }
+    returncode = getattr(exc, "returncode", None)
+    if returncode is not None:
+        details["returncode"] = returncode
+    stdout = getattr(exc, "stdout", None)
+    stderr = getattr(exc, "stderr", None)
+    if stdout:
+        details["stdout_tail"] = _text_tail(stdout)
+    if stderr:
+        details["stderr_tail"] = _text_tail(stderr)
+    return details
+
+
+def _llama_error_text(exc: BaseException) -> str:
+    details = _llama_failure_details(exc)
+    return "\n".join(str(value) for value in details.values() if value)
+
+
+def _is_llama_model_load_failure(exc: BaseException) -> bool:
+    text = _llama_error_text(exc).lower()
+    return any(
+        marker in text
+        for marker in (
+            "failed to load the model",
+            "failed to load model",
+            "unable to load model",
+            "error loading model",
+        )
+    )
+
+
+def _format_llama_failure(exc: BaseException) -> str:
+    details = _llama_failure_details(exc)
+    parts = [details["error"]]
+    for key in ("returncode", "stderr_tail", "stdout_tail"):
+        value = details.get(key)
+        if value not in (None, ""):
+            parts.append(f"{key}={value!r}")
+    return "; ".join(parts)
+
+
+def _llama_success_runtime(
+    *,
+    mode: str,
+    gpu_layers: int,
+    cpu_retry_used: bool,
+    llama_cli: str,
+    model_path: str,
+    model_path_arg: str,
+    cwd: str,
+    completed: subprocess.CompletedProcess[str],
+    cleaned_response: str,
+    response_marker_stripped: bool,
+    **extra: Any,
+) -> dict[str, Any]:
+    runtime: dict[str, Any] = {
+        "mode": mode,
+        "gpu_layers": gpu_layers,
+        "cpu_retry_used": cpu_retry_used,
+        "llama_cli": llama_cli,
+        "model_path": model_path,
+        "model_path_arg": model_path_arg,
+        "cwd": cwd,
+        "returncode": completed.returncode,
+        "stdout_tail": _text_tail(completed.stdout),
+        "stderr_tail": _text_tail(completed.stderr),
+        "cleaned_response_tail": _text_tail(cleaned_response),
+        "response_marker_stripped": response_marker_stripped,
+    }
+    runtime.update(extra)
+    return runtime
+
+
 def _build_llama_command(
     llama_cli: str,
     model_path: str,
@@ -839,6 +974,7 @@ def _build_llama_command(
     top_p: str | None,
     gpu_layers: int,
     force_cpu: bool = False,
+    json_schema: str | None = None,
 ) -> list[str]:
     command = [
         llama_cli,
@@ -855,6 +991,8 @@ def _build_llama_command(
     ]
     if top_p is not None:
         command.extend(["--top-p", top_p])
+    if json_schema:
+        command.extend(["--json-schema", json_schema])
     if force_cpu or gpu_layers <= 0:
         command.extend(["-ngl", "0", "--device", "none"])
     else:
@@ -882,6 +1020,7 @@ def _run_llama_prompt(
     context_size: int = 4096,
     temperature: str = "0.55",
     top_p: str | None = "0.9",
+    json_schema: str | dict[str, Any] | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """Run llama.cpp with GPU offload when available and CPU retry when needed."""
     resolved_model_path = ensure_exaone_gguf_model(
@@ -889,12 +1028,14 @@ def _run_llama_prompt(
     )
     llama_cli = _maybe_prepare_llama_cli(os.environ.get("LLAMA_CLI_PATH", LLAMA_CLI_PATH))
     setup_error = _llama_path_error(llama_cli, resolved_model_path)
+    run_cwd = _llama_cwd()
     if setup_error:
         runtime = {
             "mode": "unavailable",
             "cpu_retry_used": False,
             "llama_cli": llama_cli,
             "model_path": resolved_model_path,
+            "cwd": run_cwd,
             "error": setup_error,
         }
         LAST_LLAMA_RUNTIME.clear()
@@ -905,13 +1046,17 @@ def _run_llama_prompt(
     cpu_retry_enabled = _env_flag("LLAMA_CUDA_RETRY_CPU", True)
     force_cpu = gpu_layers <= 0
 
+    response_marker = f"__LLAMA_RESPONSE_START_{uuid.uuid4().hex}__"
+    prompt_for_llama = _llama_prompt_with_response_marker(prompt, response_marker)
     with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as prompt_file:
-        prompt_file.write(prompt)
+        prompt_file.write(prompt_for_llama)
         prompt_path = prompt_file.name
     try:
+        llama_model_path = _path_for_llama_cli(resolved_model_path)
+        json_schema_arg = json.dumps(json_schema, ensure_ascii=False) if isinstance(json_schema, dict) else json_schema
         command = _build_llama_command(
             llama_cli,
-            resolved_model_path,
+            llama_model_path,
             prompt_path,
             max_new_tokens,
             context_size,
@@ -919,6 +1064,7 @@ def _run_llama_prompt(
             top_p,
             gpu_layers,
             force_cpu=force_cpu,
+            json_schema=json_schema_arg,
         )
         mode = "cpu_forced" if os.environ.get("LLAMA_GPU_LAYERS") == "0" else "cpu_only" if force_cpu else "gpu"
         try:
@@ -930,31 +1076,104 @@ def _run_llama_prompt(
                 encoding="utf-8",
                 errors="replace",
                 timeout=timeout,
+                cwd=run_cwd,
             )
-            runtime = {
-                "mode": mode,
-                "gpu_layers": 0 if force_cpu else gpu_layers,
-                "cpu_retry_used": False,
-            }
+            cleaned_response, marker_stripped = _clean_llama_output(completed.stdout, response_marker)
+            runtime = _llama_success_runtime(
+                mode=mode,
+                gpu_layers=0 if force_cpu else gpu_layers,
+                cpu_retry_used=False,
+                llama_cli=llama_cli,
+                model_path=resolved_model_path,
+                model_path_arg=llama_model_path,
+                cwd=run_cwd,
+                completed=completed,
+                cleaned_response=cleaned_response,
+                response_marker_stripped=marker_stripped,
+            )
             LAST_LLAMA_RUNTIME.clear()
             LAST_LLAMA_RUNTIME.update(runtime)
-            return _clean_llama_output(completed.stdout), runtime
+            return cleaned_response, runtime
         except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             if force_cpu or not cpu_retry_enabled:
+                failure = _llama_failure_details(exc)
+                retry_error = exc
+                retry_model_path = resolved_model_path
+                retry_model_arg = llama_model_path
+                retry_used_local_copy = False
+                if _is_llama_model_load_failure(exc):
+                    try:
+                        retry_model_path = _local_exaone_gguf_copy_path(resolved_model_path)
+                        retry_model_arg = _path_for_llama_cli(retry_model_path)
+                        if retry_model_path != resolved_model_path:
+                            retry_used_local_copy = True
+                            retry_command = _build_llama_command(
+                                llama_cli,
+                                retry_model_arg,
+                                prompt_path,
+                                max_new_tokens,
+                                context_size,
+                                temperature,
+                                top_p,
+                                gpu_layers,
+                                force_cpu=force_cpu,
+                                json_schema=json_schema_arg,
+                            )
+                            completed = subprocess.run(
+                                retry_command,
+                                check=True,
+                                capture_output=True,
+                                text=True,
+                                encoding="utf-8",
+                                errors="replace",
+                                timeout=timeout,
+                                cwd=run_cwd,
+                            )
+                            cleaned_response, marker_stripped = _clean_llama_output(
+                                completed.stdout,
+                                response_marker,
+                            )
+                            runtime = _llama_success_runtime(
+                                mode=f"{mode}_local_model_retry",
+                                gpu_layers=0 if force_cpu else gpu_layers,
+                                cpu_retry_used=False,
+                                llama_cli=llama_cli,
+                                model_path=retry_model_path,
+                                model_path_arg=retry_model_arg,
+                                cwd=run_cwd,
+                                completed=completed,
+                                cleaned_response=cleaned_response,
+                                response_marker_stripped=marker_stripped,
+                                local_model_retry_used=True,
+                                original_model_path=resolved_model_path,
+                                initial_error=failure,
+                            )
+                            LAST_LLAMA_RUNTIME.clear()
+                            LAST_LLAMA_RUNTIME.update(runtime)
+                            return cleaned_response, runtime
+                    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as retry_exc:
+                        retry_error = retry_exc
                 LAST_LLAMA_RUNTIME.clear()
                 LAST_LLAMA_RUNTIME.update(
                     {
                         "mode": mode,
                         "gpu_layers": 0 if force_cpu else gpu_layers,
                         "cpu_retry_used": False,
-                        "error": str(exc),
+                        "local_model_retry_used": retry_used_local_copy,
+                        "llama_cli": llama_cli,
+                        "model_path": retry_model_path,
+                        "model_path_arg": retry_model_arg,
+                        "original_model_path": resolved_model_path,
+                        "cwd": run_cwd,
+                        "error": _format_llama_failure(retry_error),
+                        "initial_error": failure,
                     }
                 )
-                raise
+                raise RuntimeError(_format_llama_failure(retry_error)) from retry_error
             print(f"[llama] GPU run failed; retrying on CPU: {exc}")
             cpu_command = _build_llama_command(
                 llama_cli,
-                resolved_model_path,
+                llama_model_path,
                 prompt_path,
                 max_new_tokens,
                 context_size,
@@ -962,25 +1181,114 @@ def _run_llama_prompt(
                 top_p,
                 gpu_layers=0,
                 force_cpu=True,
+                json_schema=json_schema_arg,
             )
-            completed = subprocess.run(
-                cpu_command,
-                check=True,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=timeout,
+            try:
+                completed = subprocess.run(
+                    cpu_command,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=timeout,
+                    cwd=run_cwd,
+                )
+            except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as cpu_exc:
+                cpu_failure = _llama_failure_details(cpu_exc)
+                retry_error = cpu_exc
+                retry_model_path = resolved_model_path
+                retry_model_arg = llama_model_path
+                retry_used_local_copy = False
+                if _is_llama_model_load_failure(cpu_exc):
+                    try:
+                        retry_model_path = _local_exaone_gguf_copy_path(resolved_model_path)
+                        retry_model_arg = _path_for_llama_cli(retry_model_path)
+                        if retry_model_path != resolved_model_path:
+                            retry_used_local_copy = True
+                            retry_command = _build_llama_command(
+                                llama_cli,
+                                retry_model_arg,
+                                prompt_path,
+                                max_new_tokens,
+                                context_size,
+                                temperature,
+                                top_p,
+                                gpu_layers=0,
+                                force_cpu=True,
+                                json_schema=json_schema_arg,
+                            )
+                            completed = subprocess.run(
+                                retry_command,
+                                check=True,
+                                capture_output=True,
+                                text=True,
+                                encoding="utf-8",
+                                errors="replace",
+                                timeout=timeout,
+                                cwd=run_cwd,
+                            )
+                            cleaned_response, marker_stripped = _clean_llama_output(
+                                completed.stdout,
+                                response_marker,
+                            )
+                            runtime = _llama_success_runtime(
+                                mode="cpu_retry_local_model_retry",
+                                gpu_layers=0,
+                                cpu_retry_used=True,
+                                llama_cli=llama_cli,
+                                model_path=retry_model_path,
+                                model_path_arg=retry_model_arg,
+                                cwd=run_cwd,
+                                completed=completed,
+                                cleaned_response=cleaned_response,
+                                response_marker_stripped=marker_stripped,
+                                local_model_retry_used=True,
+                                original_model_path=resolved_model_path,
+                                gpu_error=_llama_failure_details(exc),
+                                cpu_error=cpu_failure,
+                            )
+                            LAST_LLAMA_RUNTIME.clear()
+                            LAST_LLAMA_RUNTIME.update(runtime)
+                            return cleaned_response, runtime
+                    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as retry_exc:
+                        retry_error = retry_exc
+                LAST_LLAMA_RUNTIME.clear()
+                LAST_LLAMA_RUNTIME.update(
+                    {
+                        "mode": "cpu_retry",
+                        "gpu_layers": 0,
+                        "cpu_retry_used": True,
+                        "local_model_retry_used": retry_used_local_copy,
+                        "llama_cli": llama_cli,
+                        "model_path": retry_model_path,
+                        "model_path_arg": retry_model_arg,
+                        "original_model_path": resolved_model_path,
+                        "cwd": run_cwd,
+                        "gpu_error": _llama_failure_details(exc),
+                        "cpu_error": cpu_failure,
+                        "error": _format_llama_failure(retry_error),
+                    }
+                )
+                raise RuntimeError(_format_llama_failure(retry_error)) from retry_error
+            cleaned_response, marker_stripped = _clean_llama_output(completed.stdout, response_marker)
+            runtime = _llama_success_runtime(
+                mode="cpu_retry",
+                gpu_layers=0,
+                cpu_retry_used=True,
+                llama_cli=llama_cli,
+                model_path=resolved_model_path,
+                model_path_arg=llama_model_path,
+                cwd=run_cwd,
+                completed=completed,
+                cleaned_response=cleaned_response,
+                response_marker_stripped=marker_stripped,
+                local_model_retry_used=False,
+                gpu_error=_llama_failure_details(exc),
             )
-            runtime = {
-                "mode": "cpu_retry",
-                "gpu_layers": 0,
-                "cpu_retry_used": True,
-                "gpu_error": str(exc),
-            }
             LAST_LLAMA_RUNTIME.clear()
             LAST_LLAMA_RUNTIME.update(runtime)
-            return _clean_llama_output(completed.stdout), runtime
+            return cleaned_response, runtime
     finally:
         os.unlink(prompt_path)
 
@@ -1044,6 +1352,7 @@ def _run_exaone_gguf_prompt(
     model_path: str = "",
     timeout: int = 180,
     context_size: int = 4096,
+    json_schema: str | dict[str, Any] | None = None,
 ) -> str:
     """Run an EXAONE GGUF prompt through the local llama.cpp CLI."""
     raw_response, _runtime = _run_llama_prompt(
@@ -1054,6 +1363,7 @@ def _run_exaone_gguf_prompt(
         context_size=context_size,
         temperature="0.55",
         top_p="0.9",
+        json_schema=json_schema,
     )
     return raw_response.strip()
 
@@ -1069,6 +1379,19 @@ def _short_text(value: Any, limit: int = 120) -> str:
 def _count_story_sentences(story: str) -> int:
     """Count simple sentence endings in generated Korean story text."""
     return len([part for part in re.split(r"(?<=[.!?。])\s+", story.strip()) if part.strip()])
+
+
+def _clean_sequence_story_text(story: str, marker: str | None = None) -> str:
+    cleaned = story.strip()
+    if marker and marker in cleaned:
+        cleaned = cleaned.rsplit(marker, 1)[-1]
+    if "(truncated)" in cleaned:
+        cleaned = cleaned.split("(truncated)", 1)[-1].strip()
+    cleaned = re.sub(r"^\s*>\s*", "", cleaned).strip()
+    cleaned = _strip_outer_code_fence(cleaned)
+    cleaned = re.sub(r"^markdown\s+", "", cleaned, flags=re.I).strip()
+    cleaned = re.sub(r"^story_body:\s*", "", cleaned, flags=re.I).strip()
+    return cleaned
 
 
 def _build_sequence_story_rewrite_prompt(
@@ -1133,11 +1456,8 @@ def generate_sequence_story_exaone_gguf(
             timeout=240,
             context_size=8192,
         )
-    if marker in raw_story:
-        raw_story = raw_story.rsplit(marker, 1)[-1]
+    raw_story = _clean_sequence_story_text(raw_story, marker)
     story = raw_story.strip()
-    if "(truncated)" in story:
-        story = story.split("(truncated)", 1)[-1].strip()
     story_start = re.search(r"(어느\s+[^\n]+)", story)
     if story_start:
         story = story[story_start.start() :]
@@ -1165,7 +1485,7 @@ def generate_sequence_story_exaone_gguf(
                 timeout=240,
                 context_size=8192,
             )
-        rewritten = re.sub(r"^```(?:text)?\s*|\s*```$", "", rewrite_story.strip()).strip()
+        rewritten = _clean_sequence_story_text(rewrite_story)
         if (
             not rewritten
             or "ordered_scenes:" in rewritten
@@ -1173,8 +1493,9 @@ def generate_sequence_story_exaone_gguf(
             or _count_story_sentences(rewritten) < required_story_sentences
         ):
             raise RuntimeError(
-                "EXAONE GGUF did not return a valid sequence story after rewrite. "
-                f"raw_response_head={raw_story[:800]!r}; rewrite_response_head={rewrite_story[:800]!r}"
+                "exaone_output_invalid: EXAONE GGUF did not return a valid sequence story after rewrite. "
+                f"cleaned_response_head={raw_story[:800]!r}; rewrite_response_head={rewritten[:800]!r}; "
+                f"llama_runtime={get_last_llama_runtime()!r}"
             )
         return rewritten, f"{raw_story}\n\n[rewrite_response]\n{rewrite_story}"
     return story, raw_story
@@ -1238,51 +1559,3 @@ def translate_en_ko(text_en: str) -> str:
     return translation.strip()
 
 
-def generate_story_ko_exaone(vision: dict, max_new_tokens: int = 60) -> str:
-    """Generate a Korean children's story directly from vision JSON using EXAONE."""
-    objects = ", ".join(vision.get("objects", [])) or "없음"
-    prompt = (
-        "아래 시각 단서를 바탕으로 어린이가 읽기 좋은 한국어 동화를 써 주세요.\n"
-        "조건:\n"
-        "- 2~4문장으로 자연스럽게 쓰기\n"
-        "- 그림에 보이는 대상과 분위기를 이야기 안에 반영하기\n"
-        "- 무섭거나 폭력적인 내용 없이 따뜻한 결말로 마무리하기\n"
-        "- 설명문이나 목록이 아니라 동화 본문만 출력하기\n\n"
-        f"원본 캡션: {vision.get('raw_caption', '')}\n"
-        f"등장/사물 후보: {objects}\n"
-        f"주인공: {vision.get('who', '')}\n"
-        f"행동: {vision.get('actions', '')}\n"
-        f"장소: {vision.get('scene', '')}\n"
-        f"분위기: {vision.get('mood', '')}\n"
-    )
-
-    with timed_step(8, "EXAONE Korean story generation", model="LGAI-EXAONE/EXAONE-4.0-1.2B HF"):
-        import torch
-
-        tokenizer, model = get_exaone_components()
-        device = get_device()
-        messages = [
-            {"role": "user", "content": prompt},
-        ]
-        inputs = tokenizer.apply_chat_template(
-            messages,
-            tokenize=True,
-            add_generation_prompt=True,
-            return_dict=True,
-            return_tensors="pt",
-        ).to(device)
-        with torch.inference_mode():
-            output_ids = model.generate(
-                **inputs,
-                eos_token_id=tokenizer.eos_token_id,
-                pad_token_id=tokenizer.pad_token_id,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                top_p=0.9,
-                temperature=0.7,
-                repetition_penalty=1.1,
-            )
-        generated_ids = output_ids[0][inputs["input_ids"].shape[-1] :]
-        story = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
-
-    return story

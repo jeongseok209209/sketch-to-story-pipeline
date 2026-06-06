@@ -33,9 +33,10 @@ from utils import (
     ensure_huggingface_model_snapshots,
     ensure_openclip_pretrained,
     ensure_runtime_ready,
-    has_nvidia_gpu,
+    llama_runtime_status,
     log_stage,
     set_step_context,
+    torch_runtime_status,
 )
 
 
@@ -74,14 +75,6 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_story_input_args(a_parser, help_text="Input image directory or story root.")
     a_parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_ROOT / "A"), help="Output directory.")
     a_parser.add_argument("--clip-threshold", type=float, default=0.22)
-    a_parser.add_argument(
-        "--story-backend",
-        choices=(
-            "gpt2_nllb",
-            "exaone",
-        ),
-        default="gpt2_nllb",
-    )
     a_parser.add_argument("--story-max-new-tokens", type=int)
 
     b_parser = subparsers.add_parser("b", help="Run sequence/B-style story generation.")
@@ -108,7 +101,6 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_story_input_args(all_parser, help_text="Ordered image directory or story root.")
     all_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
     all_parser.add_argument("--clip-threshold", type=float, default=0.22)
-    all_parser.add_argument("--a-backend", choices=("gpt2_nllb", "exaone"), default="gpt2_nllb")
     all_parser.add_argument("--b-backend", choices=("exaone_gguf_structured",), default="exaone_gguf_structured")
 
     all_evaluate_parser = subparsers.add_parser(
@@ -118,7 +110,6 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_story_input_args(all_evaluate_parser, help_text="Ordered image directory or story root.")
     all_evaluate_parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="Output root directory.")
     all_evaluate_parser.add_argument("--clip-threshold", type=float, default=0.22)
-    all_evaluate_parser.add_argument("--a-backend", choices=("gpt2_nllb", "exaone"), default="gpt2_nllb")
     all_evaluate_parser.add_argument(
         "--b-backend",
         choices=("exaone_gguf_structured",),
@@ -345,7 +336,6 @@ def _run_a(args: argparse.Namespace) -> Any:
                     str(image_path),
                     output_dir=args.output_dir,
                     clip_threshold=args.clip_threshold,
-                    story_backend=args.story_backend,
                     story_max_new_tokens=args.story_max_new_tokens,
                 )
             )
@@ -367,7 +357,6 @@ def _run_a(args: argparse.Namespace) -> Any:
         str(image_path),
         output_dir=args.output_dir,
         clip_threshold=args.clip_threshold,
-        story_backend=args.story_backend,
         story_max_new_tokens=args.story_max_new_tokens,
     )
     return _write_a_standard_result([record], args.output_dir)
@@ -456,16 +445,20 @@ def _check_packages() -> bool:
 
 def _check_torch_cuda() -> None:
     print("\nCompute")
-    nvidia_detected = has_nvidia_gpu()
-    _check_line("NVIDIA GPU detection", nvidia_detected, "found" if nvidia_detected else "not found; CPU mode is supported")
-    try:
-        import torch
-    except Exception as exc:
-        _check_line("torch import", False, str(exc))
-        return
-    cuda_available = bool(torch.cuda.is_available())
-    detail = torch.cuda.get_device_name(0) if cuda_available else "CUDA not available; CPU mode will be used"
-    _check_line("torch CUDA", cuda_available, detail)
+    torch_status = torch_runtime_status()
+    llama_status = llama_runtime_status()
+    _check_line(
+        "NVIDIA GPU detection",
+        bool(torch_status["nvidia_gpu_detected"]),
+        "found" if torch_status["nvidia_gpu_detected"] else "not found; CPU mode is supported",
+    )
+    _check_line("torch import", bool(torch_status["torch_importable"]), torch_status["torch_detail"])
+    _check_line("PyTorch CUDA", bool(torch_status["torch_cuda_available"]), torch_status["torch_detail"])
+    _check_line(
+        "EXAONE llama.cpp GPU",
+        llama_status["llama_mode"] == "gpu",
+        f"mode={llama_status['llama_mode']}, gpu_layers={llama_status['llama_gpu_layers']}",
+    )
 
 
 def _check_inputs(input_root: Path, story: str | None) -> bool:
@@ -577,11 +570,7 @@ def _preflight_for_experiment(args: argparse.Namespace) -> None:
         log_stage("all required assets are ready; starting generation", step="preflight")
         return
 
-    if args.experiment == "a" and getattr(args, "story_backend", "") in {
-        "exaone_gguf_structured",
-    }:
-        _preflight_exaone_gguf()
-    elif args.experiment == "b" and getattr(args, "story_backend", "") == "exaone_gguf_structured":
+    if args.experiment == "b" and getattr(args, "story_backend", "") == "exaone_gguf_structured":
         _preflight_exaone_gguf()
     elif args.experiment in {"c", "d", "e", "f", "g", "h", "i", "j"}:
         _preflight_qwen_model()
@@ -595,6 +584,18 @@ def _utc_now() -> str:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _runtime_failure_metadata() -> dict[str, Any]:
+    torch_status = torch_runtime_status()
+    llama_status = llama_runtime_status()
+    return {
+        "torch_cuda_available": torch_status["torch_cuda_available"],
+        "torch_device_name": torch_status["torch_device_name"],
+        "torch_detail": torch_status["torch_detail"],
+        "llama_mode": llama_status["llama_mode"],
+        "llama_gpu_layers": llama_status["llama_gpu_layers"],
+    }
 
 
 def _html_escape(value: Any) -> str:
@@ -776,6 +777,7 @@ def _write_failure_record(
         "ended_at": ended_at,
         "output_dir": str(output_dir),
         "pipeline_version": PIPELINE_VERSION,
+        "runtime": _runtime_failure_metadata(),
     }
     if extra:
         record.update(extra)
@@ -927,7 +929,7 @@ def _run_all(args: argparse.Namespace) -> None:
         input_dir=args.input_dir,
         output_dir=str(output_root / "A"),
         clip_threshold=args.clip_threshold,
-        story_backend=args.a_backend,
+        story_backend="gpt2_nllb",
         story_max_new_tokens=None,
     )
     b_args = argparse.Namespace(
@@ -981,7 +983,7 @@ def main() -> None:
     _preflight_for_experiment(args)
     if args.experiment == "a":
         set_step_context(experiment="A", phase="generation")
-        log_stage(f"start Experiment A backend={args.story_backend}", step="A")
+        log_stage("start Experiment A backend=gpt2_nllb", step="A")
         _run_a(args)
     elif args.experiment == "b":
         set_step_context(experiment="B", phase="generation")
