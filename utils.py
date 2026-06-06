@@ -20,6 +20,8 @@ GPT2_MODEL = "gpt2-medium"
 NLLB_MODEL = "facebook/nllb-200-distilled-600M"
 OPENCLIP_MODEL = "ViT-H-14"
 OPENCLIP_PRETRAINED = "laion2b_s32b_b79k"
+OPENCLIP_HF_CACHE_REPO = "models--laion--CLIP-ViT-H-14-laion2B-s32B-b79K"
+OPENCLIP_WEIGHTS_FILENAME = "open_clip_model.safetensors"
 EXAONE_MODEL = "LGAI-EXAONE/EXAONE-4.0-1.2B"
 EXAONE_GGUF_REPO_ID = "LGAI-EXAONE/EXAONE-4.0-1.2B-GGUF"
 EXAONE_GGUF_FILENAME = "EXAONE-4.0-1.2B-IQ4_XS.gguf"
@@ -424,6 +426,25 @@ def _local_files_only(source: Path | str) -> bool:
     return isinstance(source, Path)
 
 
+def _openclip_pretrained_source() -> str:
+    """Return a local OpenCLIP weights path when cached, otherwise the pretrained tag."""
+    cache_root = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub"
+    repo_root = cache_root / OPENCLIP_HF_CACHE_REPO
+    ref_path = repo_root / "refs" / "main"
+    if ref_path.exists():
+        snapshot_id = ref_path.read_text(encoding="utf-8").strip()
+        snapshot_file = repo_root / "snapshots" / snapshot_id / OPENCLIP_WEIGHTS_FILENAME
+        if snapshot_file.is_file():
+            return str(snapshot_file)
+    snapshots_root = repo_root / "snapshots"
+    if snapshots_root.exists():
+        for snapshot_dir in sorted((path for path in snapshots_root.iterdir() if path.is_dir()), reverse=True):
+            snapshot_file = snapshot_dir / OPENCLIP_WEIGHTS_FILENAME
+            if snapshot_file.is_file():
+                return str(snapshot_file)
+    return OPENCLIP_PRETRAINED
+
+
 def ensure_openclip_pretrained() -> None:
     """Download/verify the OpenCLIP pretrained weights before generation starts."""
     log_stage(
@@ -435,9 +456,10 @@ def ensure_openclip_pretrained() -> None:
         import open_clip
         import torch
 
+        pretrained_source = _openclip_pretrained_source()
         model, _unused, _preprocess = open_clip.create_model_and_transforms(
             OPENCLIP_MODEL,
-            pretrained=OPENCLIP_PRETRAINED,
+            pretrained=pretrained_source,
             device="cpu",
         )
         del model
@@ -539,9 +561,10 @@ def get_openclip_components() -> tuple[Any, Any, Any]:
 
     # OpenCLIP은 BLIP 결과 후보를 이미지와 다시 대조하는 검증 단계에 사용됩니다.
     device = get_device()
+    pretrained_source = _openclip_pretrained_source()
     model, _, preprocess = open_clip.create_model_and_transforms(
         OPENCLIP_MODEL,
-        pretrained=OPENCLIP_PRETRAINED,
+        pretrained=pretrained_source,
         device=device,
     )
     tokenizer = open_clip.get_tokenizer(OPENCLIP_MODEL)

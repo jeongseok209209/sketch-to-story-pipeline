@@ -29,7 +29,6 @@ VISION_MODEL_ID = QWEN25_VL_MODEL
 LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 BASE_DIR = Path(__file__).resolve().parent
 INPUT_DIR = BASE_DIR / "inputs"
-COLLAGE_ROOT = BASE_DIR / "collages"
 OUTPUT_ROOT = BASE_DIR / "outputs"
 COMMON_OUTPUT_DIR = OUTPUT_ROOT / "qwen25_vl_3b_story"
 SHARED_DIR = COMMON_OUTPUT_DIR / "scene_descriptions"
@@ -90,18 +89,19 @@ def _read_story_caption(input_dir: Path) -> str:
     return caption
 
 
-def _collage_story_dir(input_dir: Path) -> Path:
-    return COLLAGE_ROOT / input_dir.name
-
-
 def _resolve_collage_path(input_dir: Path) -> Path:
-    collage_path = _collage_story_dir(input_dir) / COLLAGE_FILENAME
-    if not collage_path.exists():
-        raise FileNotFoundError(
-            "Experiment J requires a story collage outside inputs so other experiments do not read it. "
-            f"Expected: {collage_path}"
-        )
-    return collage_path
+    candidates = [
+        input_dir / COLLAGE_FILENAME,
+        input_dir.parent / "collages" / input_dir.name / COLLAGE_FILENAME,
+    ]
+    for collage_path in candidates:
+        if collage_path.exists():
+            return collage_path
+    expected = " or ".join(str(path) for path in candidates)
+    raise FileNotFoundError(
+        "Experiment J requires a story collage inside the input tree. "
+        f"Expected: {expected}"
+    )
 
 
 def _prepare_image(image_path: Path) -> Path:
@@ -231,12 +231,20 @@ def _prompt_g_cot_persona(index: int) -> str:
     )
 
 
-def _prompt_j_collage() -> str:
+def _prompt_j_collage(story_caption: str = "") -> str:
+    caption_section = ""
+    if story_caption.strip():
+        caption_section = (
+            "Story caption text is provided as weak whole-story context. "
+            "Use it only to understand the intended broad flow, and keep visible collage evidence primary.\n"
+            f"story_caption:\n{story_caption.strip()}\n\n"
+        )
     return (
         "Experiment J collage analysis: You are a careful visual story analyst for a 2x5 collage of child drawings.\n"
         "The collage contains Scene 1 through Scene 10 labels. Read the panels in numeric order only.\n"
         "Analyze the whole sequence at once, but do not invent details that are not visible.\n"
         "Use the collage as a broad continuity map. Individual scene JSON will still be the main evidence later.\n"
+        f"{caption_section}"
         "Output exactly one Korean JSON object only. Do not add markdown, explanations, or code fences.\n"
         "Required shape:\n"
         "{\n"
@@ -248,6 +256,67 @@ def _prompt_j_collage() -> str:
         '  "ending_read": "마지막 장면이 어떤 정서로 끝나는지",\n'
         '  "uncertainty_notes": ["작게 보이거나 확실하지 않은 부분"]\n'
         "}"
+    )
+
+
+def _j_scene_prior_context(
+    index: int,
+    story_caption: str,
+    collage_analysis: dict[str, Any] | None,
+) -> str:
+    scene_order_summary: list[Any] = []
+    if collage_analysis and isinstance(collage_analysis.get("scene_order_summary"), list):
+        scene_order_summary = collage_analysis["scene_order_summary"]
+    current_scene_hint = ""
+    if 1 <= index <= len(scene_order_summary):
+        current_scene_hint = str(scene_order_summary[index - 1]).strip()
+    context = {
+        "priority": "weak_reference_only",
+        "rule": (
+            "Use this only to clarify scene order, story_role, and smooth connection to nearby scenes. "
+            "Do not use it as evidence for visual facts."
+        ),
+        "not_allowed_for": ["characters", "objects", "setting", "visible_actions"],
+        "caption_hint": story_caption.strip()[:300],
+        "overall_arc_hint": "",
+        "current_scene_collage_hint": current_scene_hint,
+        "recurring_character_hints": [],
+        "continuity_hints": [],
+        "uncertainty_notes": [],
+    }
+    if collage_analysis:
+        context["overall_arc_hint"] = str(collage_analysis.get("overall_story_arc", "")).strip()
+        recurring = collage_analysis.get("recurring_characters")
+        if isinstance(recurring, list):
+            context["recurring_character_hints"] = [str(item).strip() for item in recurring[:3] if str(item).strip()]
+        continuity = collage_analysis.get("visual_continuity")
+        if isinstance(continuity, list):
+            context["continuity_hints"] = [str(item).strip() for item in continuity[:2] if str(item).strip()]
+        uncertainty = collage_analysis.get("uncertainty_notes")
+        if isinstance(uncertainty, list):
+            context["uncertainty_notes"] = [str(item).strip() for item in uncertainty[:2] if str(item).strip()]
+    return json.dumps(context, ensure_ascii=False, indent=2)
+
+
+def _prompt_j_scene_with_prior_context(
+    index: int,
+    story_caption: str,
+    collage_analysis: dict[str, Any] | None,
+) -> str:
+    return (
+        "Experiment J per-scene image analysis with weak prior context.\n"
+        "Before analyzing this single image, you reviewed the story caption and the 2x5 collage of all 10 scenes.\n"
+        "The prior context is weak reference material, not visual evidence and not a plot checklist.\n"
+        "Use it only to clarify the whole-story flow, the scene's rough role, and smooth continuity with nearby scenes.\n"
+        "It may lightly influence story_role or uncertainty notes, but it must not decide the concrete visual content.\n"
+        "Do not add an object, character, action, setting, emotion, or story_role only because it appears in the prior context.\n"
+        "For characters, objects, setting, and visible actions, use only what is visible in the current image.\n"
+        "Do not copy wording from the prior context into the JSON fields.\n"
+        "Priority order: current image pixels > visible current-scene clues > uncertainty marking > weak prior context.\n"
+        "If prior context and the current image conflict, trust the current image and mark uncertain details as uncertain.\n"
+        f"current_scene_index: {index}\n"
+        f"weak_story_flow_hint:\n{_j_scene_prior_context(index, story_caption, collage_analysis)}\n\n"
+        f"{_prompt_g_cot_persona(index)}"
     )
 
 
@@ -400,6 +469,7 @@ def _run_qwen_scene(
 def _run_qwen_collage_analysis(
     image_path: Path,
     output_dir: Path,
+    story_caption: str = "",
     max_new_tokens: int = 520,
 ) -> dict[str, Any]:
     import torch
@@ -430,7 +500,7 @@ def _run_qwen_collage_analysis(
             "role": "user",
             "content": [
                 {"type": "image", "image": str(prepared_path.resolve())},
-                {"type": "text", "text": _prompt_j_collage()},
+                {"type": "text", "text": _prompt_j_collage(story_caption)},
             ],
         }
     ]
@@ -919,6 +989,17 @@ def _build_h_refinement_repair_prompt(raw_response: str, scene: dict[str, Any]) 
     )
 
 
+def _fairy_tale_speech_style_policy() -> str:
+    return (
+        "Fairy-tale speech style policy:\n"
+        "- Write like a picture-book narrator gently reading aloud to a child.\n"
+        "- Prefer soft Korean fairy-tale endings such as 했어요, 했답니다, 있었어요, 되었어요, 되었답니다, 였답니다.\n"
+        "- Mix 했어요-style and 했답니다-style endings naturally; keep the rhythm warm and child-friendly.\n"
+        "- avoid stiff report-style endings: do not end most sentences with ~다/~습니다, ~보입니다, ~나타납니다, or ~입니다.\n"
+        "- Keep the same meaning and visual grounding, but convert stiff sentence endings into warm fairy-tale spoken endings.\n"
+    )
+
+
 def _build_i_caption_initial_scene_prompt(scene: dict[str, Any]) -> str:
     scene_index = int(scene.get("scene_index", 0))
     weak_direction = str(scene.get("_weak_story_direction") or _weak_story_direction(_story_caption_from_scene(scene)))
@@ -932,6 +1013,7 @@ def _build_i_caption_initial_scene_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I initial scene writing: You are a warm Korean fairy-tale writer for children's drawings.\n"
         "Write one Korean fairy-tale paragraph for the current scene JSON.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Use scene_position_role only to control the story rhythm, not to force plot events.\n"
         "Use weak_story_direction only as a broad consistency hint.\n"
         "weak_story_direction is not scene content, not required vocabulary, and not a plot checklist.\n"
@@ -967,6 +1049,7 @@ def _build_i_caption_initial_scene_repair_prompt(raw_response: str, scene: dict[
         "Do not use story_caption or any external caption in this repair.\n"
         f"scene_position_role: {position_role}\n"
         "Use the current scene context as the main evidence.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "If possible, make story_sentence exactly 3 short Korean fairy-tale sentences. At minimum, avoid a one-sentence result.\n"
         "Do not use placeholders such as 해당하는 문단, 동화 문장, story_sentence, or ....\n"
         "Required shape:\n"
@@ -995,6 +1078,7 @@ def _build_i_sequential_refinement_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I second-pass sequential refinement: You are a warm Korean children's fairy-tale writer.\n"
         "Rewrite only the current scene paragraph as gentle Korean fairy-tale prose.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Use the previous final paragraph, the current initial paragraph, the current scene JSON, and scene_position_role.\n"
         "Do not use story_caption in this second pass.\n"
         f"{ending_instruction}"
@@ -1036,6 +1120,7 @@ def _build_i_sequential_refinement_repair_prompt(raw_response: str, scene: dict[
         "Do not use story_caption in this repair.\n"
         f"scene_position_role: {position_role}\n"
         "The revised story_sentence should connect naturally after the previous final sentence while staying grounded in the current scene.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Do not copy the previous sentence's expressions, motifs, sentence shape, or visual details.\n"
         "Include at least one current-scene visual clue.\n"
         "If possible, make story_sentence exactly 3 short, warm Korean fairy-tale sentences. At minimum, avoid a one-sentence result.\n"
@@ -1061,6 +1146,7 @@ def _build_i_english_translation_prompt(scene: dict[str, Any]) -> str:
         "Rewrite current_story_sentence by translating any English words or English phrases into natural Korean.\n"
         "Do not use story_caption in this cleanup.\n"
         "Keep the same story meaning, scene_index, Korean fairy-tale tone, and sentence count as much as possible.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Use the current scene JSON only to choose natural Korean wording when needed.\n"
         f"English terms to remove: {english_terms}\n"
         "Output exactly one JSON object only. Do not add markdown, explanations, or code fences.\n"
@@ -1079,6 +1165,7 @@ def _build_i_english_translation_repair_prompt(raw_response: str, scene: dict[st
         "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
         f"scene_index must be {scene_index}.\n"
         "story_sentence must be Korean fairy-tale prose with all English words translated into Korean.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Do not use story_caption in this repair.\n"
         "Required shape:\n"
         "{\n"
@@ -1266,6 +1353,7 @@ def _build_i_context_style_refinement_prompt(scene: dict[str, Any]) -> str:
         "Experiment I combined context-style refinement: You are a warm Korean children's fairy-tale writer.\n"
         "Rewrite only the current scene paragraph.\n"
         "Do two jobs together: connect naturally after the previous final paragraph, and make the prose soft, rhythmic, and fairy-tale-like.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         f"{position_instruction}"
         "Use the current scene JSON and current initial paragraph as the main evidence.\n"
         "Use story_caption only as a weak whole-story direction check, not as wording to copy.\n"
@@ -1296,6 +1384,7 @@ def _build_i_context_style_repair_prompt(raw_response: str, scene: dict[str, Any
         "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
         f"scene_index must be {scene_index}.\n"
         "Keep story_sentence connected to the previous final paragraph and written as gentle Korean fairy-tale prose.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Remove English words, analysis labels, field names, prompt words, and meta sentences.\n"
         "Use story_caption only as weak direction. Do not copy or repeat its main nouns unless visible in the current scene.\n"
         "The current scene context, current initial paragraph, and previous final paragraph are more important than story_caption.\n"
@@ -1321,6 +1410,7 @@ def _build_i_final_ending_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I final ending refinement: You are a warm Korean children's fairy-tale writer.\n"
         "Rewrite only scene 10 as the final paragraph of the whole story.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Use the previous final paragraph, the current scene 10 paragraph, current scene JSON, and story_caption.\n"
         "Do not start a new event. Do not simply list visible characters or objects.\n"
         "Close the story with warmth, relief, togetherness, and a gentle afterglow while staying grounded in the current drawing.\n"
@@ -1346,6 +1436,7 @@ def _build_i_final_ending_repair_prompt(raw_response: str, scene: dict[str, Any]
         "The JSON must contain exactly these keys: scene_index, story_sentence.\n"
         "scene_index must be 10.\n"
         "This is the final paragraph. End warmly with relief, togetherness, and afterglow.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Do not start a new event or list objects.\n"
         "Remove English words, analysis labels, field names, prompt words, and meta sentences.\n"
         "Use story_caption only as weak direction. Do not copy or repeat its main nouns unless visible in the current scene.\n"
@@ -1380,6 +1471,7 @@ def _build_i_cleanup_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\n"
         "Rewrite current_story_sentence into clean Korean children's fairy-tale prose.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         f"Cleanup reasons: {reason_text}\n"
         f"{ending_instruction}"
         "Remove all English words. Replace them with natural Korean words.\n"
@@ -1411,6 +1503,7 @@ def _build_i_cleanup_repair_prompt(raw_response: str, scene: dict[str, Any]) -> 
         f"Cleanup reasons: {reason_text}\n"
         f"{ending_instruction}"
         "story_sentence must be Korean only, with no English words or meta/analysis language.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Do not repeat caption words unless they are visible in the current scene.\n"
         "Required shape:\n"
         "{\n"
@@ -1441,6 +1534,7 @@ def _build_i_captionless_cleanup_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I quality cleanup: You are a strict Korean fairy-tale cleanup writer.\n"
         "Rewrite current_story_sentence into clean Korean children's fairy-tale prose.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         f"Cleanup reasons: {reason_text}\n"
         f"{ending_instruction}"
         "Remove all English words. Replace them with natural Korean words.\n"
@@ -1476,6 +1570,7 @@ def _build_i_captionless_cleanup_repair_prompt(raw_response: str, scene: dict[st
         f"Cleanup reasons: {reason_text}\n"
         f"{ending_instruction}"
         "story_sentence must be Korean only, with no English words or meta/analysis language.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Do not introduce or repeat whole-story caption wording. This cleanup pass does not use story_caption.\n"
         f"scene_position_role: {position_role}\n"
         "Do not copy the previous final sentence. Use current-scene visual clues.\n"
@@ -1503,6 +1598,7 @@ def _build_i_ending_cleanup_prompt(scene: dict[str, Any]) -> str:
     return (
         "Experiment I ending cleanup: You are a warm Korean children's fairy-tale writer.\n"
         "Rewrite only scene 10 as the ending paragraph of the whole story.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         f"Ending cleanup reasons: {reason_text}\n"
         "Do not use story_caption in this ending cleanup.\n"
         "Do not start a new event, new goal, new discovery, or new problem.\n"
@@ -1533,6 +1629,7 @@ def _build_i_ending_cleanup_repair_prompt(raw_response: str, scene: dict[str, An
         f"Ending cleanup reasons: {reason_text}\n"
         "Do not use story_caption in this repair.\n"
         "story_sentence must close the story warmly without starting a new event.\n"
+        f"{_fairy_tale_speech_style_policy()}"
         "Avoid a one-sentence result. Use Korean only, with no meta/analysis language.\n"
         "Required shape:\n"
         "{\n"
@@ -3217,8 +3314,8 @@ def _run_exaone_i_quality_gated_experiment(
     if collage_direction:
         weak_story_direction = (
             f"{weak_story_direction}\n"
-            "Collage sequence hint for Experiment J. Use only as weak continuity guidance, "
-            "and keep individual scene JSON as primary evidence:\n"
+            "Very weak collage sequence hint for Experiment J. Use only to avoid confusing scene order, "
+            "never as required content. Keep individual scene JSON as primary evidence:\n"
             f"{collage_direction}"
         )
     ordered_scenes = [
@@ -3615,7 +3712,7 @@ def build_experiment_j(
     story_caption: str,
     collage_analysis: dict[str, Any],
 ) -> dict[str, Any]:
-    """Experiment J: Experiment I plus one-pass Qwen collage continuity analysis."""
+    """Experiment J: Experiment I plus input-folder collage continuity analysis."""
     return _run_exaone_i_quality_gated_experiment(
         scenes,
         story_caption,
@@ -3862,6 +3959,8 @@ def prepare_qwen_scenes_for_experiment(
     experiment: str,
     input_dir: str | Path = INPUT_DIR,
     output_root: str | Path = OUTPUT_ROOT,
+    story_caption: str | None = None,
+    collage_analysis: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     output_root = Path(output_root)
     input_dir = Path(input_dir)
@@ -3869,15 +3968,6 @@ def prepare_qwen_scenes_for_experiment(
     common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story"
     shared_dir = common_output_dir / "scene_descriptions"
     resized_dir = common_output_dir / "_resized_input"
-    if key == "j":
-        reused_scenes = _try_reuse_scene_cache(
-            _experiment_dirs(output_root)["i"] / "qwen25_vl_3b_story",
-            input_dir,
-            common_output_dir,
-            shared_dir,
-        )
-        if reused_scenes is not None:
-            return reused_scenes
 
     if key == "e":
         prompt_builder = _prompt_e_visual_cot
@@ -3885,6 +3975,13 @@ def prepare_qwen_scenes_for_experiment(
     elif key == "f":
         prompt_builder = _prompt_f_fairy_tale_image_analyst
         qwen_max_new_tokens = 240
+    elif key == "j":
+        prompt_builder = lambda index: _prompt_j_scene_with_prior_context(
+            index,
+            story_caption or "",
+            collage_analysis or {},
+        )
+        qwen_max_new_tokens = 260
     elif key in {"g", "h", "i", "j"}:
         prompt_builder = _prompt_g_cot_persona
         qwen_max_new_tokens = 240
@@ -3904,13 +4001,14 @@ def prepare_qwen_scenes_for_experiment(
 def prepare_qwen_collage_for_experiment(
     input_dir: str | Path,
     output_root: str | Path = OUTPUT_ROOT,
+    story_caption: str = "",
 ) -> dict[str, Any]:
     output_root = Path(output_root)
     input_dir = Path(input_dir)
     collage_path = _resolve_collage_path(input_dir)
     common_output_dir = _experiment_dirs(output_root)["j"] / "qwen25_vl_3b_story" / "collage_analysis"
     log_stage(f"start Experiment J collage analysis: {collage_path}", step="J-collage", event="start")
-    analysis = _run_qwen_collage_analysis(collage_path, common_output_dir)
+    analysis = _run_qwen_collage_analysis(collage_path, common_output_dir, story_caption=story_caption)
     log_stage("Experiment J collage analysis succeeded", step="J-collage", event="success")
     return analysis
 
@@ -3954,14 +4052,20 @@ def run_selected_experiments(
     results: dict[str, Any] = {}
     for key in selected:
         story_caption = _read_story_caption(input_dir) if key in {"h", "i", "j"} else None
+        collage_analysis = (
+            prepare_qwen_collage_for_experiment(input_dir, output_root, story_caption=story_caption or "")
+            if key == "j"
+            else None
+        )
         set_step_context(experiment=key.upper(), phase="vision")
         log_stage(f"start Experiment {key.upper()} Qwen scene generation", step="Qwen", event="start")
         scenes = prepare_qwen_scenes_for_experiment(
             key,
             input_dir=input_dir,
             output_root=output_root,
+            story_caption=story_caption,
+            collage_analysis=collage_analysis,
         )
-        collage_analysis = prepare_qwen_collage_for_experiment(input_dir, output_root) if key == "j" else None
         set_step_context(experiment=key.upper(), phase="vision")
         log_stage(f"Experiment {key.upper()} Qwen scene generation succeeded", step="Qwen", event="success")
         results[key] = run_experiment_with_scenes(

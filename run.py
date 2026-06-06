@@ -41,7 +41,6 @@ from utils import (
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_SEQUENCE = BASE_DIR / "inputs"
-DEFAULT_COLLAGE_ROOT = BASE_DIR / "collages"
 DEFAULT_OUTPUT_ROOT = BASE_DIR / "outputs"
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 STORY_CAPTION_FILENAME = "caption.txt"
@@ -562,13 +561,14 @@ def _preflight_for_experiment(args: argparse.Namespace) -> None:
         if not caption_path.read_text(encoding="utf-8").strip():
             raise ValueError(f"Experiment {args.experiment.upper()} requires a non-empty caption file: {caption_path}")
     if args.experiment == "j":
-        collage_path = DEFAULT_COLLAGE_ROOT / Path(args.input_dir).name / COLLAGE_FILENAME
-        if not collage_path.exists():
-            raise FileNotFoundError(
-                "Experiment J requires a collage image outside inputs so A-I do not read it: "
-                f"{collage_path}"
-            )
-
+        input_dir = Path(args.input_dir)
+        collage_candidates = [
+            input_dir / COLLAGE_FILENAME,
+            input_dir.parent / "collages" / input_dir.name / COLLAGE_FILENAME,
+        ]
+        if not any(path.exists() for path in collage_candidates):
+            expected = " or ".join(str(path) for path in collage_candidates)
+            raise FileNotFoundError(f"Experiment J requires an input-tree collage image: {expected}")
     if args.experiment in {"all", "all-evaluate"}:
         log_stage("preparing all downloads and runtime checks before generation", step="preflight")
         _preflight_a_models()
