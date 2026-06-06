@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import json
 import random
+import zipfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from xml.sax.saxutils import escape as xml_escape
 
+import pandas as pd
 import streamlit as st
 
 
@@ -19,6 +22,7 @@ EVALUATION_DIR = OUTPUT_ROOT / "evaluations"
 MAPPING_FILE = EVALUATION_DIR / "blind_mapping.json"
 RECORDS_FILE = EVALUATION_DIR / "evaluation_records.jsonl"
 SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
+EXCEL_RESULTS_FILE = EVALUATION_DIR / "evaluation_results.xlsx"
 INPUT_DIR = BASE_DIR / "inputs"
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg")
@@ -94,7 +98,7 @@ class EvaluationCase:
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -420,6 +424,50 @@ def load_cases(mapping: dict[str, dict[str, Any]]) -> list[EvaluationCase]:
     return cases
 
 
+def _case_by_id(cases: list[EvaluationCase]) -> dict[str, EvaluationCase]:
+    return {case.case_id: case for case in cases}
+
+
+def _ensure_quantitative_scene_selection(
+    mapping: dict[str, dict[str, Any]],
+    cases: list[EvaluationCase],
+) -> None:
+    """Persist one random scene per case for quantitative scoring."""
+    cases_by_id = _case_by_id(cases)
+    changed = False
+    randomizer = random.SystemRandom()
+    for case_id, item in mapping.items():
+        case = cases_by_id.get(case_id)
+        if not case or not case.scenes:
+            continue
+        valid_indices = {scene.scene_index for scene in case.scenes}
+        selected = item.get("quantitative_scene_index")
+        try:
+            selected_index = int(selected)
+        except (TypeError, ValueError):
+            selected_index = -1
+        if selected_index not in valid_indices:
+            item["quantitative_scene_index"] = randomizer.choice(sorted(valid_indices))
+            changed = True
+    if changed:
+        _write_json(MAPPING_FILE, mapping)
+
+
+def _selected_quantitative_scenes(
+    case: EvaluationCase,
+    mapping: dict[str, dict[str, Any]],
+) -> list[SceneView]:
+    item = mapping.get(case.case_id) or {}
+    try:
+        selected_index = int(item.get("quantitative_scene_index"))
+    except (TypeError, ValueError):
+        selected_index = case.scenes[0].scene_index if case.scenes else -1
+    selected = [scene for scene in case.scenes if scene.scene_index == selected_index]
+    if selected:
+        return selected
+    return case.scenes[:1]
+
+
 def load_records() -> list[dict[str, Any]]:
     if not RECORDS_FILE.exists():
         return []
@@ -478,7 +526,19 @@ def build_summary(
         if experiment not in EXPERIMENTS:
             continue
 
+        selected_scene_index = item.get("quantitative_scene_index")
+        try:
+            selected_scene_index = int(selected_scene_index)
+        except (TypeError, ValueError):
+            selected_scene_index = None
         for scene in record.get("scene_quantitative", []):
+            if selected_scene_index is not None:
+                try:
+                    scene_index = int(scene.get("scene_index"))
+                except (TypeError, ValueError):
+                    scene_index = -1
+                if scene_index != selected_scene_index:
+                    continue
             for metric in QUANTITATIVE_METRICS:
                 value = scene.get(metric)
                 if isinstance(value, int | float):
@@ -516,7 +576,192 @@ def build_summary(
         "qualitative_by_experiment": qualitative,
     }
     _write_json(SUMMARY_FILE, summary)
+    if all(case_id in latest_records for case_id in mapping):
+        _write_excel_results(summary, mapping, latest_records)
     return summary
+
+
+def _excel_column_name(index: int) -> str:
+    name = ""
+    index += 1
+    while index:
+        index, remainder = divmod(index - 1, 26)
+        name = chr(65 + remainder) + name
+    return name
+
+
+def _excel_cell_xml(row_index: int, column_index: int, value: Any) -> str:
+    reference = f"{_excel_column_name(column_index)}{row_index}"
+    if value is None:
+        value = ""
+    if isinstance(value, bool):
+        return f'<c r="{reference}" t="b"><v>{1 if value else 0}</v></c>'
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return f'<c r="{reference}"><v>{value}</v></c>'
+    text = xml_escape(str(value))
+    return f'<c r="{reference}" t="inlineStr"><is><t>{text}</t></is></c>'
+
+
+def _excel_sheet_xml(rows: list[list[Any]]) -> str:
+    row_xml = []
+    for row_index, row in enumerate(rows, start=1):
+        cells = "".join(_excel_cell_xml(row_index, column_index, value) for column_index, value in enumerate(row))
+        row_xml.append(f'<row r="{row_index}">{cells}</row>')
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f"<sheetData>{''.join(row_xml)}</sheetData>"
+        "</worksheet>"
+    )
+
+
+def _write_xlsx(path: Path, sheets: list[tuple[str, list[list[Any]]]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    workbook_sheets = []
+    relationships = []
+    content_overrides = [
+        '<Override PartName="/xl/workbook.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
+        '<Override PartName="/xl/styles.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
+    ]
+    for index, (sheet_name, _rows) in enumerate(sheets, start=1):
+        safe_name = xml_escape(sheet_name[:31] or f"Sheet{index}")
+        workbook_sheets.append(f'<sheet name="{safe_name}" sheetId="{index}" r:id="rId{index}"/>')
+        relationships.append(
+            f'<Relationship Id="rId{index}" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+            f'Target="worksheets/sheet{index}.xml"/>'
+        )
+        content_overrides.append(
+            f'<Override PartName="/xl/worksheets/sheet{index}.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+        )
+    relationships.append(
+        f'<Relationship Id="rId{len(sheets) + 1}" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+        'Target="styles.xml"/>'
+    )
+
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "[Content_Types].xml",
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            f"{''.join(content_overrides)}"
+            "</Types>",
+        )
+        archive.writestr(
+            "_rels/.rels",
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+            'Target="xl/workbook.xml"/>'
+            "</Relationships>",
+        )
+        archive.writestr(
+            "xl/workbook.xml",
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            f"<sheets>{''.join(workbook_sheets)}</sheets>"
+            "</workbook>",
+        )
+        archive.writestr(
+            "xl/_rels/workbook.xml.rels",
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            f"{''.join(relationships)}"
+            "</Relationships>",
+        )
+        archive.writestr(
+            "xl/styles.xml",
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            "<fonts count=\"1\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font></fonts>"
+            "<fills count=\"1\"><fill><patternFill patternType=\"none\"/></fill></fills>"
+            "<borders count=\"1\"><border/></borders>"
+            "<cellStyleXfs count=\"1\"><xf/></cellStyleXfs>"
+            "<cellXfs count=\"1\"><xf/></cellXfs>"
+            "</styleSheet>",
+        )
+        for index, (_sheet_name, rows) in enumerate(sheets, start=1):
+            archive.writestr(f"xl/worksheets/sheet{index}.xml", _excel_sheet_xml(rows))
+
+
+def _summary_quantitative_rows(summary: dict[str, Any], mapping: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    selected_by_experiment = {
+        str(item.get("experiment", "")).upper(): item.get("quantitative_scene_index")
+        for item in mapping.values()
+    }
+    rows = []
+    for experiment in EXPERIMENTS:
+        metrics = summary.get("quantitative_by_experiment", {}).get(experiment)
+        if not metrics:
+            continue
+        row = {
+            "experiment": experiment,
+            "selected_scene_index": selected_by_experiment.get(experiment, ""),
+            "scene_average_score": metrics.get("scene_average_score", ""),
+        }
+        row.update({metric: metrics.get(metric, "") for metric in QUANTITATIVE_METRICS})
+        rows.append(row)
+    return rows
+
+
+def _write_excel_results(
+    summary: dict[str, Any],
+    mapping: dict[str, dict[str, Any]],
+    latest_records: dict[str, dict[str, Any]],
+) -> None:
+    quantitative_rows = _summary_quantitative_rows(summary, mapping)
+    quantitative_sheet = [
+        ["experiment", "selected_scene_index", "scene_average_score", *QUANTITATIVE_METRICS.keys()]
+    ]
+    quantitative_sheet.extend(
+        [
+            [
+                row.get("experiment", ""),
+                row.get("selected_scene_index", ""),
+                row.get("scene_average_score", ""),
+                *(row.get(metric, "") for metric in QUANTITATIVE_METRICS),
+            ]
+            for row in quantitative_rows
+        ]
+    )
+
+    qualitative_sheet = [["experiment", "field", "option", "count"]]
+    for experiment in EXPERIMENTS:
+        fields = summary.get("qualitative_by_experiment", {}).get(experiment, {})
+        for field, counts in fields.items():
+            for option, count in counts.items():
+                qualitative_sheet.append([experiment, field, option, count])
+
+    case_sheet = [["case_id", "experiment", "result_file", "selected_scene_index", "scene_average_score"]]
+    for case_id in sorted(mapping):
+        item = mapping[case_id]
+        record = latest_records.get(case_id, {})
+        case_sheet.append(
+            [
+                case_id,
+                item.get("experiment", ""),
+                item.get("result_file", ""),
+                item.get("quantitative_scene_index", ""),
+                record.get("scene_average_score", ""),
+            ]
+        )
+
+    _write_xlsx(
+        EXCEL_RESULTS_FILE,
+        [
+            ("quantitative_scores", quantitative_sheet),
+            ("qualitative_counts", qualitative_sheet),
+            ("case_records", case_sheet),
+        ],
+    )
 
 
 def _existing_scene_scores(
@@ -620,9 +865,9 @@ def _render_scene(scene: SceneView, existing_record: dict[str, Any] | None, case
             )
 
 
-def _collect_scene_quantitative(case: EvaluationCase) -> list[dict[str, int]]:
+def _collect_scene_quantitative(case: EvaluationCase, scenes_to_score: list[SceneView]) -> list[dict[str, int]]:
     scenes = []
-    for scene in case.scenes:
+    for scene in scenes_to_score:
         scores = {
             "scene_index": scene.scene_index,
         }
@@ -655,6 +900,9 @@ def _collect_story_qualitative(case: EvaluationCase) -> dict[str, str]:
 
 
 def _render_summary(summary: dict[str, Any]) -> None:
+    st.divider()
+    _render_story_image_overview(current_case)
+
     st.divider()
     st.markdown("## 분석 요약")
     st.caption("이 영역은 모든 case 평가가 저장된 뒤에만 실제 실험명 기준으로 표시됩니다.")
@@ -698,6 +946,75 @@ def _render_summary(summary: dict[str, Any]) -> None:
                 st.table(rows)
 
 
+def _render_results_dashboard(
+    mapping: dict[str, dict[str, Any]],
+    latest_records: dict[str, dict[str, Any]],
+) -> None:
+    summary = build_summary(mapping, latest_records)
+    st.success("모든 평가가 완료되었습니다.")
+    st.markdown("## 평가 결과")
+    st.caption("모든 case 평가가 저장된 뒤 실제 실험 버전 기준으로 공개되는 결과 화면입니다.")
+
+    quantitative_rows = _summary_quantitative_rows(summary, mapping)
+    if quantitative_rows:
+        display_rows = [
+            {
+                "버전": row.get("experiment", ""),
+                "평가 장면": row.get("selected_scene_index", ""),
+                "장면 평균": row.get("scene_average_score", ""),
+                "그림 근거": row.get("visual_groundedness", ""),
+                "대상/행동 정확도": row.get("object_action_accuracy", ""),
+                "환각 적음": row.get("low_hallucination", ""),
+                "감정/분위기 반영": row.get("emotion_tone_alignment", ""),
+                "문장 언어 품질": row.get("scene_linguistic_quality", ""),
+            }
+            for row in quantitative_rows
+        ]
+        st.markdown("### 버전별 정량 점수")
+        st.dataframe(display_rows, width="stretch", hide_index=True)
+
+        chart_data = pd.DataFrame(
+            [
+                {
+                    "버전": row["experiment"],
+                    "장면 평균": float(row.get("scene_average_score") or 0),
+                }
+                for row in quantitative_rows
+            ]
+        ).set_index("버전")
+        st.markdown("### A-J 점수 변화")
+        st.line_chart(chart_data)
+
+    qualitative = summary.get("qualitative_by_experiment", {})
+    if qualitative:
+        st.markdown("### 버전별 정성 평가 분포")
+        for experiment in EXPERIMENTS:
+            fields = qualitative.get(experiment)
+            if not fields:
+                continue
+            rows = []
+            for key, config in QUALITATIVE_OPTIONS.items():
+                counts = fields.get(key, {})
+                if not counts:
+                    continue
+                distribution = ", ".join(f"{label}: {count}" for label, count in counts.items())
+                rows.append({"항목": config["label"], "분포": distribution})
+            if rows:
+                st.markdown(f"#### {experiment}")
+                st.dataframe(rows, width="stretch", hide_index=True)
+
+    if EXCEL_RESULTS_FILE.exists():
+        st.markdown("### 엑셀 결과 파일")
+        st.code(str(EXCEL_RESULTS_FILE.relative_to(BASE_DIR)), language="text")
+        st.download_button(
+            "엑셀 파일 다운로드",
+            data=EXCEL_RESULTS_FILE.read_bytes(),
+            file_name=EXCEL_RESULTS_FILE.name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            width="stretch",
+        )
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Blind Story Evaluation",
@@ -713,8 +1030,18 @@ def main() -> None:
         st.code("python run.py all", language="bash")
         return
 
+    _ensure_quantitative_scene_selection(mapping, cases)
+
     records = load_records()
     latest_records = latest_records_by_case(records)
+    all_completed = all(case.case_id in latest_records for case in cases)
+    if all_completed and st.session_state.get("view_mode", "results") == "results":
+        _render_results_dashboard(mapping, latest_records)
+        if st.button("평가 화면으로 돌아가기", width="stretch"):
+            st.session_state.view_mode = "evaluate"
+            st.rerun()
+        return
+
     current_case = _render_case_navigation(cases)
     existing_record = latest_records.get(current_case.case_id)
 
@@ -722,10 +1049,12 @@ def main() -> None:
     st.progress(completed / len(cases), text=f"저장된 평가: {completed} / {len(cases)}")
 
     _render_story_image_overview(current_case)
+    quantitative_scenes = _selected_quantitative_scenes(current_case, mapping)
 
     st.markdown("## 장면별 정량 평가")
     st.caption("각 장면은 1점부터 10점까지 숫자를 클릭해 평가합니다.")
-    for scene in current_case.scenes:
+    st.info("정량 평가는 이 버전에서 무작위로 선택된 한 장면만 진행합니다. 전체 이야기 정성 평가는 아래에서 그대로 진행합니다.")
+    for scene in quantitative_scenes:
         with st.expander(f"{scene.scene_index}번째 장면 평가", expanded=True):
             _render_scene(scene, existing_record, current_case.case_id)
 
@@ -737,10 +1066,11 @@ def main() -> None:
     submitted = st.button("현재 case 평가 저장", width="stretch")
 
     if submitted:
-        scene_quantitative = _collect_scene_quantitative(current_case)
+        scene_quantitative = _collect_scene_quantitative(current_case, quantitative_scenes)
         story_qualitative = _collect_story_qualitative(current_case)
         record = {
             "case_id": current_case.case_id,
+            "quantitative_scene_indices": [scene.scene_index for scene in quantitative_scenes],
             "scene_quantitative": scene_quantitative,
             "story_qualitative": story_qualitative,
             "scene_average_score": _score_average(scene_quantitative),
@@ -749,11 +1079,17 @@ def main() -> None:
         save_record(record)
         latest_records[current_case.case_id] = record
         build_summary(mapping, latest_records)
+        if all(case.case_id in latest_records for case in cases):
+            st.session_state.view_mode = "results"
+            st.rerun()
         st.success(f"{current_case.case_id} 평가를 저장했습니다.")
 
+    if st.button("다음 case로 이동", disabled=st.session_state.case_position >= len(cases) - 1, width="stretch"):
+        st.session_state.case_position = min(len(cases) - 1, st.session_state.case_position + 1)
+        st.rerun()
+
     if all(case.case_id in latest_records for case in cases):
-        summary = build_summary(mapping, latest_records)
-        _render_summary(summary)
+        _render_results_dashboard(mapping, latest_records)
     else:
         st.info("모든 case 평가를 저장하면 실험명 기준 분석 요약이 표시됩니다.")
 

@@ -553,15 +553,18 @@ def _preflight_for_experiment(args: argparse.Namespace) -> None:
             raise FileNotFoundError(f"Experiment {args.experiment.upper()} requires {caption_path}")
         if not caption_path.read_text(encoding="utf-8").strip():
             raise ValueError(f"Experiment {args.experiment.upper()} requires a non-empty caption file: {caption_path}")
-    if args.experiment == "j":
+    if args.experiment in {"i", "j"}:
         input_dir = Path(args.input_dir)
         collage_candidates = [
             input_dir / COLLAGE_FILENAME,
+            input_dir / "collages" / input_dir.name / COLLAGE_FILENAME,
             input_dir.parent / "collages" / input_dir.name / COLLAGE_FILENAME,
         ]
         if not any(path.exists() for path in collage_candidates):
             expected = " or ".join(str(path) for path in collage_candidates)
-            raise FileNotFoundError(f"Experiment J requires an input-tree collage image: {expected}")
+            raise FileNotFoundError(
+                f"Experiment {args.experiment.upper()} requires an input-tree collage image: {expected}"
+            )
     if args.experiment in {"all", "all-evaluate"}:
         log_stage("preparing all downloads and runtime checks before generation", step="preflight")
         _preflight_a_models()

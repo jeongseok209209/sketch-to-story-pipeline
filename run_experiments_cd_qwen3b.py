@@ -48,10 +48,8 @@ I_ENDING_MAX_NEW_TOKENS = 500
 I_CLEANUP_MAX_NEW_TOKENS = 300
 I_QUALITY_GATES = (
     "repetition",
-    "caption_overuse",
     "english",
     "meta_language",
-    "sentence_count",
     "ending",
 )
 
@@ -93,6 +91,7 @@ def _read_story_caption(input_dir: Path) -> str:
 def _resolve_collage_path(input_dir: Path) -> Path:
     candidates = [
         input_dir / COLLAGE_FILENAME,
+        input_dir / "collages" / input_dir.name / COLLAGE_FILENAME,
         input_dir.parent / "collages" / input_dir.name / COLLAGE_FILENAME,
     ]
     for collage_path in candidates:
@@ -1279,7 +1278,7 @@ def _build_i_english_translation_prompt(scene: dict[str, Any]) -> str:
         "Experiment I English translation cleanup: You are a Korean fairy-tale text editor.\n"
         "Rewrite current_story_sentence by translating any English words or English phrases into natural Korean.\n"
         "Do not use story_caption in this cleanup.\n"
-        "Keep the same story meaning, scene_index, Korean fairy-tale tone, and sentence count as much as possible.\n"
+        "Keep the same story meaning, scene_index, and Korean fairy-tale tone as much as possible.\n"
         f"{_fairy_tale_speech_style_policy()}"
         "Use the current scene JSON only to choose natural Korean wording when needed.\n"
         f"English terms to remove: {english_terms}\n"
@@ -1355,6 +1354,32 @@ def _build_i_english_term_translation_repair_prompt(
         "MODEL_RESPONSE_TO_REPAIR:\n"
         f"{raw_response}\n"
     )
+
+
+def _english_translation_json_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "translations": {
+                "type": "object",
+                "additionalProperties": {"type": "string", "minLength": 1},
+            }
+        },
+        "required": ["translations"],
+        "additionalProperties": False,
+    }
+
+
+def _scene_story_json_schema(scene_index: int) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "scene_index": {"type": "integer", "const": scene_index},
+            "story_sentence": {"type": "string", "minLength": 1},
+        },
+        "required": ["scene_index", "story_sentence"],
+        "additionalProperties": False,
+    }
 
 
 def _extract_i_english_translations(raw_response: str, terms: list[str]) -> dict[str, str]:
@@ -2085,29 +2110,6 @@ def _i_repetition_reasons(value: str, previous_sentence: str) -> list[str]:
     return []
 
 
-def _i_sentence_count_reasons(value: str) -> list[str]:
-    sentence_count = _sentence_mark_count(value)
-    if sentence_count < 2:
-        return ["sentence_count"]
-    return []
-
-
-def _i_caption_overuse_reasons(
-    value: str,
-    scene: dict[str, Any],
-    story_caption: str,
-    caption_usage_counts: dict[str, int],
-) -> list[str]:
-    for keyword in _caption_keywords_for_gate(story_caption):
-        if keyword not in value:
-            continue
-        if not _scene_supports_keyword(scene, keyword):
-            return ["caption_overuse"]
-        if caption_usage_counts.get(keyword, 0) >= 2:
-            return ["caption_overuse"]
-    return []
-
-
 def _i_quality_gate_reasons(
     value: str,
     scene: dict[str, Any],
@@ -2119,12 +2121,10 @@ def _i_quality_gate_reasons(
 ) -> list[str]:
     reasons: list[str] = []
     reasons.extend(_i_repetition_reasons(value, previous_sentence))
-    reasons.extend(_i_caption_overuse_reasons(value, scene, story_caption, caption_usage_counts))
     if _english_words(value):
         reasons.append("english")
     if _has_meta_language(value) or _looks_like_placeholder(value):
         reasons.append("meta_language")
-    reasons.extend(_i_sentence_count_reasons(value))
     if check_ending:
         reasons.extend(_ending_quality_reasons_for_gate(value))
     return list(dict.fromkeys(reasons))
@@ -2155,8 +2155,6 @@ def _sentence_mark_count(value: str) -> int:
 def _scene_story_from_payload(
     payload: dict[str, Any],
     expected_index: int,
-    *,
-    enforce_sentence_count: bool = True,
 ) -> dict[str, Any]:
     scene_index = int(payload.get("scene_index") or expected_index)
     if scene_index != expected_index:
@@ -2164,12 +2162,6 @@ def _scene_story_from_payload(
     story_sentence = str(payload.get("story_sentence") or "").strip()
     if _looks_like_placeholder(story_sentence):
         raise ValueError(f"EXAONE scene {expected_index} returned placeholder or empty story_sentence.")
-    if enforce_sentence_count:
-        sentence_count = _sentence_mark_count(story_sentence)
-        if not 3 <= sentence_count <= 5:
-            raise ValueError(
-                f"EXAONE scene {expected_index} story_sentence must contain 3 to 5 sentences, got {sentence_count}."
-            )
     return {"scene_index": scene_index, "story_sentence": story_sentence}
 
 
@@ -2230,8 +2222,6 @@ def _partial_scene_story_payload(text: str, expected_index: int) -> dict[str, An
 def _extract_scene_story_json(
     text: str,
     expected_index: int,
-    *,
-    enforce_sentence_count: bool = True,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     candidates = _json_object_candidates(text)
     if not candidates:
@@ -2241,7 +2231,6 @@ def _extract_scene_story_json(
         parsed = _scene_story_from_payload(
             payload,
             expected_index,
-            enforce_sentence_count=enforce_sentence_count,
         )
         return payload, parsed
     last_error: Exception | None = None
@@ -2258,7 +2247,6 @@ def _extract_scene_story_json(
             parsed = _scene_story_from_payload(
                 payload,
                 expected_index,
-                enforce_sentence_count=enforce_sentence_count,
             )
         except (ValueError, TypeError) as exc:
             last_error = exc
@@ -2270,7 +2258,6 @@ def _extract_scene_story_json(
             partial_parsed = _scene_story_from_payload(
                 partial_payload,
                 expected_index,
-                enforce_sentence_count=enforce_sentence_count,
             )
         except (ValueError, TypeError) as exc:
             last_error = exc
@@ -2338,7 +2325,6 @@ def _run_exaone_scene_story(
             lenient_initial_payload, lenient_initial_parsed = _extract_scene_story_json(
                 raw_response,
                 scene_index,
-                enforce_sentence_count=False,
             )
         except (json.JSONDecodeError, ValueError, TypeError):
             pass
@@ -2360,7 +2346,6 @@ def _run_exaone_scene_story(
             payload, parsed = _extract_scene_story_json(
                 repair_response,
                 scene_index,
-                enforce_sentence_count=False,
             )
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
             if lenient_initial_payload is not None and lenient_initial_parsed is not None:
@@ -2835,6 +2820,7 @@ def _run_i_english_term_translation(
     raw_response = ""
     json_repair_used = False
     translations: dict[str, str] = {}
+    translation_schema = _english_translation_json_schema()
     with timed_step(
         f"EXAONE-english-terms-{stage}-{scene_index:02d}",
         f"{experiment_name} {stage} scene {scene_index} English term translation",
@@ -2846,6 +2832,7 @@ def _run_i_english_term_translation(
             max_new_tokens=180,
             timeout=300,
             context_size=4096,
+            json_schema=translation_schema,
         )
     try:
         translations = _extract_i_english_translations(raw_response, terms)
@@ -2862,26 +2849,39 @@ def _run_i_english_term_translation(
                 max_new_tokens=180,
                 timeout=300,
                 context_size=4096,
+                json_schema=translation_schema,
             )
         json_repair_used = True
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
         try:
             translations = _extract_i_english_translations(repair_response, terms)
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            raise RuntimeError(
-                "json_repair_failed: EXAONE English term translation JSON repair failed. "
-                f"scene_index={scene_index}; stage={stage}; terms={terms!r}; "
-                f"initial_error={exc}; repair_error={repair_exc}; "
-                f"cleaned_response_head={raw_response[:800]!r}; "
-                f"llama_runtime={get_last_llama_runtime()!r}"
-            ) from repair_exc
+            return _run_i_english_sentence_rewrite(
+                scene,
+                parsed_result,
+                experiment_name=experiment_name,
+                stage=stage,
+                previous_final_sentence=previous_final_sentence,
+                story_caption=story_caption,
+                caption_usage_counts=caption_usage_counts,
+                previous_raw_response=raw_response,
+                previous_error=(
+                    "translation_json_repair_failed: "
+                    f"terms={terms!r}; initial_error={exc}; repair_error={repair_exc}"
+                ),
+            )
 
     if not translations:
-        raise RuntimeError(
-            "json_parse_failed: EXAONE English term translation returned no usable translations. "
-            f"scene_index={scene_index}; stage={stage}; terms={terms!r}; "
-            f"cleaned_response_head={raw_response[:800]!r}; "
-            f"llama_runtime={get_last_llama_runtime()!r}"
+        return _run_i_english_sentence_rewrite(
+            scene,
+            parsed_result,
+            experiment_name=experiment_name,
+            stage=stage,
+            previous_final_sentence=previous_final_sentence,
+            story_caption=story_caption,
+            caption_usage_counts=caption_usage_counts,
+            previous_raw_response=raw_response,
+            previous_error=f"translation_empty: terms={terms!r}",
         )
 
     translated_sentence = _replace_english_terms(sentence, translations)
@@ -2899,6 +2899,18 @@ def _run_i_english_term_translation(
         check_ending=False,
     )
     if remaining_reasons:
+        if "english" in remaining_reasons:
+            return _run_i_english_sentence_rewrite(
+                scene,
+                translated_result,
+                experiment_name=experiment_name,
+                stage=stage,
+                previous_final_sentence=previous_final_sentence,
+                story_caption=story_caption,
+                caption_usage_counts=caption_usage_counts,
+                previous_raw_response=raw_response,
+                previous_error=f"term_translation_remaining_reasons={remaining_reasons!r}",
+            )
         raise RuntimeError(
             "exaone_output_invalid: EXAONE English term translation did not satisfy quality gates. "
             f"scene_index={scene_index}; stage={stage}; remaining_reasons={remaining_reasons!r}; "
@@ -2917,6 +2929,106 @@ def _run_i_english_term_translation(
         "json_repair_used": json_repair_used,
     }
     return translated_result, record
+
+
+def _run_i_english_sentence_rewrite(
+    scene: dict[str, Any],
+    parsed_result: dict[str, Any],
+    *,
+    experiment_name: str,
+    stage: str,
+    previous_final_sentence: str,
+    story_caption: str,
+    caption_usage_counts: dict[str, int],
+    previous_raw_response: str = "",
+    previous_error: str = "",
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    scene_index = int(scene["scene_index"])
+    sentence_scene = {
+        **scene,
+        "_i_current_sentence": str(parsed_result.get("story_sentence") or ""),
+    }
+    prompt = _build_i_english_translation_prompt(sentence_scene)
+    raw_response = ""
+    json_repair_used = False
+    with timed_step(
+        f"EXAONE-english-rewrite-{stage}-{scene_index:02d}",
+        f"{experiment_name} {stage} scene {scene_index} English sentence rewrite",
+        experiment=experiment_name,
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+    ):
+        raw_response = _run_exaone_gguf_prompt(
+            prompt,
+            max_new_tokens=260,
+            timeout=300,
+            context_size=4096,
+            json_schema=_scene_story_json_schema(scene_index),
+        )
+    try:
+        payload, rewritten = _extract_scene_story_json(raw_response, scene_index)
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        repair_prompt = _build_i_english_translation_repair_prompt(raw_response, sentence_scene)
+        with timed_step(
+            f"EXAONE-english-rewrite-{stage}-{scene_index:02d}-repair",
+            f"{experiment_name} {stage} scene {scene_index} English sentence rewrite JSON repair",
+            experiment=experiment_name,
+            model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        ):
+            repair_response = _run_exaone_gguf_prompt(
+                repair_prompt,
+                max_new_tokens=260,
+                timeout=300,
+                context_size=4096,
+                json_schema=_scene_story_json_schema(scene_index),
+            )
+        json_repair_used = True
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
+        try:
+            payload, rewritten = _extract_scene_story_json(repair_response, scene_index)
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            raise RuntimeError(
+                "json_repair_failed: EXAONE English sentence rewrite JSON repair failed. "
+                f"scene_index={scene_index}; stage={stage}; initial_error={exc}; repair_error={repair_exc}; "
+                f"previous_error={previous_error}; cleaned_response_head={raw_response[:800]!r}; "
+                f"previous_translation_response_head={previous_raw_response[:800]!r}; "
+                f"llama_runtime={get_last_llama_runtime()!r}"
+            ) from repair_exc
+
+    rewritten_result = {
+        **parsed_result,
+        "scene_index": scene_index,
+        "story_sentence": rewritten["story_sentence"],
+    }
+    remaining_reasons = _i_quality_gate_reasons(
+        rewritten_result["story_sentence"],
+        scene,
+        story_caption,
+        caption_usage_counts,
+        previous_sentence=previous_final_sentence,
+        check_ending=False,
+    )
+    if remaining_reasons:
+        raise RuntimeError(
+            "exaone_output_invalid: EXAONE English sentence rewrite did not satisfy quality gates. "
+            f"scene_index={scene_index}; stage={stage}; remaining_reasons={remaining_reasons!r}; "
+            f"previous_error={previous_error}; cleaned_response_head={raw_response[:800]!r}; "
+            f"previous_translation_response_head={previous_raw_response[:800]!r}; "
+            f"llama_runtime={get_last_llama_runtime()!r}"
+        )
+    record = {
+        "stage": f"{stage}_english_sentence_rewrite",
+        "scene_index": scene_index,
+        "reasons": ["english"],
+        "remaining_reasons": remaining_reasons,
+        "english_terms": _unique_english_replacement_units(str(parsed_result.get("story_sentence") or "")),
+        "prompt": prompt,
+        "raw_response": raw_response,
+        "parsed_result": rewritten_result,
+        "json_repair_used": json_repair_used,
+        "previous_translation_response": previous_raw_response,
+        "previous_translation_error": previous_error,
+    }
+    return rewritten_result, record
 
 
 def _maybe_run_i_quality_cleanup(
@@ -3523,14 +3635,7 @@ def _run_exaone_i_quality_gated_experiment(
             "scene_position_roles_used": True,
             "collage_analysis_used": bool(collage_analysis),
             "collage_analysis_stage": "weak_direction_hint" if collage_analysis else "",
-            "quality_gates": [
-                "repetition",
-                "caption_overuse",
-                "english",
-                "meta_language",
-                "sentence_count",
-                "ending",
-            ],
+            "quality_gates": list(I_QUALITY_GATES),
             "exaone_initial_scene_calls": len(initial_results),
             "exaone_refinement_calls": len(refined_results),
             "cleanup_calls": len(cleanup_results),
@@ -3743,9 +3848,17 @@ def build_experiment_h(scenes: list[dict[str, Any]], story_caption: str) -> dict
     return _run_exaone_h_experiment(scenes, story_caption)
 
 
-def build_experiment_i(scenes: list[dict[str, Any]], story_caption: str) -> dict[str, Any]:
+def build_experiment_i(
+    scenes: list[dict[str, Any]],
+    story_caption: str,
+    collage_analysis: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Experiment I: generic scene-position roles with quality-gated refinement."""
-    return _run_exaone_i_quality_gated_experiment(scenes, story_caption)
+    return _run_exaone_i_quality_gated_experiment(
+        scenes,
+        story_caption,
+        collage_analysis=collage_analysis,
+    )
 
 
 def build_experiment_j(
@@ -4063,14 +4176,17 @@ def prepare_qwen_collage_for_experiment(
     input_dir: str | Path,
     output_root: str | Path = OUTPUT_ROOT,
     story_caption: str = "",
+    experiment: str = "j",
 ) -> dict[str, Any]:
     output_root = Path(output_root)
     input_dir = Path(input_dir)
+    key = experiment.lower()
+    experiment_label = f"Experiment {key.upper()}"
     collage_path = _resolve_collage_path(input_dir)
-    common_output_dir = _experiment_dirs(output_root)["j"] / "qwen25_vl_3b_story" / "collage_analysis"
-    log_stage(f"start Experiment J collage analysis: {collage_path}", step="J-collage", event="start")
+    common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story" / "collage_analysis"
+    log_stage(f"start {experiment_label} collage analysis: {collage_path}", step=f"{key.upper()}-collage", event="start")
     analysis = _run_qwen_collage_analysis(collage_path, common_output_dir, story_caption=story_caption)
-    log_stage("Experiment J collage analysis succeeded", step="J-collage", event="success")
+    log_stage(f"{experiment_label} collage analysis succeeded", step=f"{key.upper()}-collage", event="success")
     return analysis
 
 
@@ -4090,7 +4206,9 @@ def run_experiment_with_scenes(
     log_stage(f"building {experiment_name}", step=key.upper(), model="Qwen scenes + EXAONE GGUF")
     if key == "j":
         result = builder(scenes, story_caption or "", collage_analysis or {})
-    elif key in {"h", "i"}:
+    elif key == "i":
+        result = builder(scenes, story_caption or "", collage_analysis or {})
+    elif key == "h":
         result = builder(scenes, story_caption or "")
     else:
         result = builder(scenes)
@@ -4114,8 +4232,13 @@ def run_selected_experiments(
     for key in selected:
         story_caption = _read_story_caption(input_dir) if key in {"h", "i", "j"} else None
         collage_analysis = (
-            prepare_qwen_collage_for_experiment(input_dir, output_root, story_caption=story_caption or "")
-            if key == "j"
+            prepare_qwen_collage_for_experiment(
+                input_dir,
+                output_root,
+                story_caption=story_caption or "",
+                experiment=key,
+            )
+            if key in {"i", "j"}
             else None
         )
         set_step_context(experiment=key.upper(), phase="vision")
