@@ -5,7 +5,7 @@
 ## Requirements
 
 - Windows 10/11 x64
-- Python 3.12 x64
+- Python 3.12 x64 권장. `setup.bat`는 Python 3.10/3.11/3.12 x64를 지원합니다.
 - Git
 - 인터넷 연결
 - 디스크 여유 공간 30GB 이상 권장
@@ -32,6 +32,7 @@ CMD 터미널에서는 `setup.bat`라고 입력해도 됩니다.
 이 명령은 내부적으로 다음 작업을 합니다.
 
 - Python 3.12 확인
+- Python이 없으면 `winget`으로 Python 3.12 설치 시도
 - `.venv` 생성
 - pip 업그레이드
 - `requirements.txt` 설치
@@ -121,6 +122,7 @@ CPU 모드는 가능하지만 Qwen2.5-VL, BLIP, NLLB 모델 실행이 매우 느
 ## Common Hints
 
 - `py` 명령을 찾지 못하면 Python 3.12를 설치하고 "Add python.exe to PATH" 옵션을 확인하세요.
+- `Python 3.10, 3.11, or 3.12 x64 was not found`가 나오면 Python이 없거나 PATH/py launcher에서 잡히지 않는 상태입니다. `winget install --id Python.Python.3.12 --exact`를 실행하거나 python.org에서 Python 3.12 x64를 설치한 뒤 터미널을 새로 열고 `.\setup.bat`를 다시 실행하세요.
 - `git` 명령을 찾지 못하면 Git for Windows를 설치하세요.
 - pip 설치가 실패하면 인터넷 연결, 회사/학교 프록시, 디스크 여유 공간을 확인하세요.
 - `caption.txt` 오류가 나면 H/I 또는 `all` 실행에서 선택한 story 폴더에 `caption.txt`가 있는지 확인하세요. 현재 예제에서는 `--story 7`에 `caption.txt`가 있습니다.

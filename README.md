@@ -32,6 +32,7 @@ cd sketch-to-story-pipeline
 ```
 
 VS Code/Cursor에서 저장소 폴더를 연 뒤 터미널에 `.\setup.bat` 한 줄만 입력해도 같은 세팅이 진행됩니다.
+Python이 없는 컴퓨터에서는 `setup.bat`가 `winget`으로 Python 3.12 설치를 먼저 시도합니다.
 
 가장 작은 실행 테스트:
 

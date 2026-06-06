@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipInstall
+    [switch]$SkipInstall,
+    [switch]$SkipPythonInstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -10,31 +11,110 @@ Write-Host "Sketch to Story Pipeline - Windows setup"
 Write-Host "Project root: $PSScriptRoot"
 
 $venvPython = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+$supportedPythonVersions = @("3.12", "3.11", "3.10")
 
-function Get-PythonCommand {
+function Test-PythonCandidate {
+    param(
+        [string]$Exe,
+        [string[]]$Args,
+        [string]$Label
+    )
+
+    try {
+        $versionOutput = & $Exe @Args -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}|{sys.maxsize > 2**32}')"
+        if ($LASTEXITCODE -ne 0 -or -not $versionOutput) {
+            return $null
+        }
+
+        $parts = $versionOutput.Trim().Split("|")
+        $version = $parts[0]
+        $is64Bit = $parts.Count -gt 1 -and $parts[1] -eq "True"
+        $versionParts = $version.Split(".")
+        $majorMinor = "$($versionParts[0]).$($versionParts[1])"
+
+        if (-not $is64Bit) {
+            Write-Host "Found Python $version through $Label, but it is not 64-bit."
+            return $null
+        }
+
+        if ($supportedPythonVersions -notcontains $majorMinor) {
+            Write-Host "Found Python $version through $Label, but this project expects Python 3.10, 3.11, or 3.12."
+            return $null
+        }
+
+        Write-Host "Using Python $version through $Label."
+        return @($Exe) + $Args
+    } catch {
+        return $null
+    }
+}
+
+function Find-PythonCommand {
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
     if ($pyLauncher) {
-        try {
-            & py -3.12 -c "import sys; print(sys.version)"
-            return @("py", "-3.12")
-        } catch {
-            Write-Host "Python launcher exists, but Python 3.12 was not found through py -3.12."
-        }
-    }
-
-    $python = Get-Command python -ErrorAction SilentlyContinue
-    if ($python) {
-        try {
-            $version = & python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
-            if ($version -eq "3.12") {
-                return @("python")
+        foreach ($version in $supportedPythonVersions) {
+            $candidate = Test-PythonCandidate -Exe "py" -Args @("-$version") -Label "py -$version"
+            if ($candidate) {
+                return $candidate
             }
-        } catch {
-            Write-Host "A python command exists, but it could not run correctly."
+        }
+        Write-Host "Python launcher exists, but no supported Python version was found through py."
+    }
+
+    foreach ($command in @("python", "python3")) {
+        if (Get-Command $command -ErrorAction SilentlyContinue) {
+            $candidate = Test-PythonCandidate -Exe $command -Args @() -Label $command
+            if ($candidate) {
+                return $candidate
+            }
         }
     }
 
-    throw "Python 3.12 was not found. Install Python 3.12 x64, then run this script again."
+    return $null
+}
+
+function Install-PythonWithWinget {
+    if ($SkipPythonInstall) {
+        return
+    }
+
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if (-not $winget) {
+        return
+    }
+
+    Write-Host "Supported Python was not found. Trying to install Python 3.12 x64 with winget ..."
+    & winget install --id Python.Python.3.12 --exact --silent --accept-package-agreements --accept-source-agreements
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "winget Python install did not complete successfully."
+    }
+}
+
+function Get-PythonCommand {
+    $candidate = Find-PythonCommand
+    if ($candidate) {
+        return $candidate
+    }
+
+    Install-PythonWithWinget
+    $candidate = Find-PythonCommand
+    if ($candidate) {
+        return $candidate
+    }
+
+    throw @"
+Python 3.10, 3.11, or 3.12 x64 was not found.
+
+Install Python 3.12 x64, then run .\setup.bat again.
+
+Recommended command:
+  winget install --id Python.Python.3.12 --exact
+
+Manual download:
+  https://www.python.org/downloads/windows/
+
+During installation, enable "Add python.exe to PATH" if the installer shows that option.
+"@
 }
 
 if (-not (Test-Path -LiteralPath $venvPython)) {
