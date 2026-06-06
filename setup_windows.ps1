@@ -118,7 +118,7 @@ During installation, enable "Add python.exe to PATH" if the installer shows that
 }
 
 if (-not (Test-Path -LiteralPath $venvPython)) {
-    $pythonCommand = Get-PythonCommand
+    $pythonCommand = @(Get-PythonCommand)
     $pythonExe = $pythonCommand[0]
     $pythonArgs = @()
     if ($pythonCommand.Length -gt 1) {
