@@ -1,0 +1,11 @@
+# NVIDIA GPU(CUDA 12.4) 가속용 PyTorch. 선택사항.
+# 먼저 일반 설치(`pip install -r requirements.txt`) 후, GPU 가속이 필요할 때만 아래로 torch를 교체하세요:
+#
+#   pip install -r requirements-cuda.txt --index-url https://download.pytorch.org/whl/cu124
+#
+# 그리고 EXAONE GGUF GPU offload는 환경변수로 켭니다:  LLAMA_GPU_LAYERS=999
+# (llama-cpp-python의 CUDA 빌드가 필요하면 docs/ADVANCED.md 참고.)
+
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0

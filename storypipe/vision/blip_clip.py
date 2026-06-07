@@ -1,4 +1,7 @@
-"""Vision recognition stages for Experiment A."""
+"""[담당 1 · 비전] BLIP/OpenCLIP 기반 손그림 인식 (실험 A).
+
+단일 이미지 → BLIP 캡션 + BLIP-VQA 슬롯 + OpenCLIP 개념 검증 → 통합 vision JSON.
+"""
 
 from __future__ import annotations
 
@@ -6,14 +9,13 @@ import re
 from pathlib import Path
 from typing import Any
 
-from utils import (
+from storypipe.common.images import load_and_normalize_image, resize_square
+from storypipe.common.logging import timed_step
+from storypipe.common.runtime import get_device
+from storypipe.vision.loaders import (
     get_caption_components,
-    get_device,
     get_openclip_components,
     get_vqa_components,
-    load_and_normalize_image,
-    resize_square,
-    timed_step,
 )
 
 

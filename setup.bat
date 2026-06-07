@@ -14,7 +14,9 @@ if not "%EXIT_CODE%"=="0" (
 
 echo.
 echo Setup finished successfully.
-echo Next smoke test:
-echo .\.venv\Scripts\python.exe run.py a --story 1 --image 1 --story-max-new-tokens 20 --output-dir outputs\smoke_A
+echo Next: download models + verify (one command):
+echo   .\.venv\Scripts\python.exe run.py doctor
+echo Then run the full demo (story 7 + evaluation dashboard):
+echo   .\.venv\Scripts\python.exe run.py demo
 
 endlocal
