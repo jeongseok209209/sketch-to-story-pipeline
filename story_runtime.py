@@ -1,26 +1,276 @@
-"""[담당 2 · 스토리] EXAONE 기반 한국어 생성 + GGUF 런타임.
-
-구조화 플랜 생성(HF/GGUF), 시퀀스 스토리(실험 B), 그리고 EXAONE GGUF 실행을 담당한다.
-
-재현성 핵심: EXAONE GGUF는 과거 llama-cli 바이너리 subprocess(하드코딩 Windows-Vulkan zip
-다운로드/소스빌드)에서 **llama-cpp-python(in-process)**으로 전환했다. 같은 모델·동일 llama.cpp
-코어를 쓰되 바이너리 확보 의존을 없애 어느 컴퓨터에서나 pip 설치만으로 동작한다.
-공개 API(`_run_exaone_gguf_prompt`, `generate_*_exaone_gguf`, `get_last_llama_runtime`,
-`ensure_exaone_gguf_runtime`)는 그대로 유지하고 내부 실행부만 교체했다.
-"""
+"""[담당 2 · 스토리] EXAONE GGUF(llama-cpp-python) 런타임 + GPT-2/NLLB 베이스라인 + 구조화 플랜 + LLM 로더."""
 
 from __future__ import annotations
+
+
+# ╔══ story/loaders.py ══╗
+
+
+import os
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+from common import EXAONE_MODEL, GPT2_MODEL, NLLB_MODEL
+from common import log_model_device
+from common import (
+    _local_files_only,
+    ensure_exaone_gguf_model,
+    local_huggingface_model_path,
+)
+from common import configured_llama_gpu_layers, get_device
+
+
+@lru_cache(maxsize=1)
+def get_gpt2_components() -> tuple[Any, Any]:
+    """GPT-2 생성 구성요소를 1회 로드/캐시한다(실험 A 영어 초안)."""
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    device = get_device()
+    model_source = local_huggingface_model_path(GPT2_MODEL)
+    local_only = _local_files_only(model_source)
+    tokenizer = AutoTokenizer.from_pretrained(model_source, local_files_only=local_only)
+    model = AutoModelForCausalLM.from_pretrained(model_source, local_files_only=local_only)
+    model.to(device)
+    model.eval()
+    log_model_device(GPT2_MODEL, device)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer, model
+
+
+@lru_cache(maxsize=1)
+def get_nllb_components() -> tuple[Any, Any]:
+    """NLLB 번역 구성요소를 1회 로드/캐시한다(영→한)."""
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+    device = get_device()
+    model_source = local_huggingface_model_path(NLLB_MODEL)
+    local_only = _local_files_only(model_source)
+    tokenizer = AutoTokenizer.from_pretrained(model_source, src_lang="eng_Latn", local_files_only=local_only)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_source, local_files_only=local_only)
+    model.to(device)
+    model.eval()
+    log_model_device(NLLB_MODEL, device)
+    return tokenizer, model
+
+
+@lru_cache(maxsize=1)
+def get_exaone_components() -> tuple[Any, Any]:
+    """EXAONE(HF transformers) 한국어 생성 구성요소를 1회 로드/캐시한다."""
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    device = get_device()
+    model_source = local_huggingface_model_path(EXAONE_MODEL)
+    local_only = _local_files_only(model_source)
+    tokenizer = AutoTokenizer.from_pretrained(model_source, local_files_only=local_only)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_source,
+        dtype=torch.bfloat16 if device.type != "cpu" else torch.float32,
+        local_files_only=local_only,
+    )
+    model.to(device)
+    model.eval()
+    log_model_device(EXAONE_MODEL, device)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer, model
+
+
+@lru_cache(maxsize=1)
+def get_exaone_gguf_components(model_path: str = "") -> Any:
+    """양자화 EXAONE GGUF를 llama-cpp-python으로 1회 로드/캐시한다.
+
+    재현성: 기본 CPU(n_gpu_layers=0). NVIDIA GPU에서 가속하려면 ``LLAMA_GPU_LAYERS`` 지정.
+    n_ctx는 ``EXAONE_N_CTX``(기본 8192)로 시퀀스 스토리(8192 컨텍스트)까지 수용한다.
+    """
+    from llama_cpp import Llama
+
+    resolved_path = Path(ensure_exaone_gguf_model(model_path))
+    n_ctx = int(os.environ.get("EXAONE_N_CTX", "8192"))
+    n_gpu_layers = configured_llama_gpu_layers()
+    return Llama(
+        model_path=str(resolved_path),
+        n_ctx=n_ctx,
+        n_batch=256,
+        n_threads=max((os.cpu_count() or 4) - 1, 2),
+        n_gpu_layers=n_gpu_layers,
+        verbose=False,
+    )
+
+# ╔══ story/baseline.py ══╗
+
+
+from common import timed_step
+from common import get_device
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 아래 본문은 기존 generators.py에서 이동한 코드.
+# ─────────────────────────────────────────────────────────────────────────────
+STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "at",
+    "by",
+    "for",
+    "front",
+    "in",
+    "is",
+    "of",
+    "on",
+    "s",
+    "the",
+    "to",
+    "with",
+}
+
+
+CONCEPT_KO = {
+    "baby": "아기",
+    "bird": "새",
+    "boy": "남자아이",
+    "car": "자동차",
+    "cactus": "선인장",
+    "cat": "고양이",
+    "child": "아이",
+    "children": "아이들",
+    "cloud": "구름",
+    "dog": "강아지",
+    "drawing": "그림",
+    "family": "가족",
+    "flower": "꽃",
+    "flying": "나는 모습",
+    "girl": "여자아이",
+    "grass": "풀밭",
+    "happy": "행복한 마음",
+    "home": "집",
+    "house": "집",
+    "little": "작은 아이",
+    "mother": "엄마",
+    "moon": "달",
+    "outside": "바깥",
+    "person": "사람",
+    "playing": "놀이",
+    "rainbow": "무지개",
+    "sky": "하늘",
+    "star": "별",
+    "stars": "별",
+    "standing": "서 있는 모습",
+    "stork": "황새",
+    "sun": "해",
+    "sunlight": "햇살",
+    "tree": "나무",
+    "tiger": "호랑이",
+    "white ball": "하얀 공",
+}
+
+PHRASE_KO = {
+    "a girl": "여자아이",
+    "girl": "여자아이",
+    "little girl": "여자아이",
+    "a tiger": "호랑이",
+    "tiger": "호랑이",
+    "night sky outside": "밤하늘 아래 바깥 길",
+    "outside at night": "밤하늘 아래 바깥 길",
+    "night sky": "밤하늘",
+    "white ball": "하얀 공",
+    "baseball": "하얀 공",
+    "sharing": "나눔",
+    "children's drawing": "아이의 그림",
+    "happy": "행복한 마음",
+    "warm": "따뜻한",
+    "joyful": "즐거운",
+    "warm and cheerful": "따뜻하고 즐거운",
+    "warm and easy": "따뜻하고 편안한",
+    "calm and curious": "차분하고 호기심 어린",
+    "calm and joyful": "차분하고 즐거운",
+    "calm and magical": "차분하고 신비로운",
+    "wonder": "신비로운",
+    "park": "공원",
+    "in front of house": "집 앞",
+    "in front of a house": "집 앞",
+    "house in front": "집 앞",
+    "door": "문",
+    "friendship under the stars": "별빛 아래 나누는 우정",
+    "family bonding under the stars": "별빛 아래 나누는 다정한 마음",
+    "family fun under the stars": "별빛 아래 나누는 즐거운 마음",
+    "family joy under the stars": "별빛 아래 가족이 나누는 기쁨",
+    "nature exploration": "자연을 살피는 모험",
+}
+
+
+def generate_story_en(vision: dict, max_new_tokens: int = 200) -> str:
+    """Generate an English children's story from the vision JSON using GPT-2."""
+    # vision JSON의 관찰 결과를 GPT-2가 이어 쓸 수 있는 이야기 도입부로 구성합니다.
+    seed = (
+        f"A children's story.\n\n"
+        f"Once upon a time, there was {vision['raw_caption']}. "
+        f"The main character was {vision['who']}, {vision['actions']} {vision['scene']}. "
+        f"The mood was {vision['mood']}.\n\n"
+        f"The story begins:\n"
+    )
+
+    with timed_step(8, "GPT-2 English story generation", model="gpt2-medium"):
+        import torch
+
+        # GPT-2 모델과 토크나이저는 캐시로 재사용해 반복 실행 비용을 줄입니다.
+        tokenizer, model = get_gpt2_components()
+        device = get_device()
+        inputs = tokenizer(seed, return_tensors="pt").to(device)
+        with torch.inference_mode():
+            # 샘플링 파라미터를 낮은 반복성과 적당한 다양성에 맞춰 동화 문장을 생성합니다.
+            output_ids = model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=True,
+                top_p=0.9,
+                temperature=0.8,
+                repetition_penalty=1.2,
+                no_repeat_ngram_size=3,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+        story = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+
+    return story
+
+
+def translate_en_ko(text_en: str) -> str:
+    """Translate English text into Korean using NLLB only."""
+    with timed_step(9, "NLLB English-to-Korean translation", model="facebook/nllb-200-distilled-600M"):
+        import torch
+
+        # NLLB는 명시적인 source/target 언어 코드가 있어야 원하는 방향으로 번역됩니다.
+        tokenizer, model = get_nllb_components()
+        device = get_device()
+        tokenizer.src_lang = "eng_Latn"
+        inputs = tokenizer(text_en, return_tensors="pt", truncation=True).to(device)
+        forced_bos_token_id = tokenizer.convert_tokens_to_ids("kor_Hang")
+        with torch.inference_mode():
+            # forced_bos_token_id로 한국어 출력을 강제합니다.
+            output_ids = model.generate(
+                **inputs,
+                forced_bos_token_id=forced_bos_token_id,
+                max_new_tokens=512,
+            )
+        translation = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
+
+    return translation.strip()
+
+# ╔══ story/exaone_runtime.py ══╗
+
 
 import json
 import re
 from typing import Any
 
-from storypipe.common.jsonparse import json_object_candidates as _json_object_candidates
-from storypipe.common.logging import timed_step
-from storypipe.common.models import ensure_exaone_gguf_model
-from storypipe.common.runtime import configured_llama_gpu_layers, get_device
-from storypipe.story.baseline import CONCEPT_KO, PHRASE_KO, STOPWORDS
-from storypipe.story.loaders import get_exaone_components
+from common import json_object_candidates as _json_object_candidates
+from common import timed_step
+from common import ensure_exaone_gguf_model
+from common import configured_llama_gpu_layers, get_device
 
 LAST_LLAMA_RUNTIME: dict[str, Any] = {"mode": "unknown"}
 
@@ -72,7 +322,6 @@ def _run_llama_prompt(
 
     (``timeout``/``context_size``는 하위호환용 인자. 컨텍스트는 모델 로드 시 n_ctx로 고정한다.)
     """
-    from storypipe.story.loaders import get_exaone_gguf_components
 
     llm = get_exaone_gguf_components(model_path)
     grammar = _maybe_grammar(json_schema)
@@ -802,4 +1051,3 @@ def generate_sequence_story_exaone_gguf(
             )
         return rewritten, f"{raw_story}\n\n[rewrite_response]\n{rewrite_story}"
     return story, raw_story
-
