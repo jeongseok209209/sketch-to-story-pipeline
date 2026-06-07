@@ -1,57 +1,65 @@
-# Sketch to Story Pipeline (storypipe)
+# Sketch to Story Pipeline
 
 아이 손그림을 순서대로 읽어 오픈소스 비전/언어 모델로 한국어 동화를 생성하고, 블라인드 평가까지 하는 파이프라인입니다.
 
 흐름: **이미지 → 장면 인식(BLIP·OpenCLIP / Qwen2.5-VL) → 한국어 동화(EXAONE) → 평가**
 
-## 설치 (한 번)
+## 설치 (크로스플랫폼: Windows / macOS / Linux 동일)
 
-저장소를 clone한 뒤, 운영체제에 맞게 한 줄:
+Python 3.10–3.12에서, 저장소 루트에서:
 
 ```bash
-# macOS / Linux
-./setup.sh
+pip install -r requirements.txt
+python run.py doctor
 ```
 
-```powershell
-# Windows
-.\setup.bat
-```
-
-내부적으로 `.venv` 생성 → `pip install -e .`(llama-cpp-python 포함 모든 의존성 자동 설치)를 수행합니다.
-Python 3.10–3.12, 디스크 30GB+ 권장. GPU 없이 CPU로 동작합니다.
+- `pip install`이 **llama-cpp-python 포함 모든 의존성**을 PyPI에서 설치합니다(별도 바이너리 빌드·Vulkan 불필요).
+- `python run.py doctor`가 **필요한 오픈소스 모델(~20GB)을 자동 다운로드**하고 점검합니다. 디스크 30GB+ 권장.
+- GPU 없이 CPU로 동작합니다(기본). NVIDIA 가속은 아래 "환경변수" 참고.
 
 ## 4가지 명령
 
-설치 후에는 `storypipe <명령>`을 씁니다. (무설치 폴백: `python run.py <명령>`)
-
 | # | 명령 | 설명 |
 | --- | --- | --- |
-| 0 | `storypipe doctor` | **환경 점검 + 필요한 모델 자동 다운로드 + 스모크 추론.** 처음에 한 번 실행. |
-| 1 | `storypipe run <story> <exp>` | 이야기 + 실험버전(a~j) 1개 실행. 예: `storypipe run 1 e` |
-| 2 | `storypipe run-all <story>` | 이야기의 전체 실험(A~J) 실행. 예: `storypipe run-all 7` |
-| 3 | `storypipe demo` | "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지 |
+| 0 | `python run.py doctor` | **환경 점검 + 모델 자동 다운로드 + 스모크 추론.** 처음에 한 번. |
+| 1 | `python run.py run <story> <exp>` | 이야기 + 실험버전(a~j) 1개. 예: `python run.py run 1 e` |
+| 2 | `python run.py run-all <story>` | 이야기의 전체 실험(A~J). 예: `python run.py run-all 7` |
+| 3 | `python run.py demo` | "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지 |
 
-- `<story>`는 번호 권장(예: `1`, `7`) — 한글 폴더명 입력을 피합니다.
-- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
-- 처음 `doctor` 실행 시 모델(~20GB)이 `.local_models/`로 자동 다운로드됩니다.
+- `<story>`는 번호 권장(예: `1`, `7`) — 한글 폴더명 입력 회피.
+- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기 필요(예제는 story 7).
+- 점검만(다운로드 없이): `python run.py doctor --check-only`
 
-### 채점자/다른 컴퓨터에서 (2단계)
-
-```bash
-./setup.sh            # 1) 파이썬 의존성 자동 설치
-storypipe doctor      # 2) 모델 자동 다운로드 + 점검   (Windows: python run.py doctor)
-storypipe demo        #    전체 실행 + 평가
+### 다른 컴퓨터/채점자 환경 (2단계)
+```
+pip install -r requirements.txt
+python run.py doctor      # 모델 자동 다운로드 + 점검
+python run.py demo        # 전체 실행 + 평가
 ```
 
-## 입력 / 출력
+## 파일 구성 (3인 작업 분담)
 
-- `inputs/`: 이야기별 폴더에 순서 이미지(`1.png` … `10.png`). Git에 포함된 예제 제공.
-- `outputs/`: 실험 결과 JSON/TXT/HTML + 평가 파일. Git에 올리지 않습니다.
-- `.local_models/`: 모델 캐시(자동 생성, Git 제외).
+코드는 파이프라인 단계별로 3명이 나누어 작업했습니다.
 
-## 더 보기
+| 파일 | 담당 | 내용 |
+| --- | --- | --- |
+| `vision.py` | **담당 1 · 비전** | BLIP/OpenCLIP 인식(실험 A), Qwen2.5-VL 장면/콜라주 추출(C~J) |
+| `story_runtime.py` | **담당 2 · 스토리** | EXAONE GGUF(llama-cpp-python) 런타임, GPT-2/NLLB 베이스라인, 구조화 플랜 |
+| `story_experiments.py` | **담당 2 · 스토리** | 실험 C~J 프롬프트·품질 게이트·빌더 |
+| `experiment_a.py` | **담당 3 · 파이프라인** | 실험 A/B 오케스트레이션 + 정량 평가 |
+| `pipeline.py` | **담당 3 · 파이프라인** | 4-커맨드 CLI, doctor(점검·설치), C~J 통합 러너, 출력 작성 |
+| `dashboard.py` | **담당 3 · 평가** | 블라인드 평가 Streamlit 대시보드 |
+| `common.py` | (공유) | 설정·런타임·로깅·모델 다운로드·이미지·IO·JSON 유틸 |
+| `run.py` | (진입점) | 4-커맨드 디스패처 |
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — 패키지 구조·의존성·실험 개요
-- [CONTRIBUTORS.md](CONTRIBUTORS.md) — 3인 작업 분담
-- [docs/ADVANCED.md](docs/ADVANCED.md) — 수동 설치·GPU/CUDA·환경변수·문제 해결
+데이터: `inputs/`(이야기별 그림 10장 + story 7의 `caption.txt`·콜라주). 결과는 `outputs/`에 생성(자동, Git/제출 제외).
+
+## 환경변수 (선택)
+
+| 변수 | 기본 | 설명 |
+| --- | --- | --- |
+| `LLAMA_GPU_LAYERS` | `0` | EXAONE GGUF GPU offload(0=CPU). NVIDIA 가속 시 `999`. |
+| `EXAONE_GGUF_MODEL_PATH` | (자동) | 직접 받은 GGUF 파일 경로 지정(자동 다운로드 대신). |
+| `HF_TOKEN` | — | 로그인 필요(게이트) 모델 다운로드용 Hugging Face 토큰. |
+
+NVIDIA GPU 가속: `pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124` 후 `LLAMA_GPU_LAYERS=999`.
