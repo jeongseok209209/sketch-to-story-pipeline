@@ -1,100 +1,57 @@
-# Sketch to Story Pipeline
+# Sketch to Story Pipeline (storypipe)
 
-아이 손그림 이미지를 순서대로 읽고, 오픈소스 비전/언어 모델로 한국어 동화를 생성하는 실험용 파이프라인입니다.
+아이 손그림을 순서대로 읽어 오픈소스 비전/언어 모델로 한국어 동화를 생성하고, 블라인드 평가까지 하는 파이프라인입니다.
 
-이 저장소는 GitHub에서 clone한 뒤 바로 세팅할 수 있게 구성되어 있습니다. `inputs/`의 예제 이미지는 Git에 포함되며, 모델 파일과 실행 결과는 각 컴퓨터에서 새로 만들어집니다.
+흐름: **이미지 → 장면 인식(BLIP·OpenCLIP / Qwen2.5-VL) → 한국어 동화(EXAONE) → 평가**
 
-## What Is Included
+## 설치 (한 번)
 
-Git에 포함되는 파일:
+저장소를 clone한 뒤, 운영체제에 맞게 한 줄:
 
-- Python 실행 코드: `run.py`, `pipeline_a.py`, `generators.py`, `utils.py`, `vision.py`, `run_experiments_cd_qwen3b.py`
-- 문서: `README.md`, `SETUP.md`, `USAGE.md`
-- 의존성 목록: `requirements.txt`
-- Windows 세팅 도우미: `setup.bat`, `setup_windows.ps1`
-- 예제 입력 데이터: `inputs/`
-
-Git에 포함하지 않는 로컬 생성물:
-
-- `.venv/`: Python 가상환경
-- `.local_models/`: Hugging Face 모델과 EXAONE GGUF 모델 캐시
-- `.local_tools/`: llama.cpp 실행 파일과 빌드 산출물
-- `outputs/`: 실험 결과와 평가 결과
-
-## Quick Start
-
-Windows PowerShell에서:
+```bash
+# macOS / Linux
+./setup.sh
+```
 
 ```powershell
-git clone https://github.com/jeongseok209209/sketch-to-story-pipeline.git
-cd sketch-to-story-pipeline
+# Windows
 .\setup.bat
 ```
 
-VS Code/Cursor에서 저장소 폴더를 연 뒤 터미널에 `.\setup.bat` 한 줄만 입력해도 같은 세팅이 진행됩니다.
-Python이 없는 컴퓨터에서는 `setup.bat`가 `winget`으로 Python 3.12 설치를 먼저 시도합니다.
+내부적으로 `.venv` 생성 → `pip install -e .`(llama-cpp-python 포함 모든 의존성 자동 설치)를 수행합니다.
+Python 3.10–3.12, 디스크 30GB+ 권장. GPU 없이 CPU로 동작합니다.
 
-가장 작은 실행 테스트:
+## 4가지 명령
 
-```powershell
-.\.venv\Scripts\python.exe run.py a --story 1 --image 1 --story-max-new-tokens 20 --output-dir outputs\smoke_A
+설치 후에는 `storypipe <명령>`을 씁니다. (무설치 폴백: `python run.py <명령>`)
+
+| # | 명령 | 설명 |
+| --- | --- | --- |
+| 0 | `storypipe doctor` | **환경 점검 + 필요한 모델 자동 다운로드 + 스모크 추론.** 처음에 한 번 실행. |
+| 1 | `storypipe run <story> <exp>` | 이야기 + 실험버전(a~j) 1개 실행. 예: `storypipe run 1 e` |
+| 2 | `storypipe run-all <story>` | 이야기의 전체 실험(A~J) 실행. 예: `storypipe run-all 7` |
+| 3 | `storypipe demo` | "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지 |
+
+- `<story>`는 번호 권장(예: `1`, `7`) — 한글 폴더명 입력을 피합니다.
+- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
+- 처음 `doctor` 실행 시 모델(~20GB)이 `.local_models/`로 자동 다운로드됩니다.
+
+### 채점자/다른 컴퓨터에서 (2단계)
+
+```bash
+./setup.sh            # 1) 파이썬 의존성 자동 설치
+storypipe doctor      # 2) 모델 자동 다운로드 + 점검   (Windows: python run.py doctor)
+storypipe demo        #    전체 실행 + 평가
 ```
 
-전체 실험 실행 예시:
+## 입력 / 출력
 
-```powershell
-.\.venv\Scripts\python.exe run.py all --story 7
-```
+- `inputs/`: 이야기별 폴더에 순서 이미지(`1.png` … `10.png`). Git에 포함된 예제 제공.
+- `outputs/`: 실험 결과 JSON/TXT/HTML + 평가 파일. Git에 올리지 않습니다.
+- `.local_models/`: 모델 캐시(자동 생성, Git 제외).
 
-처음 실제 실험을 실행하면 모델 파일이 `.local_models/` 아래로 다운로드됩니다. 디스크 여유 공간은 30GB 이상을 권장합니다.
+## 더 보기
 
-## Inputs and Outputs
-
-`inputs/`에는 기본 예제 이야기 이미지가 들어 있습니다. 이야기 폴더가 여러 개 있으므로 실행할 때는 `--story 1`, `--story 7`처럼 숫자로 선택하는 방식을 권장합니다.
-
-`outputs/`에는 실행 결과 JSON, 텍스트, HTML, 평가 파일이 저장됩니다. 이 폴더는 Git에 올리지 않습니다.
-
-`.local_models/`와 `.local_tools/`는 첫 실행 중 자동으로 준비되는 로컬 캐시입니다. 다른 컴퓨터에서 clone하면 처음에는 없어도 정상입니다.
-
-## Experiments
-
-| Experiment | Vision input | Language model | Behavior |
-| --- | --- | --- | --- |
-| A | BLIP/OpenCLIP single image | GPT-2+NLLB | Single-image baseline |
-| B | BLIP/OpenCLIP ordered scene records | EXAONE GGUF via llama.cpp | Sequence story from ordered scenes |
-| C | Qwen2.5-VL scene JSON | EXAONE GGUF via llama.cpp | Simple whole-story prompt |
-| D | Qwen2.5-VL scene JSON | EXAONE GGUF via llama.cpp | Structure, plan, draft, self-check in one prompt |
-| E | Qwen2.5-VL scene JSON | EXAONE GGUF via llama.cpp | Global continuity and emotion-first prompt |
-| F | Qwen2.5-VL scene JSON | EXAONE GGUF via llama.cpp | Whole-scene overview plus previous/current/next scene windows |
-| G/H/I | Qwen2.5-VL scene JSON | EXAONE GGUF via llama.cpp | Additional prompt and caption-guided variants |
-
-H와 I는 선택한 이야기 폴더 안에 `caption.txt`가 있어야 합니다.
-
-## GPU Runtime Notes
-
-EXAONE GGUF runs through llama.cpp. When an NVIDIA GPU is detected, the default
-setting is `LLAMA_GPU_LAYERS=999`, so llama.cpp tries to offload as much of
-EXAONE as possible to GPU.
-
-BLIP, OpenCLIP, Qwen, GPT-2, and NLLB are PyTorch models. They use GPU only when
-the installed PyTorch build reports CUDA as available. Check the current split
-status with:
-
-```powershell
-.\.venv\Scripts\python.exe run.py check
-```
-
-If PyTorch CUDA is unavailable, install the CUDA build manually:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install --upgrade --force-reinstall torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
-```
-
-For VRAM pressure, lower `LLAMA_GPU_LAYERS`; set it to `0` to force EXAONE GGUF
-CPU mode.
-
-## More Docs
-
-- [SETUP.md](SETUP.md): Windows 설치와 환경 점검
-- [USAGE.md](USAGE.md): 실험별 실행 명령어
-- [EXAONE_GGUF_SETUP.md](EXAONE_GGUF_SETUP.md): EXAONE GGUF와 llama.cpp 세부 설정
+- [ARCHITECTURE.md](ARCHITECTURE.md) — 패키지 구조·의존성·실험 개요
+- [CONTRIBUTORS.md](CONTRIBUTORS.md) — 3인 작업 분담
+- [docs/ADVANCED.md](docs/ADVANCED.md) — 수동 설치·GPU/CUDA·환경변수·문제 해결

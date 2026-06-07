@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storypipe"
+version = "2026.6.7"
+description = "손그림 → 한국어 동화 파이프라인 (비전 인식 → EXAONE 스토리 생성 → 블라인드 평가)"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+
+# 런타임 의존성 (CPU 기본). 상한 핀이 재현성 핵심. GPU는 optional-dependencies [cuda] 참고.
+dependencies = [
+    "torch>=2.6,<2.8",
+    "transformers>=4.54,<4.57",
+    "open_clip_torch>=2.24,<3",
+    "Pillow>=10,<12",
+    "sentencepiece>=0.2,<0.3",
+    "protobuf>=4,<6",
+    "huggingface_hub>=0.25,<1.0",
+    "qwen-vl-utils>=0.0.8,<0.1",
+    "streamlit>=1.36,<2",
+    "pandas>=2.0,<3",
+    "llama-cpp-python>=0.3.2,<0.4",
+]
+
+[project.optional-dependencies]
+# NVIDIA GPU: `pip install -e .` 후 아래를 별도로(인덱스 URL 포함) 설치하세요. docs/ADVANCED.md 참고.
+cuda = [
+    "torch==2.6.0",
+    "torchvision==0.21.0",
+    "torchaudio==2.6.0",
+]
+dev = ["pyflakes", "ruff"]
+
+[project.scripts]
+storypipe = "storypipe.pipeline.cli:main"
+
+[tool.setuptools]
+packages = [
+    "storypipe",
+    "storypipe.common",
+    "storypipe.vision",
+    "storypipe.story",
+    "storypipe.pipeline",
+    "storypipe.evaluation",
+]

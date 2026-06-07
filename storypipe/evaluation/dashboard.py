@@ -1,4 +1,7 @@
-"""Blind randomized human evaluation dashboard for generated stories."""
+"""[담당 3 · 평가] 생성된 동화에 대한 블라인드 무작위 평가 Streamlit 대시보드.
+
+`storypipe demo`(또는 cli)가 streamlit 하위프로세스로 띄우며, 저장소 루트의 outputs/를 읽는다.
+"""
 
 from __future__ import annotations
 
@@ -16,7 +19,9 @@ import pandas as pd
 import streamlit as st
 
 
-BASE_DIR = Path(__file__).resolve().parent
+# dashboard.py = storypipe/evaluation/dashboard.py → parents[2] = 저장소 루트.
+# (blind_mapping.json의 경로가 저장소 루트 기준 상대경로이므로 BASE_DIR도 루트여야 함.)
+BASE_DIR = Path(__file__).resolve().parents[2]
 OUTPUT_ROOT = BASE_DIR / "outputs"
 EVALUATION_DIR = OUTPUT_ROOT / "evaluations"
 MAPPING_FILE = EVALUATION_DIR / "blind_mapping.json"

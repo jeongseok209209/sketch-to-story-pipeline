@@ -1,8 +1,8 @@
-"""Evaluation metrics for Experiment A."""
+"""[담당 3 · 파이프라인] 실험 A 정량 평가 지표(객체 커버리지/글자수/문단수)."""
 
 from __future__ import annotations
 
-from generators import CONCEPT_KO, translate_en_ko
+from storypipe.story.baseline import CONCEPT_KO, translate_en_ko
 
 
 def evaluate(

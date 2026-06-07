@@ -141,8 +141,8 @@ if (-not $SkipInstall) {
     Write-Host "Upgrading pip ..."
     & $venvPython -m pip install --upgrade pip
 
-    Write-Host "Installing requirements.txt ..."
-    & $venvPython -m pip install -r requirements.txt
+    Write-Host "Installing storypipe (pip install -e .) ..."
+    & $venvPython -m pip install -e .
 } else {
     Write-Host "Skipping package install because -SkipInstall was provided."
 }
@@ -155,9 +155,11 @@ if ($nvidiaSmi) {
     Write-Host "nvidia-smi was not found. That is OK; CPU mode is supported."
 }
 
-Write-Host "Running non-mutating setup check ..."
-& $venvPython run.py check
+Write-Host "Running environment check (no downloads) ..."
+& $venvPython run.py doctor --check-only
 
 Write-Host ""
-Write-Host "Setup complete. Try a small smoke run:"
-Write-Host ".\.venv\Scripts\python.exe run.py a --story 1 --image 1 --story-max-new-tokens 20 --output-dir outputs\smoke_A"
+Write-Host "Setup complete. Next: download models + verify with one command:"
+Write-Host "  .\.venv\Scripts\python.exe run.py doctor"
+Write-Host "Then run the full demo (story 7 + evaluation):"
+Write-Host "  .\.venv\Scripts\python.exe run.py demo"

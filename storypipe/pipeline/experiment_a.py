@@ -1,4 +1,7 @@
-"""Command line entry point for Experiment A."""
+"""[담당 3 · 파이프라인] 실험 A(단일 이미지) + 시퀀스 스토리(실험 B) 오케스트레이션.
+
+이미지 → vision(BLIP/CLIP) → 스토리(GPT-2/NLLB 또는 EXAONE GGUF) → 평가 → JSON/HTML 저장.
+"""
 
 from __future__ import annotations
 
@@ -11,22 +14,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from evaluate import evaluate
-from generators import (
+from storypipe.common.config import PROJECT_ROOT
+from storypipe.common.logging import log_stage, timed_step
+from storypipe.pipeline.evaluate import evaluate
+from storypipe.story.baseline import generate_story_en, translate_en_ko
+from storypipe.story.exaone_runtime import (
     generate_sequence_story_exaone_gguf,
-    generate_story_en,
     generate_structured_plan_exaone_gguf,
     get_last_llama_runtime,
-    translate_en_ko,
 )
-from utils import clear_vision_model_caches, log_stage, timed_step
-from vision import recognize_with_steps
+from storypipe.vision.blip_clip import recognize_with_steps
+from storypipe.vision.loaders import clear_vision_model_caches
 
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 DEFAULT_INPUT_DIR = "inputs"
 DEFAULT_SEQUENCE_DIR = "inputs"
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = PROJECT_ROOT
 
 
 def _ensure_local_venv_python() -> None:
