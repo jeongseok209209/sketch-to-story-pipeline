@@ -63,3 +63,24 @@ python run.py demo        # 전체 실행 + 평가
 | `HF_TOKEN` | — | 로그인 필요(게이트) 모델 다운로드용 Hugging Face 토큰. |
 
 NVIDIA GPU 가속: `pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124` 후 `LLAMA_GPU_LAYERS=999`.
+
+## 문제 해결
+
+**`llama-cpp-python` 설치 실패 (Windows, "Failed building wheel" / C4819 / C2001)**
+미리 빌드된 wheel을 못 받아 소스 C++ 빌드로 빠진 경우입니다. `requirements.txt`에 프리빌트 인덱스가
+이미 포함돼 있어 보통은 `pip install -r requirements.txt`로 해결되지만, 그래도 빌드를 시도하면:
+
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install --prefer-binary "llama-cpp-python>=0.3.2,<0.4" --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+```
+
+그래도 소스 빌드로 빠지면(드묾) MSVC에 UTF-8 옵션을 주고 한 번 더:
+
+```powershell
+$env:CL="/utf-8"
+python -m pip install --no-cache-dir --force-reinstall "llama-cpp-python>=0.3.2,<0.4" --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+```
+
+- Python은 **3.10–3.12**를 쓰세요(3.13+는 프리빌트 wheel이 없을 수 있어 소스 빌드로 빠집니다).
+- 모델이 게이트면 `huggingface-cli login` 또는 `HF_TOKEN` 설정 후 `python run.py doctor`.
