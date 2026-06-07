@@ -373,9 +373,11 @@ def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -
         import llama_cpp  # noqa: F401
     except Exception as exc:
         raise RuntimeError(
-            "llama-cpp-python is required to run EXAONE GGUF. Install dependencies with "
-            "`pip install -r requirements.txt` (or `pip install llama-cpp-python`), then re-run "
-            f"`storypipe doctor`. Import error: {exc}"
+            "llama-cpp-python is required to run EXAONE GGUF. Install with "
+            "`pip install -r requirements.txt` (uses a prebuilt-wheel index). If it still tries to "
+            "build from source on Windows, run: pip install --prefer-binary llama-cpp-python "
+            "--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu  (use Python 3.10-3.12). "
+            f"Import error: {exc}"
         ) from exc
     gpu_layers = configured_llama_gpu_layers()
     runtime = {
