@@ -335,8 +335,13 @@ def _run_llama_prompt(
 
     gpu_layers = configured_llama_gpu_layers()
     try:
-        result = llm.create_completion(prompt, **kwargs)
-        text = result["choices"][0]["text"]
+        # EXAONE는 instruction(채팅) 모델 → GGUF 내장 chat 템플릿을 적용해야 응답한다
+        # (과거 llama-cli --single-turn 대화 모드와 동일). 드물게 비면 raw completion으로 폴백.
+        result = llm.create_chat_completion(messages=[{"role": "user", "content": prompt}], **kwargs)
+        text = (result["choices"][0].get("message") or {}).get("content") or ""
+        if not text.strip():
+            result = llm.create_completion(prompt, **kwargs)
+            text = result["choices"][0]["text"]
     except Exception as exc:
         LAST_LLAMA_RUNTIME.clear()
         LAST_LLAMA_RUNTIME.update(
