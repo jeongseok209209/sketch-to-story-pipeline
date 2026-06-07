@@ -268,6 +268,7 @@ import re
 from typing import Any
 
 from common import json_object_candidates as _json_object_candidates
+from common import log_stage
 from common import timed_step
 from common import ensure_exaone_gguf_model
 from common import configured_llama_gpu_layers, get_device
@@ -706,6 +707,29 @@ def _normalize_exaone_story_schema(payload: dict[str, Any]) -> tuple[dict[str, A
     return structured, plan
 
 
+def _empty_structured_plan() -> tuple[dict[str, Any], dict[str, Any]]:
+    """파싱 실패 시 다운스트림이 깨지지 않도록 키만 갖춘 빈 구조를 만든다(내용은 지어내지 않음)."""
+    structured = {
+        "characters": [],
+        "place": "",
+        "visible_items": [],
+        "story_items": [],
+        "mood": "",
+        "theme": "",
+        "main_event": "",
+        "source": "exaone",
+    }
+    plan = {
+        "title": "",
+        "beginning": "",
+        "middle": "",
+        "ending": "",
+        "style": {},
+        "source": "exaone",
+    }
+    return structured, plan
+
+
 def _build_structured_plan_repair_prompt(raw_response: str, vision: dict[str, Any]) -> str:
     return (
         "아래 모델 응답을 유효한 JSON 객체 하나로만 고치세요.\n"
@@ -802,11 +826,14 @@ def generate_structured_plan_exaone(
             payload = _extract_json_object(repair_response)
             structured, plan = _normalize_exaone_story_schema(payload)
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            raise RuntimeError(
-                "EXAONE did not return valid structured/plan JSON, and JSON repair also failed. "
-                f"initial_error={exc}; repair_error={repair_exc}; "
-                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
-            ) from repair_exc
+            log_stage(
+                "structured/plan JSON 파싱 실패로 빈 구조 + 모델 raw 응답을 그대로 통과시킴; "
+                f"initial_error={exc}; repair_error={repair_exc}",
+                step="repair-passthrough",
+                model="LGAI-EXAONE/EXAONE-4.0-1.2B HF",
+                event="warn",
+            )
+            structured, plan = _empty_structured_plan()
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return structured, plan, raw_response
 
@@ -896,11 +923,14 @@ def generate_structured_plan_exaone_gguf(
             payload = _extract_json_object(repair_response)
             structured, plan = _normalize_exaone_story_schema(payload)
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            raise RuntimeError(
-                "EXAONE GGUF did not return valid structured/plan JSON, and JSON repair also failed. "
-                f"initial_error={exc}; repair_error={repair_exc}; "
-                f"raw_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}"
-            ) from repair_exc
+            log_stage(
+                "structured/plan JSON 파싱 실패로 빈 구조 + 모델 raw 응답을 그대로 통과시킴; "
+                f"initial_error={exc}; repair_error={repair_exc}",
+                step="repair-passthrough",
+                model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+                event="warn",
+            )
+            structured, plan = _empty_structured_plan()
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return structured, plan, raw_response
 

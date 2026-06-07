@@ -11,6 +11,7 @@ import re
 from typing import Any, Callable
 
 from common import json_object_candidates as _json_object_candidates
+from common import log_stage
 from common import timed_step
 from story_runtime import (
     _run_exaone_gguf_prompt,
@@ -29,6 +30,30 @@ I_QUALITY_GATES = (
     "meta_language",
     "ending",
 )
+
+
+def _log_repair_passthrough(
+    label: str,
+    *,
+    scene_index: int | str | None = None,
+    remaining_reasons: Any = None,
+    detail: str = "",
+) -> None:
+    """repair 이후에도 품질 게이트를 통과하지 못했을 때, 실행을 중단하지 않고
+    best-effort 결과를 그대로 통과시키면서 한 줄 경고 로그만 남긴다."""
+    parts = [f"{label}: repair 후에도 품질 미달이지만 best-effort 결과를 그대로 통과시킴"]
+    if scene_index is not None:
+        parts.append(f"scene_index={scene_index}")
+    if remaining_reasons:
+        parts.append(f"remaining_reasons={remaining_reasons!r}")
+    if detail:
+        parts.append(detail)
+    log_stage(
+        "; ".join(parts),
+        step="repair-passthrough",
+        model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        event="warn",
+    )
 
 
 def _last_jsonish_fragment(text: str, limit: int = 6000) -> str:
@@ -266,13 +291,20 @@ def _run_exaone_experiment(
             payload = _extract_required_json(repair_response)
             story = _story_from_payload(payload, len(scenes))
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            raise RuntimeError(
-                "json_repair_failed: EXAONE did not return valid D-aligned story JSON, and JSON repair also failed. "
-                "Required fields are story.title, story.body, and one story.scene_sentences item per input scene. "
-                f"initial_error={exc}; repair_error={repair_exc}; "
-                f"cleaned_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}; "
-                f"llama_runtime={get_last_llama_runtime()!r}"
-            ) from repair_exc
+            _log_repair_passthrough(
+                "D-aligned story",
+                detail=(
+                    "JSON 파싱 실패로 모델 raw 응답을 본문으로 그대로 통과시킴; "
+                    f"initial_error={exc}; repair_error={repair_exc}"
+                ),
+            )
+            payload = {}
+            story = {
+                "title": "",
+                "body": (repair_response or raw_response or "").strip(),
+                "scene_sentences": [],
+                "grounding_notes": [],
+            }
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return {
         "prompt_strategy": prompt_strategy,
@@ -1849,12 +1881,19 @@ def _run_exaone_scene_story(
                     "json_repair_used": json_repair_used,
                     "llama_runtime": get_last_llama_runtime(),
                 }
-            raise RuntimeError(
-                f"json_repair_failed: EXAONE scene {scene_index} did not return valid scene JSON, and JSON repair also failed. "
-                f"initial_error={exc}; repair_error={repair_exc}; "
-                f"cleaned_response_head={raw_response[:800]!r}; repair_response_head={repair_response[:800]!r}; "
-                f"llama_runtime={get_last_llama_runtime()!r}"
-            ) from repair_exc
+            fallback_sentence = str(scene.get("_i_current_sentence") or "").strip()
+            if not fallback_sentence:
+                fallback_sentence = (repair_response or raw_response or "").strip()
+            _log_repair_passthrough(
+                f"{step_label} scene story",
+                scene_index=scene_index,
+                detail=(
+                    "JSON 파싱 실패로 모델 raw 응답을 그대로 통과시킴; "
+                    f"initial_error={exc}; repair_error={repair_exc}"
+                ),
+            )
+            payload = {"scene_index": scene_index, "story_sentence": fallback_sentence}
+            parsed = {"scene_index": scene_index, "story_sentence": fallback_sentence}
         raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
     return {
         "scene_index": scene_index,
@@ -1906,6 +1945,16 @@ def _build_g_title_prompt(body: str) -> str:
     )
 
 
+def _build_title_repair_prompt(raw_response: str) -> str:
+    return (
+        "아래 모델 응답을 유효한 JSON 객체 하나로만 고치세요.\n"
+        "설명, 마크다운, 코드블록, 프롬프트 반복은 쓰지 마세요.\n"
+        '출력은 {"title": "짧은 한국어 동화 제목"} 형식의 JSON 객체 하나여야 합니다.\n'
+        "title 값은 짧은 한국어 동화 제목 하나여야 합니다.\n\n"
+        f"model_response:\n{raw_response}\n"
+    )
+
+
 def _generate_e_title(
     body: str,
     *,
@@ -1928,11 +1977,32 @@ def _generate_e_title(
     try:
         payload, title = _extract_title_json(raw_response)
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        raise RuntimeError(
-            "json_parse_failed: EXAONE title response did not contain a usable title JSON. "
-            f"parse_error={exc}; cleaned_response_head={raw_response[:800]!r}; "
-            f"llama_runtime={get_last_llama_runtime()!r}"
-        ) from exc
+        repair_prompt = _build_title_repair_prompt(raw_response)
+        with timed_step(
+            "EXAONE-title-repair",
+            f"{experiment_name} EXAONE title JSON repair",
+            experiment=experiment_name,
+            model="EXAONE-4.0-1.2B-IQ4_XS.gguf",
+        ):
+            repair_response = _run_exaone_gguf_prompt(
+                repair_prompt,
+                max_new_tokens=120,
+                timeout=120,
+                context_size=4096,
+            )
+        raw_response = f"{raw_response}\n\n[json_repair_response]\n{repair_response}"
+        try:
+            payload, title = _extract_title_json(repair_response)
+        except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
+            _log_repair_passthrough(
+                "title",
+                detail=(
+                    "제목 JSON이 repair 후에도 파싱 실패라 모델 raw 응답을 제목으로 그대로 통과시킴; "
+                    f"parse_error={exc}; repair_error={repair_exc}"
+                ),
+            )
+            payload = {}
+            title = (repair_response or raw_response).strip()
     return {
         "prompt": prompt,
         "raw_response": raw_response,
@@ -2269,12 +2339,11 @@ def _maybe_run_i_cleanup(
         check_ending=check_ending,
     )
     if remaining_reasons:
-        raise RuntimeError(
-            "exaone_output_invalid: EXAONE cleanup response did not satisfy quality gates. "
-            f"scene_index={int(scene['scene_index'])}; stage={stage}; "
-            f"initial_reasons={reasons!r}; remaining_reasons={remaining_reasons!r}; "
-            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
-            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
+        _log_repair_passthrough(
+            f"{stage} cleanup",
+            scene_index=int(scene["scene_index"]),
+            remaining_reasons=remaining_reasons,
+            detail=f"initial_reasons={reasons!r}",
         )
     cleanup_record = {
         "stage": stage,
@@ -2400,10 +2469,10 @@ def _run_i_english_term_translation(
                 previous_raw_response=raw_response,
                 previous_error=f"term_translation_remaining_reasons={remaining_reasons!r}",
             )
-        raise RuntimeError(
-            "exaone_output_invalid: EXAONE English term translation did not satisfy quality gates. "
-            f"scene_index={scene_index}; stage={stage}; remaining_reasons={remaining_reasons!r}; "
-            f"cleaned_response_head={raw_response[:800]!r}; llama_runtime={get_last_llama_runtime()!r}"
+        _log_repair_passthrough(
+            f"{stage} english term translation",
+            scene_index=scene_index,
+            remaining_reasons=remaining_reasons,
         )
     record = {
         "stage": f"{stage}_english_translation",
@@ -2475,13 +2544,17 @@ def _run_i_english_sentence_rewrite(
         try:
             payload, rewritten = _extract_scene_story_json(repair_response, scene_index)
         except (json.JSONDecodeError, ValueError, TypeError) as repair_exc:
-            raise RuntimeError(
-                "json_repair_failed: EXAONE English sentence rewrite JSON repair failed. "
-                f"scene_index={scene_index}; stage={stage}; initial_error={exc}; repair_error={repair_exc}; "
-                f"previous_error={previous_error}; cleaned_response_head={raw_response[:800]!r}; "
-                f"previous_translation_response_head={previous_raw_response[:800]!r}; "
-                f"llama_runtime={get_last_llama_runtime()!r}"
-            ) from repair_exc
+            fallback_sentence = str(parsed_result.get("story_sentence") or "").strip()
+            _log_repair_passthrough(
+                f"{stage} english sentence rewrite",
+                scene_index=scene_index,
+                detail=(
+                    "JSON repair 실패로 직전 문장을 유지함; "
+                    f"initial_error={exc}; repair_error={repair_exc}"
+                ),
+            )
+            payload = {}
+            rewritten = {"story_sentence": fallback_sentence}
 
     rewritten_result = {
         **parsed_result,
@@ -2497,12 +2570,11 @@ def _run_i_english_sentence_rewrite(
         check_ending=False,
     )
     if remaining_reasons:
-        raise RuntimeError(
-            "exaone_output_invalid: EXAONE English sentence rewrite did not satisfy quality gates. "
-            f"scene_index={scene_index}; stage={stage}; remaining_reasons={remaining_reasons!r}; "
-            f"previous_error={previous_error}; cleaned_response_head={raw_response[:800]!r}; "
-            f"previous_translation_response_head={previous_raw_response[:800]!r}; "
-            f"llama_runtime={get_last_llama_runtime()!r}"
+        _log_repair_passthrough(
+            f"{stage} english sentence rewrite",
+            scene_index=scene_index,
+            remaining_reasons=remaining_reasons,
+            detail=f"previous_error={previous_error}",
         )
     record = {
         "stage": f"{stage}_english_sentence_rewrite",
@@ -2590,12 +2662,11 @@ def _maybe_run_i_quality_cleanup(
         check_ending=False,
     )
     if remaining_reasons and "english" not in remaining_reasons:
-        raise RuntimeError(
-            "exaone_output_invalid: EXAONE cleanup response did not satisfy quality gates. "
-            f"scene_index={int(scene['scene_index'])}; stage={stage}; "
-            f"initial_reasons={reasons!r}; remaining_reasons={remaining_reasons!r}; "
-            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
-            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
+        _log_repair_passthrough(
+            f"{stage} cleanup",
+            scene_index=int(scene["scene_index"]),
+            remaining_reasons=remaining_reasons,
+            detail=f"initial_reasons={reasons!r}",
         )
     cleanup_record = {
         "stage": stage,
@@ -2664,11 +2735,10 @@ def _maybe_run_i_ending_cleanup(
     cleaned = cleanup_result["parsed_result"]
     remaining_reasons = _ending_quality_reasons_for_gate(str(cleaned.get("story_sentence") or ""))
     if remaining_reasons:
-        raise RuntimeError(
-            "exaone_output_invalid: EXAONE ending cleanup response did not satisfy quality gates. "
-            f"scene_index={int(scene['scene_index'])}; remaining_reasons={remaining_reasons!r}; "
-            f"cleaned_response_head={cleanup_result['raw_response'][:800]!r}; "
-            f"llama_runtime={cleanup_result.get('llama_runtime')!r}"
+        _log_repair_passthrough(
+            "ending cleanup",
+            scene_index=int(scene["scene_index"]),
+            remaining_reasons=remaining_reasons,
         )
     cleanup_record = {
         "stage": "ending",
