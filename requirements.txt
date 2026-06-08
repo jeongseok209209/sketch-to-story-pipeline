@@ -1,4 +1,4 @@
-# storypipe 런타임 의존성 (CPU 기본 - 어느 컴퓨터에서나 동작)
+﻿# storypipe 런타임 의존성 (CPU 기본 - 어느 컴퓨터에서나 동작)
 #
 # 설치:  pip install -r requirements.txt
 #
