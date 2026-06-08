@@ -327,7 +327,7 @@ def ensure_runtime_ready() -> None:
     elif has_nvidia_gpu():
         print(
             "[runtime] NVIDIA GPU detected but PyTorch CUDA unavailable; PyTorch models run on CPU. "
-            "Install the CUDA build (see docs/ADVANCED.md) for GPU acceleration."
+            "Install the CUDA build (see ADVANCED.md) for GPU acceleration."
         )
     else:
         print("[runtime] CPU mode: no NVIDIA GPU detected (supported).")
