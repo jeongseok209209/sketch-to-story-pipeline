@@ -15,12 +15,12 @@ python run.py doctor
 
 - `pip install`이 **llama-cpp-python 포함 모든 의존성**을 PyPI에서 설치합니다(별도 바이너리 빌드/Vulkan 불필요).
 - `python run.py doctor`가 **필요한 오픈소스 모델(~20GB)을 자동 다운로드**하고 점검합니다. 디스크 30GB+ 권장.
-- GPU 없이 CPU로 동작합니다(기본). NVIDIA 가속은 [ADVANCED.md](ADVANCED.md) 참고.
+- GPU 없이 CPU로 동작합니다(기본). PyTorch 기반 비전 모델의 NVIDIA 가속은 [ADVANCED.md](ADVANCED.md)를 참고하십시오.
 
 ## 4가지 명령
 
 - 0) python run.py doctor
-  환경 점검 + 모델 자동 다운로드 + 스모크 추론. 처음에 한 번.
+  환경 점검 + 모델 자동 다운로드 + 스모크 추론. 최초 실행 시 1회 수행합니다.
 - 1) python run.py run <story> <exp>
   이야기 + 실험버전(a~j) 1개. 예: python run.py run 1 e
 - 2) python run.py run-all <story>
@@ -28,9 +28,9 @@ python run.py doctor
 - 3) python run.py demo
   "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지
 
-- `<story>`는 번호 권장(예: `1`, `7`) - 한글 폴더명 입력 회피.
-- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기 필요(예제는 story 7).
-- 점검만(다운로드 없이): `python run.py doctor --check-only`
+- `<story>`는 번호 사용을 권장합니다(예: `1`, `7`). 한글 폴더명 직접 입력을 피할 수 있습니다.
+- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
+- 다운로드 없이 점검만 실행: `python run.py doctor --check-only`
 
 ### 재현 환경 (2단계)
 
@@ -44,8 +44,8 @@ python run.py demo        # 전체 실행 + 평가
 ```
 
 - 첫 실행 시 모델(~20GB)을 자동으로 내려받으므로 시간이 다소 걸릴 수 있습니다.
-- CPU 실행 시간을 단축하고자 하실 경우에 한해 GPU 가속을 [ADVANCED.md](ADVANCED.md)에서
-  안내하고 있습니다(선택 사항이며, GPU 결과는 CPU 기준 실행과 다를 수 있습니다).
+- CPU 실행 시간을 단축하고자 하는 경우에 한해 BLIP/OpenCLIP/Qwen2.5-VL용 PyTorch GPU 가속을
+  [ADVANCED.md](ADVANCED.md)에서 안내합니다(선택 사항이며, GPU 결과는 CPU 기준 실행과 다를 수 있습니다).
 
 ## 파일 구성 (3인 작업 분담)
 
@@ -82,27 +82,25 @@ python run.py demo        # 전체 실행 + 평가
 
 ## 환경변수 (선택)
 
-- LLAMA_GPU_LAYERS (기본 0)
-  EXAONE GGUF GPU offload(0=CPU). NVIDIA 가속 시 999.
 - EXAONE_GGUF_MODEL_PATH (기본: 자동)
   직접 받은 GGUF 파일 경로 지정(자동 다운로드 대신).
 - HF_TOKEN (기본: 없음)
   로그인 필요(게이트) 모델 다운로드용 Hugging Face 토큰.
 
-NVIDIA GPU 가속(선택): PyTorch와 llama-cpp-python을 각각 CUDA 빌드로 설치하고 `LLAMA_GPU_LAYERS`를 양수로 설정해야 합니다. 상세 설치·검증·CPU 복구 절차는 [ADVANCED.md](ADVANCED.md)에서 확인하실 수 있습니다. (CPU가 정본/재현 경로이며 GPU는 개발 가속용 opt-in입니다.)
+NVIDIA GPU 가속(선택): PyTorch를 CUDA 빌드로 설치하면 BLIP/OpenCLIP/Qwen2.5-VL 등 비전 모델이 GPU를 사용합니다. 상세 설치·검증·CPU 복구 절차는 [ADVANCED.md](ADVANCED.md)에서 확인할 수 있습니다. (CPU가 정본/재현 경로이며 GPU는 개발 가속용 opt-in입니다.)
 
 ## 문제 해결
 
 **`llama-cpp-python` 설치 실패 (Windows, "Failed building wheel" / C4819 / C2001)**
-미리 빌드된 wheel을 못 받아 소스 C++ 빌드로 빠진 경우입니다. `requirements.txt`에 프리빌트 인덱스가
-이미 포함돼 있어 보통은 `pip install -r requirements.txt`로 해결되지만, 그래도 빌드를 시도하면:
+미리 빌드된 wheel을 받지 못해 소스 C++ 빌드로 전환된 경우입니다. `requirements.txt`에 프리빌트 인덱스가
+이미 포함되어 있어 일반적으로는 `pip install -r requirements.txt`로 해결되지만, 그래도 빌드를 시도하면:
 
 ```powershell
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install --prefer-binary "llama-cpp-python>=0.3.2,<0.4" --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 ```
 
-그래도 소스 빌드로 빠지면(드묾) MSVC에 UTF-8 옵션을 주고 한 번 더:
+그래도 소스 빌드로 전환되면(드문 경우) MSVC에 UTF-8 옵션을 지정한 뒤 다시 시도합니다:
 
 ```powershell
 $env:CL="/utf-8"

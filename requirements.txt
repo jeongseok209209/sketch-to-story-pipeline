@@ -20,5 +20,4 @@ streamlit>=1.36,<2
 pandas>=2.0,<3
 
 # EXAONE GGUF 실행 (llama.cpp in-process). 위 --extra-index-url의 CPU 프리빌트 휠을 사용 -> 빌드 불필요.
-# GPU(CUDA) 휠이 필요하면 .../whl/cu124 등으로 인덱스를 바꾸세요(docs 참고).
 llama-cpp-python>=0.3.2,<0.4
