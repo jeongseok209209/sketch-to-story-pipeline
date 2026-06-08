@@ -1,7 +1,7 @@
-"""[담당 2 · 스토리] 실험 C~J 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
+"""[담당 2 / 스토리] 실험 C~J 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
 
 Qwen 장면 JSON(scenes)을 입력으로 받아 EXAONE GGUF로 한국어 동화를 생성한다.
-각 실험(C~J)은 프롬프트 전략·품질 게이트가 다르며, ``build_experiment_*``가 진입점이다.
+각 실험(C~J)은 프롬프트 전략/품질 게이트가 다르며, build_experiment_*가 진입점이다.
 scenes를 인자로 받으므로 vision 도메인을 import하지 않는다(통합은 pipeline/runner).
 """
 
@@ -94,9 +94,9 @@ def _extract_required_json(text: str) -> dict[str, Any]:
     raise ValueError("EXAONE response did not contain a JSON object.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 run_experiments_cd_qwen3b.py의 스토리 실험 구역에서 이동한 코드.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 def _compact_scene(scene: dict[str, Any]) -> dict[str, Any]:
     return {
         "scene_index": scene.get("scene_index"),
