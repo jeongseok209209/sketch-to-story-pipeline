@@ -51,29 +51,32 @@ python run.py demo        # 전체 실행 + 평가
 
 코드는 파이프라인 단계별로 3명이 나누어 작업했습니다.
 
-[담당 1 · 비전]
+[담당 1 · 비전 — 김기홍 (보고서·발표)]
 - vision.py
   BLIP/OpenCLIP 인식(실험 A), Qwen2.5-VL 장면/콜라주 추출(C~J)
+- 보고서 작성
+  프로젝트 정리, 실험 A~J 결과 분석, 표·그림 작성
+- 발표
+  발표 자료 구성, 대본 작성
 
-[담당 2 · 스토리]
+[담당 2 · 스토리 — 김정석 (코딩)]
 - story_runtime.py
   EXAONE GGUF(llama-cpp-python) 런타임, GPT-2/NLLB 베이스라인, 구조화 플랜
 - story_experiments.py
   실험 C~J 프롬프트/품질 게이트/빌더
-
-[담당 3 · 파이프라인 · 평가]
-- experiment_a.py
-  실험 A/B 오케스트레이션 + 정량 평가
-- pipeline.py
-  4-커맨드 CLI, doctor(점검/설치), C~J 통합 러너, 출력 작성
-- dashboard.py
-  블라인드 평가 Streamlit 대시보드
-
-[공유 · 진입점]
 - common.py
   설정/런타임/로깅/모델 다운로드/이미지/IO/JSON 유틸
 - run.py
-  4-커맨드 디스패처
+  4-커맨드 디스패처 (진입점)
+
+[담당 3 · 파이프라인 · 평가 — 박정우 (PPT 제작)]
+- experiment_a.py
+  실험 A/B 오케스트레이션 + 정량 평가
+- pipeline.py
+  4-커맨드 CLI, doctor, C~J 통합 러너, 출력 작성
+- dashboard.py
+  블라인드 평가 Streamlit 대시보드
+  PPT 제작
 
 데이터: `inputs/`(이야기별 그림 10장 + story 7의 `caption.txt`/콜라주). 결과는 `outputs/`에 생성(자동, Git/제출 제외).
 
