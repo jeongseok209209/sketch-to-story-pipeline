@@ -1,9 +1,9 @@
-"""[담당 2 · 스토리] EXAONE GGUF(llama-cpp-python) 런타임 + GPT-2/NLLB 베이스라인 + 구조화 플랜 + LLM 로더."""
+"""[담당 2 / 스토리] EXAONE GGUF(llama-cpp-python) 런타임 + GPT-2/NLLB 베이스라인 + 구조화 플랜 + LLM 로더."""
 
 from __future__ import annotations
 
 
-# ╔══ story/loaders.py ══╗
+# story/loaders.py
 
 
 import os
@@ -41,7 +41,7 @@ def get_gpt2_components() -> tuple[Any, Any]:
 
 @lru_cache(maxsize=1)
 def get_nllb_components() -> tuple[Any, Any]:
-    """NLLB 번역 구성요소를 1회 로드/캐시한다(영→한)."""
+    """NLLB 번역 구성요소를 1회 로드/캐시한다(영->한)."""
     from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
     device = get_device()
@@ -82,8 +82,8 @@ def get_exaone_components() -> tuple[Any, Any]:
 def get_exaone_gguf_components(model_path: str = "") -> Any:
     """양자화 EXAONE GGUF를 llama-cpp-python으로 1회 로드/캐시한다.
 
-    재현성: 기본 CPU(n_gpu_layers=0). NVIDIA GPU에서 가속하려면 ``LLAMA_GPU_LAYERS`` 지정.
-    n_ctx는 ``EXAONE_N_CTX``(기본 8192)로 시퀀스 스토리(8192 컨텍스트)까지 수용한다.
+    재현성: 기본 CPU(n_gpu_layers=0). NVIDIA GPU에서 가속하려면 LLAMA_GPU_LAYERS 지정.
+    n_ctx는 EXAONE_N_CTX(기본 8192)로 시퀀스 스토리(8192 컨텍스트)까지 수용한다.
     """
     from llama_cpp import Llama
 
@@ -99,16 +99,16 @@ def get_exaone_gguf_components(model_path: str = "") -> Any:
         verbose=False,
     )
 
-# ╔══ story/baseline.py ══╗
+# story/baseline.py
 
 
 from common import timed_step
 from common import get_device
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 generators.py에서 이동한 코드.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 STOPWORDS = {
     "a",
     "an",
@@ -260,7 +260,7 @@ def translate_en_ko(text_en: str) -> str:
 
     return translation.strip()
 
-# ╔══ story/exaone_runtime.py ══╗
+# story/exaone_runtime.py
 
 
 import json
@@ -276,9 +276,9 @@ from common import configured_llama_gpu_layers, get_device
 LAST_LLAMA_RUNTIME: dict[str, Any] = {"mode": "unknown"}
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# EXAONE GGUF 실행부 (llama-cpp-python in-process) — 과거 llama-cli subprocess 대체
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# EXAONE GGUF 실행부 (llama-cpp-python in-process) - 과거 llama-cli subprocess 대체
+# -----------------------------------------------------------------------------
 def _coerce_temperature(value: str | float) -> float:
     try:
         return max(float(value), 0.0)
@@ -321,7 +321,7 @@ def _run_llama_prompt(
 ) -> tuple[str, dict[str, Any]]:
     """EXAONE GGUF 프롬프트를 llama-cpp-python으로 실행한다.
 
-    (``timeout``/``context_size``는 하위호환용 인자. 컨텍스트는 모델 로드 시 n_ctx로 고정한다.)
+    (timeout/context_size는 하위호환용 인자. 컨텍스트는 모델 로드 시 n_ctx로 고정한다.)
     """
 
     llm = get_exaone_gguf_components(model_path)
@@ -336,7 +336,7 @@ def _run_llama_prompt(
 
     gpu_layers = configured_llama_gpu_layers()
     try:
-        # EXAONE는 instruction(채팅) 모델 → GGUF 내장 chat 템플릿을 적용해야 응답한다
+        # EXAONE는 instruction(채팅) 모델 -> GGUF 내장 chat 템플릿을 적용해야 응답한다
         # (과거 llama-cli --single-turn 대화 모드와 동일). 드물게 비면 raw completion으로 폴백.
         result = llm.create_chat_completion(messages=[{"role": "user", "content": prompt}], **kwargs)
         text = (result["choices"][0].get("message") or {}).get("content") or ""
@@ -372,7 +372,7 @@ def _run_llama_prompt(
 def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -> dict[str, Any]:
     """EXAONE GGUF 실행 준비: 모델 파일 확보 + llama-cpp-python import 확인.
 
-    (``llama_cli_path``는 하위호환용으로 받지만 무시한다 — 더 이상 외부 바이너리를 쓰지 않음.)
+    (llama_cli_path는 하위호환용으로 받지만 무시한다 - 더 이상 외부 바이너리를 쓰지 않음.)
     """
     resolved_model = ensure_exaone_gguf_model(model_path)
     try:
@@ -380,7 +380,7 @@ def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -
     except Exception as exc:
         raise RuntimeError(
             "llama-cpp-python is required to run EXAONE GGUF. Install with "
-            "`pip install -r requirements.txt` (uses a prebuilt-wheel index). If it still tries to "
+            "pip install -r requirements.txt (uses a prebuilt-wheel index). If it still tries to "
             "build from source on Windows, run: pip install --prefer-binary llama-cpp-python "
             "--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu  (use Python 3.10-3.12). "
             f"Import error: {exc}"
@@ -397,9 +397,9 @@ def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -
     return runtime
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 generators.py에서 이동한 코드(구조화 플랜/EXAONE HF/시퀀스 스토리).
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 def _clean_concepts(vision: dict[str, Any], limit: int = 6) -> list[dict[str, Any]]:
     """Convert noisy OpenCLIP words into story-ready Korean concepts."""
     object_scores = vision.get("object_scores", {})

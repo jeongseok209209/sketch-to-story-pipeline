@@ -1,9 +1,9 @@
-# storypipe 런타임 의존성 (CPU 기본 — 어느 컴퓨터에서나 동작)
+# storypipe 런타임 의존성 (CPU 기본 - 어느 컴퓨터에서나 동작)
 #
 # 설치:  pip install -r requirements.txt
 #
 # 중요: 아래 두 줄이 llama-cpp-python을 "미리 빌드된 wheel"로 설치하게 합니다.
-# (이게 없으면 Windows에서 소스 C++ 빌드를 시도하다 MSVC 인코딩 오류(C4819→C2001)로 실패합니다.)
+# (이게 없으면 Windows에서 소스 C++ 빌드를 시도하다 MSVC 인코딩 오류(C4819->C2001)로 실패합니다.)
 --prefer-binary
 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 
@@ -19,6 +19,6 @@ qwen-vl-utils>=0.0.8,<0.1
 streamlit>=1.36,<2
 pandas>=2.0,<3
 
-# EXAONE GGUF 실행 (llama.cpp in-process). 위 --extra-index-url의 CPU 프리빌트 휠을 사용 → 빌드 불필요.
+# EXAONE GGUF 실행 (llama.cpp in-process). 위 --extra-index-url의 CPU 프리빌트 휠을 사용 -> 빌드 불필요.
 # GPU(CUDA) 휠이 필요하면 .../whl/cu124 등으로 인덱스를 바꾸세요(docs 참고).
 llama-cpp-python>=0.3.2,<0.4

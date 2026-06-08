@@ -1,9 +1,9 @@
-"""[담당 3 · 파이프라인] 4-커맨드 CLI + doctor(환경 점검·설치) + C~J 통합 러너 + 출력 작성."""
+"""[담당 3 / 파이프라인] 4-커맨드 CLI + doctor(환경 점검/설치) + C~J 통합 러너 + 출력 작성."""
 
 from __future__ import annotations
 
 
-# ╔══ pipeline/outputs.py ══╗
+# pipeline/outputs.py
 
 
 import argparse
@@ -39,9 +39,9 @@ EVALUATION_RECORDS_FILE = EVALUATION_DIR / "evaluation_records.jsonl"
 EVALUATION_SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 run.py의 이야기 선택/출력 작성 구역에서 이동한 코드.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 def _resolve_workspace_path(path: str | Path) -> Path:
     value = Path(path)
     if value.is_absolute():
@@ -315,7 +315,7 @@ main {{ max-width:1120px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px;
 </head>
 <body>
 <header>
-<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(record.get('vision_model', ''))} · llm: {_html_escape(record.get('llm_model', ''))}</p>
+<p class="meta">{_html_escape(experiment_name)} / vision: {_html_escape(record.get('vision_model', ''))} / llm: {_html_escape(record.get('llm_model', ''))}</p>
 <h1>{_html_escape(story.get('title', ''))}</h1>
 </header>
 <main>
@@ -507,7 +507,7 @@ def _print_all_result_table(experiments: list[dict[str, Any]]) -> None:
     print(border)
     print()
 
-# ╔══ pipeline/doctor.py ══╗
+# pipeline/doctor.py
 
 
 import argparse
@@ -535,7 +535,7 @@ from common import (
 )
 from common import llama_runtime_status, torch_runtime_status
 
-# (import-name, pip-name) — doctor가 점검하는 런타임 의존성
+# (import-name, pip-name) - doctor가 점검하는 런타임 의존성
 _REQUIRED_PACKAGES = [
     ("torch", "torch"),
     ("transformers", "transformers"),
@@ -638,7 +638,7 @@ def _check_local_assets() -> None:
     _check_line(
         "Hugging Face cache",
         hf_ready,
-        str(LOCAL_HF_MODEL_DIR) if hf_ready else "will download on `storypipe doctor`",
+        str(LOCAL_HF_MODEL_DIR) if hf_ready else "will download on storypipe doctor",
     )
     import os
 
@@ -646,7 +646,7 @@ def _check_local_assets() -> None:
     _check_line(
         "EXAONE GGUF file",
         gguf_path.exists(),
-        str(gguf_path) if gguf_path.exists() else "will download on `storypipe doctor`",
+        str(gguf_path) if gguf_path.exists() else "will download on storypipe doctor",
     )
 
 
@@ -690,9 +690,9 @@ def run_doctor(args: argparse.Namespace) -> None:
     if check_only:
         print("\nResult")
         if packages_ok and inputs_ok:
-            print("OK: setup looks ready. Run `storypipe doctor` (without --check-only) to download models.")
+            print("OK: setup looks ready. Run storypipe doctor (without --check-only) to download models.")
         else:
-            print("WARN: fix the items above. Missing packages? Run `pip install -r requirements.txt`.")
+            print("WARN: fix the items above. Missing packages? Run pip install -r requirements.txt.")
             raise SystemExit(1)
         return
 
@@ -711,7 +711,7 @@ def run_doctor(args: argparse.Namespace) -> None:
         print("WARN: models are present but some checks failed; review the items above.")
         raise SystemExit(1)
 
-# ╔══ pipeline/runner.py ══╗
+# pipeline/runner.py
 
 
 import json
@@ -747,9 +747,9 @@ from vision import (
 LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 run_experiments_cd_qwen3b.py의 출력/오케스트레이션 구역에서 이동한 코드.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str, Any]], result: dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     record = {
@@ -816,7 +816,7 @@ section {{ margin-top:26px; }}
 </head>
 <body>
 <header>
-<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(VISION_MODEL_ID)} · llm: {_html_escape(LLM_MODEL_NOTE)}</p>
+<p class="meta">{_html_escape(experiment_name)} / vision: {_html_escape(VISION_MODEL_ID)} / llm: {_html_escape(LLM_MODEL_NOTE)}</p>
 <h1>{_html_escape(story['title'])}</h1>
 </header>
 <main>
@@ -913,7 +913,7 @@ def run_selected_experiments(
     return results
 
 
-# ╔══ pipeline/cli.py ══╗
+# pipeline/cli.py
 
 
 import argparse
@@ -944,7 +944,7 @@ def _resolve_story_dir(input_dir: str, story: str | None) -> Path:
     return selected
 
 
-# ── 단일 실험 실행 헬퍼 ─────────────────────────────────────────────────────
+# -- 단일 실험 실행 헬퍼 -----------------------------------------------------
 def _run_experiment_a_batch(input_dir: Path, output_dir: Path) -> dict[str, Any]:
     records = [run_experiment_a(str(image_path), output_dir=str(output_dir)) for image_path in _iter_images(input_dir)]
     return _write_a_standard_result(records, output_dir)
@@ -966,7 +966,7 @@ def _run_one(experiment: str, input_dir: Path, output_root: Path) -> None:
         run_selected_experiments(experiments=[key], input_dir=input_dir, output_root=output_root)
 
 
-# ── 전체 실험(가드 적용) ────────────────────────────────────────────────────
+# -- 전체 실험(가드 적용) ----------------------------------------------------
 def _run_guarded(experiment: str, output_dir: Path, runner: Callable[[], Any], nxt: str | None) -> dict[str, Any]:
     started = _utc_now()
     set_step_context(experiment=experiment, phase="generation")
@@ -1007,10 +1007,10 @@ def _run_all(input_dir: Path, output_root: Path) -> None:
     _print_all_result_table(summaries)
 
 
-# ── 블라인드 평가 대시보드 ──────────────────────────────────────────────────
+# -- 블라인드 평가 대시보드 --------------------------------------------------
 def _launch_dashboard(port: int) -> None:
     if importlib.util.find_spec("streamlit") is None:
-        raise SystemExit("streamlit이 설치되지 않았습니다. `pip install -r requirements.txt` 후 다시 시도하세요.")
+        raise SystemExit("streamlit이 설치되지 않았습니다. pip install -r requirements.txt 후 다시 시도하세요.")
     command = [
         sys.executable,
         "-m",
@@ -1030,7 +1030,7 @@ def _launch_dashboard(port: int) -> None:
         log_stage("evaluation dashboard stopped by user", step="evaluate", event="stopped")
 
 
-# ── 커맨드 구현 ─────────────────────────────────────────────────────────────
+# -- 커맨드 구현 -------------------------------------------------------------
 def _cmd_run(args: argparse.Namespace) -> None:
     ensure_runtime_ready()
     input_dir = _resolve_story_dir(args.input_dir, args.story)
@@ -1055,7 +1055,7 @@ def _cmd_demo(args: argparse.Namespace) -> None:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="storypipe",
-        description="손그림 → 한국어 동화 파이프라인 (4-커맨드: doctor / run / run-all / demo).",
+        description="손그림 -> 한국어 동화 파이프라인 (4-커맨드: doctor / run / run-all / demo).",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

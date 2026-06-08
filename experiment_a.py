@@ -1,9 +1,9 @@
-"""[담당 3 · 파이프라인] 실험 A(단일 이미지)/B(시퀀스) 오케스트레이션 + 정량 평가."""
+"""[담당 3 / 파이프라인] 실험 A(단일 이미지)/B(시퀀스) 오케스트레이션 + 정량 평가."""
 
 from __future__ import annotations
 
 
-# ╔══ pipeline/evaluate.py ══╗
+# pipeline/evaluate.py
 
 
 from story_runtime import CONCEPT_KO, translate_en_ko
@@ -42,7 +42,7 @@ def evaluate(
         "paragraph_count": len(paragraphs),
     }
 
-# ╔══ pipeline/experiment_a.py ══╗
+# pipeline/experiment_a.py
 
 
 import argparse
@@ -165,7 +165,7 @@ main {{ max-width:1120px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px;
 </head>
 <body>
 <header>
-<p class="meta">{_html_escape(experiment_name)} · vision: {_html_escape(record.get('vision_model', ''))} · llm: {_html_escape(record.get('llm_model', ''))}</p>
+<p class="meta">{_html_escape(experiment_name)} / vision: {_html_escape(record.get('vision_model', ''))} / llm: {_html_escape(record.get('llm_model', ''))}</p>
 <h1>{_html_escape(story.get('title', ''))}</h1>
 </header>
 <main>

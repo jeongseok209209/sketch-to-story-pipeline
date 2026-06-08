@@ -1,9 +1,9 @@
-"""[담당 1 · 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~J) + 비전 로더."""
+"""[담당 1 / 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~J) + 비전 로더."""
 
 from __future__ import annotations
 
 
-# ╔══ vision/loaders.py ══╗
+# vision/loaders.py
 
 
 from functools import lru_cache
@@ -113,7 +113,7 @@ def load_qwen_model(max_pixels: int) -> tuple[Any, Any, str]:
     """Qwen2.5-VL 모델/프로세서/디바이스를 로드한다(CUDA 실패 시 CPU 폴백).
 
     과거 monster의 장면 추출(_ensure_scenes)과 콜라주 분석(_run_qwen_collage_analysis)에
-    중복돼 있던 로딩 로직을 단일화한 것이다. ``max_pixels``로 프로세서 입력 해상도를 조절한다.
+    중복돼 있던 로딩 로직을 단일화한 것이다. max_pixels로 프로세서 입력 해상도를 조절한다.
     """
     import torch
     from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
@@ -156,7 +156,7 @@ def load_qwen_model(max_pixels: int) -> tuple[Any, Any, str]:
         )
     return model, processor, device
 
-# ╔══ vision/blip_clip.py ══╗
+# vision/blip_clip.py
 
 
 import re
@@ -382,7 +382,7 @@ def recognize_with_steps(
     """Recognize sketch concepts and return both vision JSON and stage records."""
     return _recognize_impl(image_path, clip_threshold=clip_threshold)
 
-# ╔══ vision/qwen_scenes.py ══╗
+# vision/qwen_scenes.py
 
 
 import hashlib
@@ -416,9 +416,9 @@ QWEN_COLLAGE_MAX_PIXELS = QWEN_COLLAGE_MAX_SIDE * QWEN_COLLAGE_MAX_SIDE
 RESIZED_DIR = _DEFAULT_RESIZED_DIR
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 아래 본문은 기존 run_experiments_cd_qwen3b.py의 Qwen 비전 구역에서 이동한 코드.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 def _iter_images(directory: Path) -> list[Path]:
     numbered: dict[int, Path] = {}
     for path in sorted(directory.iterdir()):

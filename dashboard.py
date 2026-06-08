@@ -1,6 +1,6 @@
-"""[담당 3 · 평가] 생성된 동화에 대한 블라인드 무작위 평가 Streamlit 대시보드.
+"""[담당 3 / 평가] 생성된 동화에 대한 블라인드 무작위 평가 Streamlit 대시보드.
 
-`storypipe demo`(또는 cli)가 streamlit 하위프로세스로 띄우며, 저장소 루트의 outputs/를 읽는다.
+storypipe demo(또는 cli)가 streamlit 하위프로세스로 띄우며, 저장소 루트의 outputs/를 읽는다.
 """
 
 
@@ -264,7 +264,7 @@ def _case_from_record(case_id: str, result_file: Path, experiment: str) -> Evalu
             summary = (
                 str(scene.get("scene_summary") or "").strip()
                 or _compose_sequence_scene_summary(scene)
-                or "?λ㈃ ?ㅻ챸 ?놁쓬"
+                or "장면 설명 없음"
             )
             scenes.append(
                 SceneView(

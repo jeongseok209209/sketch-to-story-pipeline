@@ -1,14 +1,14 @@
-"""[공유 토대] 설정·런타임·로깅·모델·이미지·IO·JSON 파싱 (3인 공유)."""
+"""[공유 토대] 설정/런타임/로깅/모델/이미지/IO/JSON 파싱 (3인 공유)."""
 
 from __future__ import annotations
 
 
-# ╔══ common/config.py ══╗
+# common/config.py
 
 
 from pathlib import Path
 
-# ── 모델 ID ────────────────────────────────────────────────────────────────
+# -- 모델 ID ----------------------------------------------------------------
 BLIP_CAPTION_MODEL = "Salesforce/blip-image-captioning-large"
 BLIP_VQA_MODEL = "Salesforce/blip-vqa-base"
 GPT2_MODEL = "gpt2-medium"
@@ -37,7 +37,7 @@ HF_PREFLIGHT_IGNORE_PATTERNS = (
     "rust_model.*",
 )
 
-# ── 경로 ──────────────────────────────────────────────────────────────────
+# -- 경로 ------------------------------------------------------------------
 # common.py는 저장소 루트에 있으므로 그 폴더가 PROJECT_ROOT.
 PROJECT_ROOT = Path(__file__).resolve().parent
 BASE_DIR = PROJECT_ROOT
@@ -49,24 +49,24 @@ RESIZED_DIR = COMMON_OUTPUT_DIR / "_resized_input"
 LOCAL_HF_MODEL_DIR = PROJECT_ROOT / ".local_models" / "huggingface"
 DEFAULT_EXAONE_GGUF_PATH = str(PROJECT_ROOT / ".local_models" / "exaone" / EXAONE_GGUF_FILENAME)
 
-# ── 입력 규칙 ──────────────────────────────────────────────────────────────
+# -- 입력 규칙 --------------------------------------------------------------
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 STORY_CAPTION_FILENAME = "caption.txt"
 COLLAGE_FILENAME = "collage_2x5_scene_order.png"
 
-# ── 런타임 호환성(진단/안내 메시지용 참고값) ──────────────────────────────
+# -- 런타임 호환성(진단/안내 메시지용 참고값) ------------------------------
 PYTORCH_CUDA_INDEX_URL = "https://download.pytorch.org/whl/cu124"
 PYTORCH_CUDA_PACKAGES = ("torch==2.6.0", "torchvision==0.21.0", "torchaudio==2.6.0")
 TRANSFORMERS_VERSION_SPEC = "transformers>=4.54.0,<5"
 TORCH_MIN_SAFE_VERSION = (2, 6)
 
-# ── 버전 태그 ──────────────────────────────────────────────────────────────
+# -- 버전 태그 --------------------------------------------------------------
 PIPELINE_VERSION = "2026.06.07-storypipe"
 STEP_LOG_VERSION = "step-log-v1"
 
 
 def experiment_dirs(output_root: Path) -> dict[str, Path]:
-    """실험 키(c~j) → 출력 디렉터리 매핑. vision/pipeline이 공유하므로 common에 둔다."""
+    """실험 키(c~j) -> 출력 디렉터리 매핑. vision/pipeline이 공유하므로 common에 둔다."""
     return {key: output_root / key.upper() for key in ("c", "d", "e", "f", "g", "h", "i", "j")}
 
 
@@ -77,7 +77,7 @@ def hf_revision(model_id: str) -> str | None:
     env_key = "HF_REVISION_" + model_id.replace("/", "_").replace("-", "_").replace(".", "_")
     return os.environ.get(env_key) or MODEL_REVISIONS.get(model_id)
 
-# ╔══ common/logging.py ══╗
+# common/logging.py
 
 
 import time
@@ -168,7 +168,7 @@ def timed_step(
         elapsed = time.perf_counter() - start
         print(f"{_stage_prefix(step, experiment, model, phase, 'done')} {label} ({elapsed:.2f}s)")
 
-# ╔══ common/runtime.py ══╗
+# common/runtime.py
 
 
 import os
@@ -305,7 +305,7 @@ def _torch_needs_security_upgrade() -> tuple[bool, str]:
 
 
 def ensure_runtime_ready() -> None:
-    """런타임 상태를 *검증·안내*만 한다(설치하지 않음). 설치는 ``storypipe doctor``로."""
+    """런타임 상태를 검증/안내만 한다(설치하지 않음). 설치는 storypipe doctor로."""
     log_stage("runtime check start", step="runtime", model="Python/PyTorch/CUDA")
     llama_status = llama_runtime_status()
     print(
@@ -319,7 +319,7 @@ def ensure_runtime_ready() -> None:
     if torch_needs_upgrade:
         print(
             f"[runtime] WARN: {torch_version_detail}. "
-            "Run `storypipe doctor` (or `python run.py doctor`) to fix dependencies."
+            "Run storypipe doctor (or python run.py doctor) to fix dependencies."
         )
         return
     if cuda_available:
@@ -332,7 +332,7 @@ def ensure_runtime_ready() -> None:
     else:
         print("[runtime] CPU mode: no NVIDIA GPU detected (supported).")
 
-# ╔══ common/models.py ══╗
+# common/models.py
 
 
 import os
@@ -374,7 +374,7 @@ def ensure_exaone_gguf_model(model_path: str = "") -> str:
         raise FileNotFoundError(
             "EXAONE GGUF model file could not be prepared automatically. "
             f"Tried {repo_id}/{filename}. If the model requires Hugging Face login, run "
-            "`huggingface-cli login` or set HF_TOKEN. You may also set EXAONE_GGUF_MODEL_PATH "
+            "huggingface-cli login or set HF_TOKEN. You may also set EXAONE_GGUF_MODEL_PATH "
             f"to a local file, or place it at: {resolved_path}. Error: {exc}"
         ) from exc
 
@@ -402,7 +402,7 @@ def ensure_huggingface_model_snapshots(model_ids: list[str] | tuple[str, ...]) -
         except Exception as exc:
             raise RuntimeError(
                 f"Failed to prepare Hugging Face model {model_id}: {exc}. "
-                "If the model is gated, run `huggingface-cli login` or set HF_TOKEN."
+                "If the model is gated, run huggingface-cli login or set HF_TOKEN."
             ) from exc
 
 
@@ -462,7 +462,7 @@ def ensure_openclip_pretrained() -> None:
             f"Failed to prepare OpenCLIP model {OPENCLIP_MODEL}/{OPENCLIP_PRETRAINED}: {exc}"
         ) from exc
 
-# ╔══ common/images.py ══╗
+# common/images.py
 
 
 from typing import Any
@@ -496,7 +496,7 @@ def resize_square(image: Any, size: int) -> Any:
 
     return ImageOps.fit(image, (size, size), method=Image.Resampling.BICUBIC)
 
-# ╔══ common/io.py ══╗
+# common/io.py
 
 
 import json
@@ -525,14 +525,14 @@ def file_url(path: str | Path) -> str:
     """로컬 경로를 file:/// URL로 변환한다(윈도우 역슬래시 정규화)."""
     return "file:///" + str(path).replace("\\", "/")
 
-# ╔══ common/jsonparse.py ══╗
+# common/jsonparse.py
 
 
 import re
 
 
 def balanced_json_object_candidates(cleaned: str) -> list[str]:
-    """문자열 안의 균형 잡힌 ``{...}`` 후보들을 등장 순서대로 반환한다."""
+    """문자열 안의 균형 잡힌 {...} 후보들을 등장 순서대로 반환한다."""
     candidates: list[str] = []
     start: int | None = None
     depth = 0

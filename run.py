@@ -1,4 +1,4 @@
-"""진입점: `python run.py <doctor|run|run-all|demo>`.
+"""진입점: python run.py <doctor|run|run-all|demo>.
 
 먼저 의존성 설치:  pip install -r requirements.txt
 그다음:
