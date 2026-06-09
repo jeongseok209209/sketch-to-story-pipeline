@@ -99,6 +99,25 @@ def get_exaone_gguf_components(model_path: str = "") -> Any:
         verbose=False,
     )
 
+
+def clear_story_model_caches() -> None:
+    """텍스트 생성 모델(GPT-2/NLLB/EXAONE/EXAONE GGUF) 캐시를 비운다(CPU/RAM 절약).
+
+    CPU 모드에서 이 모델들이 RAM에 남아 있으면, 비전 단계가 OpenCLIP(약 3.7GB)을
+    다시 메모리에 올릴 때 Windows access violation(메모리 부족 크래시)이 날 수 있다.
+    """
+    import gc
+
+    import torch
+
+    get_gpt2_components.cache_clear()
+    get_nllb_components.cache_clear()
+    get_exaone_components.cache_clear()
+    get_exaone_gguf_components.cache_clear()
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
 # story/baseline.py
 
 

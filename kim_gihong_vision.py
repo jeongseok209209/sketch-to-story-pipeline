@@ -237,7 +237,20 @@ def _extract_candidates(text: str) -> list[str]:
 
 def _score_candidates(image: Any, candidates: list[str]) -> dict[str, float]:
     """Score candidate words with OpenCLIP cosine similarity."""
+    import gc
+
     import torch
+
+    # OpenCLIP(약 3.7GB) 로드 전에 다른 무거운 모델 캐시를 비워 RAM을 확보합니다.
+    # CPU 모드에서 BLIP이나 텍스트 생성 모델(GPT-2/NLLB/EXAONE)이 캐시로 남아 있으면
+    # OpenCLIP 가중치를 메모리에 올리다가 Windows access violation(메모리 부족 크래시)이
+    # 발생할 수 있습니다. 이 시점부터는 어느 모델도 더 필요하지 않습니다.
+    get_caption_components.cache_clear()
+    get_vqa_components.cache_clear()
+    from kim_jeongseok_story_runtime import clear_story_model_caches
+
+    clear_story_model_caches()
+    gc.collect()
 
     # OpenCLIP은 이미지 특징과 텍스트 프롬프트 특징을 같은 임베딩 공간에서 비교합니다.
     model, preprocess, tokenizer = get_openclip_components()
