@@ -45,7 +45,7 @@ python kim_jeongseok_run.py demo        # 전체 실행 + 평가
 
 - 첫 실행 시 모델(~20GB)을 자동으로 내려받으므로 시간이 다소 걸릴 수 있습니다.
 - CPU 실행 시간을 단축하고자 하는 경우에 한해 BLIP/OpenCLIP/Qwen2.5-VL용 PyTorch GPU 가속을
-  [ADVANCED.md](ADVANCED.md)에서 안내합니다(선택 사항이며, GPU 결과는 CPU 기준 실행과 다를 수 있습니다).
+  [ADVANCED.md](ADVANCED.md)에서 안내합니다.
 
 ## 파일 구성 (3인 작업 분담)
 
