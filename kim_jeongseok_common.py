@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-# common/config.py
+# 설정 (모델 ID / 경로 / 입력 규칙 / 버전)
 
 
 from pathlib import Path
@@ -77,7 +77,7 @@ def hf_revision(model_id: str) -> str | None:
     env_key = "HF_REVISION_" + model_id.replace("/", "_").replace("-", "_").replace(".", "_")
     return os.environ.get(env_key) or MODEL_REVISIONS.get(model_id)
 
-# common/logging.py
+# 로깅
 
 
 import time
@@ -168,7 +168,7 @@ def timed_step(
         elapsed = time.perf_counter() - start
         print(f"{_stage_prefix(step, experiment, model, phase, 'done')} {label} ({elapsed:.2f}s)")
 
-# common/runtime.py
+# 런타임 (디바이스 / GPU 감지)
 
 
 import os
@@ -332,7 +332,7 @@ def ensure_runtime_ready() -> None:
     else:
         print("[runtime] CPU mode: no NVIDIA GPU detected (supported).")
 
-# common/models.py
+# 모델 다운로드
 
 
 import os
@@ -462,7 +462,7 @@ def ensure_openclip_pretrained() -> None:
             f"Failed to prepare OpenCLIP model {OPENCLIP_MODEL}/{OPENCLIP_PRETRAINED}: {exc}"
         ) from exc
 
-# common/images.py
+# 이미지 전처리
 
 
 from typing import Any
@@ -496,7 +496,7 @@ def resize_square(image: Any, size: int) -> Any:
 
     return ImageOps.fit(image, (size, size), method=Image.Resampling.BICUBIC)
 
-# common/io.py
+# 파일 IO
 
 
 import json
@@ -525,7 +525,7 @@ def file_url(path: str | Path) -> str:
     """로컬 경로를 file:/// URL로 변환한다(윈도우 역슬래시 정규화)."""
     return "file:///" + str(path).replace("\\", "/")
 
-# common/jsonparse.py
+# JSON 파싱
 
 
 import re

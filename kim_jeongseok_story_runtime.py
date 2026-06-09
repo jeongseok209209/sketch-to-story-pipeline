@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-# story/loaders.py
+# LLM 로더
 
 
 import os
@@ -118,7 +118,7 @@ def clear_story_model_caches() -> None:
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-# story/baseline.py
+# GPT-2/NLLB 베이스라인
 
 
 from kim_jeongseok_common import timed_step
@@ -126,7 +126,7 @@ from kim_jeongseok_common import get_device
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 generators.py에서 이동한 코드.
+# 불용어 사전 / 생성 헬퍼
 # -----------------------------------------------------------------------------
 STOPWORDS = {
     "a",
@@ -279,7 +279,7 @@ def translate_en_ko(text_en: str) -> str:
 
     return translation.strip()
 
-# story/exaone_runtime.py
+# EXAONE GGUF 런타임
 
 
 import json
@@ -296,7 +296,7 @@ LAST_LLAMA_RUNTIME: dict[str, Any] = {"mode": "unknown"}
 
 
 # -----------------------------------------------------------------------------
-# EXAONE GGUF 실행부 (llama-cpp-python in-process) - 과거 llama-cli subprocess 대체
+# EXAONE GGUF 실행부 (llama-cpp-python in-process)
 # -----------------------------------------------------------------------------
 def _coerce_temperature(value: str | float) -> float:
     try:
@@ -355,8 +355,8 @@ def _run_llama_prompt(
 
     gpu_layers = configured_llama_gpu_layers()
     try:
-        # EXAONE는 instruction(채팅) 모델 -> GGUF 내장 chat 템플릿을 적용해야 응답한다
-        # (과거 llama-cli --single-turn 대화 모드와 동일). 드물게 비면 raw completion으로 폴백.
+        # EXAONE는 instruction(채팅) 모델 -> GGUF 내장 chat 템플릿을 적용해야 응답한다.
+        # 드물게 응답이 비면 raw completion으로 폴백한다.
         result = llm.create_chat_completion(messages=[{"role": "user", "content": prompt}], **kwargs)
         text = (result["choices"][0].get("message") or {}).get("content") or ""
         if not text.strip():
@@ -417,7 +417,7 @@ def ensure_exaone_gguf_runtime(model_path: str = "", llama_cli_path: str = "") -
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 generators.py에서 이동한 코드(구조화 플랜/EXAONE HF/시퀀스 스토리).
+# 구조화 플랜 / EXAONE HF / 시퀀스 스토리
 # -----------------------------------------------------------------------------
 def _clean_concepts(vision: dict[str, Any], limit: int = 6) -> list[dict[str, Any]]:
     """Convert noisy OpenCLIP words into story-ready Korean concepts."""

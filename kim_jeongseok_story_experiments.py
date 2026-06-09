@@ -95,7 +95,7 @@ def _extract_required_json(text: str) -> dict[str, Any]:
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 run_experiments_cd_qwen3b.py의 스토리 실험 구역에서 이동한 코드.
+# 실험 C~J 스토리 빌더
 # -----------------------------------------------------------------------------
 def _compact_scene(scene: dict[str, Any]) -> dict[str, Any]:
     return {
@@ -129,7 +129,7 @@ def _scene_windows(scenes: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _ensure_exaone_gguf_available() -> None:
-    # llama-cpp-python 전환 후: 모델 파일 확보 + llama_cpp import만 확인(외부 바이너리 불필요).
+    # 모델 파일 확보 + llama_cpp import만 확인한다(외부 바이너리 불필요).
     ensure_exaone_gguf_runtime()
 
 

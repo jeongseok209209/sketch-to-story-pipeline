@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-# vision/loaders.py
+# 비전 모델 로더
 
 
 from functools import lru_cache
@@ -112,8 +112,8 @@ def _snapshot_dir(model_cache: Path | str) -> Path | str:
 def load_qwen_model(max_pixels: int) -> tuple[Any, Any, str]:
     """Qwen2.5-VL 모델/프로세서/디바이스를 로드한다(CUDA 실패 시 CPU 폴백).
 
-    과거 monster의 장면 추출(_ensure_scenes)과 콜라주 분석(_run_qwen_collage_analysis)에
-    중복돼 있던 로딩 로직을 단일화한 것이다. max_pixels로 프로세서 입력 해상도를 조절한다.
+    _ensure_scenes(장면 추출)와 _run_qwen_collage_analysis(콜라주 분석)가 공통으로 쓰는
+    로더이며, max_pixels로 프로세서 입력 해상도를 조절한다.
     """
     import torch
     from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
@@ -156,7 +156,7 @@ def load_qwen_model(max_pixels: int) -> tuple[Any, Any, str]:
         )
     return model, processor, device
 
-# vision/blip_clip.py
+# BLIP/OpenCLIP 인식 (실험 A)
 
 
 import re
@@ -395,7 +395,7 @@ def recognize_with_steps(
     """Recognize sketch concepts and return both vision JSON and stage records."""
     return _recognize_impl(image_path, clip_threshold=clip_threshold)
 
-# vision/qwen_scenes.py
+# Qwen2.5-VL 장면/콜라주 추출 (실험 C~J)
 
 
 import hashlib
@@ -430,7 +430,7 @@ RESIZED_DIR = _DEFAULT_RESIZED_DIR
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 run_experiments_cd_qwen3b.py의 Qwen 비전 구역에서 이동한 코드.
+# 장면/콜라주 추출 함수
 # -----------------------------------------------------------------------------
 def _iter_images(directory: Path) -> list[Path]:
     numbered: dict[int, Path] = {}
@@ -785,7 +785,7 @@ def _run_qwen_collage_analysis(
     import torch
     from qwen_vl_utils import process_vision_info
 
-    # 모델 로딩은 vision/loaders.py로 단일화(과거 중복 코드 제거).
+    # 공통 로더로 Qwen 모델을 로드한다.
     model, processor, device = load_qwen_model(QWEN_COLLAGE_MAX_PIXELS)
 
     prepared_path = _prepare_collage_image(image_path, output_dir / "_resized_collage")
@@ -837,7 +837,7 @@ def _ensure_scenes(
     if not images:
         raise ValueError(f"No PNG/JPG images found in input directory: {input_dir}")
 
-    # 모델 로딩은 vision/loaders.py로 단일화(과거 중복 코드 제거).
+    # 공통 로더로 Qwen 모델을 로드한다.
     model, processor, device = load_qwen_model(QWEN_MAX_PIXELS)
     for index, image_path in enumerate(images, start=1):
         log_stage(f"scene {index}: {image_path.name}", step=f"Qwen-{index:02d}", model=VISION_MODEL_ID)

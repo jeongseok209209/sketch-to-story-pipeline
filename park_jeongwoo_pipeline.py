@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-# pipeline/outputs.py
+# 출력 작성
 
 
 import argparse
@@ -40,7 +40,7 @@ EVALUATION_SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 CLI의 이야기 선택/출력 작성 구역에서 이동한 코드.
+# 이야기 선택 / 출력 작성
 # -----------------------------------------------------------------------------
 def _resolve_workspace_path(path: str | Path) -> Path:
     value = Path(path)
@@ -507,7 +507,7 @@ def _print_all_result_table(experiments: list[dict[str, Any]]) -> None:
     print(border)
     print()
 
-# pipeline/doctor.py
+# doctor (환경 점검 / 설치)
 
 
 import argparse
@@ -711,7 +711,7 @@ def run_doctor(args: argparse.Namespace) -> None:
         print("WARN: models are present but some checks failed; review the items above.")
         raise SystemExit(1)
 
-# pipeline/runner.py
+# C~J 통합 러너
 
 
 import json
@@ -748,7 +748,7 @@ LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 run_experiments_cd_qwen3b.py의 출력/오케스트레이션 구역에서 이동한 코드.
+# 출력 작성 / 오케스트레이션
 # -----------------------------------------------------------------------------
 def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str, Any]], result: dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -913,7 +913,7 @@ def run_selected_experiments(
     return results
 
 
-# pipeline/cli.py
+# 4-커맨드 CLI
 
 
 import argparse

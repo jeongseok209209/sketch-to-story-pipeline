@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-# pipeline/evaluate.py
+# 정량 평가
 
 
 from kim_jeongseok_story_runtime import CONCEPT_KO, translate_en_ko
@@ -42,7 +42,7 @@ def evaluate(
         "paragraph_count": len(paragraphs),
     }
 
-# pipeline/park_jeongwoo_experiment_a.py
+# 실험 A/B 오케스트레이션
 
 
 import argparse
