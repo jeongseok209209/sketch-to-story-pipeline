@@ -1,4 +1,4 @@
-"""[담당 3 / 파이프라인] 4-커맨드 CLI + doctor(환경 점검/설치) + C~J 통합 러너 + 출력 작성."""
+"""[박정우 / 파이프라인] 4-커맨드 CLI + doctor(환경 점검/설치) + C~J 통합 러너 + 출력 작성."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from common import (
+from kim_jeongseok_common import (
     GPT2_MODEL,
     IMAGE_EXTENSIONS,
     NLLB_MODEL,
@@ -24,11 +24,11 @@ from common import (
     PROJECT_ROOT,
     STORY_CAPTION_FILENAME,
 )
-from common import file_url as _file_url
-from common import html_escape as _html_escape
-from common import write_json as _write_json
-from common import log_stage
-from common import llama_runtime_status, torch_runtime_status
+from kim_jeongseok_common import file_url as _file_url
+from kim_jeongseok_common import html_escape as _html_escape
+from kim_jeongseok_common import write_json as _write_json
+from kim_jeongseok_common import log_stage
+from kim_jeongseok_common import llama_runtime_status, torch_runtime_status
 
 BASE_DIR = PROJECT_ROOT
 DEFAULT_INPUT_SEQUENCE = PROJECT_ROOT / "inputs"
@@ -40,7 +40,7 @@ EVALUATION_SUMMARY_FILE = EVALUATION_DIR / "evaluation_summary.json"
 
 
 # -----------------------------------------------------------------------------
-# 아래 본문은 기존 run.py의 이야기 선택/출력 작성 구역에서 이동한 코드.
+# 아래 본문은 기존 CLI의 이야기 선택/출력 작성 구역에서 이동한 코드.
 # -----------------------------------------------------------------------------
 def _resolve_workspace_path(path: str | Path) -> Path:
     value = Path(path)
@@ -517,7 +517,7 @@ import sys
 from importlib import metadata
 from pathlib import Path
 
-from common import (
+from kim_jeongseok_common import (
     BLIP_CAPTION_MODEL,
     BLIP_VQA_MODEL,
     DEFAULT_EXAONE_GGUF_PATH,
@@ -528,12 +528,12 @@ from common import (
     QWEN25_VL_MODEL,
     STORY_CAPTION_FILENAME,
 )
-from common import (
+from kim_jeongseok_common import (
     ensure_exaone_gguf_model,
     ensure_huggingface_model_snapshots,
     ensure_openclip_pretrained,
 )
-from common import llama_runtime_status, torch_runtime_status
+from kim_jeongseok_common import llama_runtime_status, torch_runtime_status
 
 # (import-name, pip-name) - doctor가 점검하는 런타임 의존성
 _REQUIRED_PACKAGES = [
@@ -659,7 +659,7 @@ def _preflight_models() -> None:
 
 
 def _smoke_exaone() -> bool:
-    from story_runtime import _run_exaone_gguf_prompt, ensure_exaone_gguf_runtime
+    from kim_jeongseok_story_runtime import _run_exaone_gguf_prompt, ensure_exaone_gguf_runtime
 
     ensure_exaone_gguf_runtime()
     output = _run_exaone_gguf_prompt("한 문장으로 인사해 주세요.", max_new_tokens=24)
@@ -719,16 +719,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from common import (
+from kim_jeongseok_common import (
     INPUT_DIR,
     OUTPUT_ROOT,
     VISION_MODEL_ID,
 )
-from common import experiment_dirs as _experiment_dirs
-from common import file_url as _file_url
-from common import html_escape as _html_escape
-from common import log_stage, set_step_context
-from story_experiments import (
+from kim_jeongseok_common import experiment_dirs as _experiment_dirs
+from kim_jeongseok_common import file_url as _file_url
+from kim_jeongseok_common import html_escape as _html_escape
+from kim_jeongseok_common import log_stage, set_step_context
+from kim_jeongseok_story_experiments import (
     build_experiment_c,
     build_experiment_d,
     build_experiment_e,
@@ -738,7 +738,7 @@ from story_experiments import (
     build_experiment_i,
     build_experiment_j,
 )
-from vision import (
+from kim_gihong_vision import (
     _read_story_caption,
     prepare_qwen_collage_for_experiment,
     prepare_qwen_scenes_for_experiment,
@@ -923,13 +923,13 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-from common import PIPELINE_VERSION, PROJECT_ROOT
-from common import log_stage, set_step_context
-from common import ensure_runtime_ready
-from experiment_a import run_experiment_a, run_sequence_story
+from kim_jeongseok_common import PIPELINE_VERSION, PROJECT_ROOT
+from kim_jeongseok_common import log_stage, set_step_context
+from kim_jeongseok_common import ensure_runtime_ready
+from park_jeongwoo_experiment_a import run_experiment_a, run_sequence_story
 
 EXPERIMENT_KEYS = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
-DASHBOARD_PATH = PROJECT_ROOT / "dashboard.py"
+DASHBOARD_PATH = PROJECT_ROOT / "park_jeongwoo_dashboard.py"
 
 
 def _resolve_story_dir(input_dir: str, story: str | None) -> Path:

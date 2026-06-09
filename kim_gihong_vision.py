@@ -1,4 +1,4 @@
-"""[담당 1 / 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~J) + 비전 로더."""
+"""[김기홍 / 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~J) + 비전 로더."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from common import (
+from kim_jeongseok_common import (
     BLIP_CAPTION_MODEL,
     BLIP_VQA_MODEL,
     GPT2_MODEL,
@@ -19,13 +19,13 @@ from common import (
     OPENCLIP_PRETRAINED,
     VISION_MODEL_ID,
 )
-from common import log_model_device, log_stage, timed_step
-from common import (
+from kim_jeongseok_common import log_model_device, log_stage, timed_step
+from kim_jeongseok_common import (
     _local_files_only,
     _openclip_pretrained_source,
     local_huggingface_model_path,
 )
-from common import get_device
+from kim_jeongseok_common import get_device
 
 # GPT2/NLLB 상수는 story 로더가 쓰지만, 위치 일관성을 위해 config에서만 정의한다.
 _ = (GPT2_MODEL, NLLB_MODEL)
@@ -163,9 +163,9 @@ import re
 from pathlib import Path
 from typing import Any
 
-from common import load_and_normalize_image, resize_square
-from common import timed_step
-from common import get_device
+from kim_jeongseok_common import load_and_normalize_image, resize_square
+from kim_jeongseok_common import timed_step
+from kim_jeongseok_common import get_device
 
 
 VQA_QUESTIONS = {
@@ -392,7 +392,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable
 
-from common import (
+from kim_jeongseok_common import (
     COLLAGE_FILENAME,
     COMMON_OUTPUT_DIR,
     IMAGE_EXTENSIONS,
@@ -403,8 +403,8 @@ from common import (
     VISION_MODEL_ID,
     experiment_dirs as _experiment_dirs,
 )
-from common import RESIZED_DIR as _DEFAULT_RESIZED_DIR
-from common import log_stage, set_step_context, timed_step
+from kim_jeongseok_common import RESIZED_DIR as _DEFAULT_RESIZED_DIR
+from kim_jeongseok_common import log_stage, set_step_context, timed_step
 
 # Qwen 입력 해상도(개별 장면은 작게, 콜라주는 덜 공격적으로 축소)
 QWEN_IMAGE_MAX_SIDE = 384

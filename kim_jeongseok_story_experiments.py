@@ -1,4 +1,4 @@
-"""[담당 2 / 스토리] 실험 C~J 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
+"""[김정석 / 스토리] 실험 C~J 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
 
 Qwen 장면 JSON(scenes)을 입력으로 받아 EXAONE GGUF로 한국어 동화를 생성한다.
 각 실험(C~J)은 프롬프트 전략/품질 게이트가 다르며, build_experiment_*가 진입점이다.
@@ -10,10 +10,10 @@ import json
 import re
 from typing import Any, Callable
 
-from common import json_object_candidates as _json_object_candidates
-from common import log_stage
-from common import timed_step
-from story_runtime import (
+from kim_jeongseok_common import json_object_candidates as _json_object_candidates
+from kim_jeongseok_common import log_stage
+from kim_jeongseok_common import timed_step
+from kim_jeongseok_story_runtime import (
     _run_exaone_gguf_prompt,
     ensure_exaone_gguf_runtime,
     get_last_llama_runtime,

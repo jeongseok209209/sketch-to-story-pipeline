@@ -10,27 +10,27 @@ Python 3.10-3.12에서, 저장소 루트에서:
 
 ```bash
 pip install -r requirements.txt
-python run.py doctor
+python kim_jeongseok_run.py doctor
 ```
 
 - `pip install`이 **llama-cpp-python 포함 모든 의존성**을 PyPI에서 설치합니다(별도 바이너리 빌드/Vulkan 불필요).
-- `python run.py doctor`가 **필요한 오픈소스 모델(~20GB)을 자동 다운로드**하고 점검합니다. 디스크 30GB+ 권장.
+- `python kim_jeongseok_run.py doctor`가 **필요한 오픈소스 모델(~20GB)을 자동 다운로드**하고 점검합니다. 디스크 30GB+ 권장.
 - GPU 없이 CPU로 동작합니다(기본). PyTorch 기반 비전 모델의 NVIDIA 가속은 [ADVANCED.md](ADVANCED.md)를 참고하십시오.
 
 ## 4가지 명령
 
-- 0) python run.py doctor
+- 0) python kim_jeongseok_run.py doctor
   환경 점검 + 모델 자동 다운로드 + 스모크 추론. 최초 실행 시 1회 수행합니다.
-- 1) python run.py run <story> <exp>
-  이야기 + 실험버전(a~j) 1개. 예: python run.py run 1 e
-- 2) python run.py run-all <story>
-  이야기의 전체 실험(A~J). 예: python run.py run-all 7
-- 3) python run.py demo
+- 1) python kim_jeongseok_run.py run <story> <exp>
+  이야기 + 실험버전(a~j) 1개. 예: python kim_jeongseok_run.py run 1 e
+- 2) python kim_jeongseok_run.py run-all <story>
+  이야기의 전체 실험(A~J). 예: python kim_jeongseok_run.py run-all 7
+- 3) python kim_jeongseok_run.py demo
   "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지
 
 - `<story>`는 번호 사용을 권장합니다(예: `1`, `7`). 한글 폴더명 직접 입력을 피할 수 있습니다.
 - 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
-- 다운로드 없이 점검만 실행: `python run.py doctor --check-only`
+- 다운로드 없이 점검만 실행: `python kim_jeongseok_run.py doctor --check-only`
 
 ### 재현 환경 (2단계)
 
@@ -39,8 +39,8 @@ CPU만으로 전체 실행과 평가가 완료됩니다.
 
 ```
 pip install -r requirements.txt
-python run.py doctor      # 모델 자동 다운로드 + 점검
-python run.py demo        # 전체 실행 + 평가
+python kim_jeongseok_run.py doctor      # 모델 자동 다운로드 + 점검
+python kim_jeongseok_run.py demo        # 전체 실행 + 평가
 ```
 
 - 첫 실행 시 모델(~20GB)을 자동으로 내려받으므로 시간이 다소 걸릴 수 있습니다.
@@ -51,30 +51,30 @@ python run.py demo        # 전체 실행 + 평가
 
 코드는 파이프라인 단계별로 3명이 나누어 작업했습니다.
 
-[담당 1 · 비전 — 김기홍 (보고서·발표)]
-- vision.py
+[김기홍 · 비전 — 보고서·발표]
+- kim_gihong_vision.py
   BLIP/OpenCLIP 인식(실험 A), Qwen2.5-VL 장면/콜라주 추출(C~J)
 - 보고서 작성
   프로젝트 정리, 실험 A~J 결과 분석, 표·그림 작성
 - 발표
   발표 자료 구성, 대본 작성
 
-[담당 2 · 스토리 — 김정석 (코딩)]
-- story_runtime.py
+[김정석 · 스토리 — 코딩]
+- kim_jeongseok_story_runtime.py
   EXAONE GGUF(llama-cpp-python) 런타임, GPT-2/NLLB 베이스라인, 구조화 플랜
-- story_experiments.py
+- kim_jeongseok_story_experiments.py
   실험 C~J 프롬프트/품질 게이트/빌더
-- common.py
+- kim_jeongseok_common.py
   설정/런타임/로깅/모델 다운로드/이미지/IO/JSON 유틸
-- run.py
+- kim_jeongseok_run.py
   4-커맨드 디스패처 (진입점)
 
-[담당 3 · 파이프라인 · 평가 — 박정우 (PPT 제작)]
-- experiment_a.py
+[박정우 · 파이프라인 · 평가 — PPT 제작]
+- park_jeongwoo_experiment_a.py
   실험 A/B 오케스트레이션 + 정량 평가
-- pipeline.py
+- park_jeongwoo_pipeline.py
   4-커맨드 CLI, doctor, C~J 통합 러너, 출력 작성
-- dashboard.py
+- park_jeongwoo_dashboard.py
   블라인드 평가 Streamlit 대시보드
   PPT 제작
 
@@ -108,4 +108,4 @@ python -m pip install --no-cache-dir --force-reinstall "llama-cpp-python>=0.3.2,
 ```
 
 - Python은 **3.10-3.12** 사용을 권장합니다(3.13+는 프리빌트 wheel이 없을 수 있어 소스 빌드로 빠집니다).
-- 모델이 게이트면 `huggingface-cli login` 또는 `HF_TOKEN` 설정 후 `python run.py doctor`.
+- 모델이 게이트면 `huggingface-cli login` 또는 `HF_TOKEN` 설정 후 `python kim_jeongseok_run.py doctor`.

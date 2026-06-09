@@ -1,4 +1,4 @@
-"""[담당 2 / 스토리] EXAONE GGUF(llama-cpp-python) 런타임 + GPT-2/NLLB 베이스라인 + 구조화 플랜 + LLM 로더."""
+"""[김정석 / 스토리] EXAONE GGUF(llama-cpp-python) 런타임 + GPT-2/NLLB 베이스라인 + 구조화 플랜 + LLM 로더."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from common import EXAONE_MODEL, GPT2_MODEL, NLLB_MODEL
-from common import log_model_device
-from common import (
+from kim_jeongseok_common import EXAONE_MODEL, GPT2_MODEL, NLLB_MODEL
+from kim_jeongseok_common import log_model_device
+from kim_jeongseok_common import (
     _local_files_only,
     ensure_exaone_gguf_model,
     local_huggingface_model_path,
 )
-from common import configured_llama_gpu_layers, get_device
+from kim_jeongseok_common import configured_llama_gpu_layers, get_device
 
 
 @lru_cache(maxsize=1)
@@ -102,8 +102,8 @@ def get_exaone_gguf_components(model_path: str = "") -> Any:
 # story/baseline.py
 
 
-from common import timed_step
-from common import get_device
+from kim_jeongseok_common import timed_step
+from kim_jeongseok_common import get_device
 
 
 # -----------------------------------------------------------------------------
@@ -267,11 +267,11 @@ import json
 import re
 from typing import Any
 
-from common import json_object_candidates as _json_object_candidates
-from common import log_stage
-from common import timed_step
-from common import ensure_exaone_gguf_model
-from common import configured_llama_gpu_layers, get_device
+from kim_jeongseok_common import json_object_candidates as _json_object_candidates
+from kim_jeongseok_common import log_stage
+from kim_jeongseok_common import timed_step
+from kim_jeongseok_common import ensure_exaone_gguf_model
+from kim_jeongseok_common import configured_llama_gpu_layers, get_device
 
 LAST_LLAMA_RUNTIME: dict[str, Any] = {"mode": "unknown"}
 

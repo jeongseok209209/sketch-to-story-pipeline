@@ -1,4 +1,4 @@
-"""[담당 3 / 파이프라인] 실험 A(단일 이미지)/B(시퀀스) 오케스트레이션 + 정량 평가."""
+"""[박정우 / 파이프라인] 실험 A(단일 이미지)/B(시퀀스) 오케스트레이션 + 정량 평가."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from __future__ import annotations
 # pipeline/evaluate.py
 
 
-from story_runtime import CONCEPT_KO, translate_en_ko
+from kim_jeongseok_story_runtime import CONCEPT_KO, translate_en_ko
 
 
 def evaluate(
@@ -42,7 +42,7 @@ def evaluate(
         "paragraph_count": len(paragraphs),
     }
 
-# pipeline/experiment_a.py
+# pipeline/park_jeongwoo_experiment_a.py
 
 
 import argparse
@@ -54,16 +54,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from common import PROJECT_ROOT
-from common import log_stage, timed_step
-from story_runtime import generate_story_en, translate_en_ko
-from story_runtime import (
+from kim_jeongseok_common import PROJECT_ROOT
+from kim_jeongseok_common import log_stage, timed_step
+from kim_jeongseok_story_runtime import generate_story_en, translate_en_ko
+from kim_jeongseok_story_runtime import (
     generate_sequence_story_exaone_gguf,
     generate_structured_plan_exaone_gguf,
     get_last_llama_runtime,
 )
-from vision import recognize_with_steps
-from vision import clear_vision_model_caches
+from kim_gihong_vision import recognize_with_steps
+from kim_gihong_vision import clear_vision_model_caches
 
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}

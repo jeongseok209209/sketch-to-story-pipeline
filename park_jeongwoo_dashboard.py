@@ -1,4 +1,4 @@
-"""[담당 3 / 평가] 생성된 동화에 대한 블라인드 무작위 평가 Streamlit 대시보드.
+"""[박정우 / 평가] 생성된 동화에 대한 블라인드 무작위 평가 Streamlit 대시보드.
 
 storypipe demo(또는 cli)가 streamlit 하위프로세스로 띄우며, 저장소 루트의 outputs/를 읽는다.
 """
@@ -18,7 +18,7 @@ import pandas as pd
 import streamlit as st
 
 
-# dashboard.py는 저장소 루트에 있음. (blind_mapping.json 경로가 루트 기준 상대경로)
+# park_jeongwoo_dashboard.py는 저장소 루트에 있음. (blind_mapping.json 경로가 루트 기준 상대경로)
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_ROOT = BASE_DIR / "outputs"
 EVALUATION_DIR = OUTPUT_ROOT / "evaluations"
@@ -1027,7 +1027,7 @@ def main() -> None:
     cases = load_cases(mapping)
     if not cases:
         st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G/H/I/J 결과를 생성하세요.")
-        st.code("python run.py all", language="bash")
+        st.code("python kim_jeongseok_run.py run-all 7", language="bash")
         return
 
     _ensure_quantitative_scene_selection(mapping, cases)

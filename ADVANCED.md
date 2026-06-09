@@ -6,7 +6,7 @@ GPU 가속은 **선택 사항**이며, CPU 실행 시간이 길어 실행 시간
 > ## 시작하기 전에
 >
 > - **기본 설정(CPU) 그대로 실행하셔도 됩니다.** 아래 GPU 설정은 필수 사항이 아닙니다.
->   `pip install -r requirements.txt` -> `python run.py doctor` -> `python run.py demo` 만으로
+>   `pip install -r requirements.txt` -> `python kim_jeongseok_run.py doctor` -> `python kim_jeongseok_run.py demo` 만으로
 >   동작하도록 구성되었습니다.
 > - 이 문서는 **BLIP / OpenCLIP / Qwen2.5-VL 등 PyTorch 기반 비전 모델**을 GPU로
 >   실행하고자 할 때 참고하는 선택 안내입니다. NVIDIA GPU가 없는 환경에서도 CPU로 실행할 수 있습니다.
@@ -50,7 +50,7 @@ pip install "torch>=2.6,<2.8" --index-url https://download.pytorch.org/whl/cu124
 
 - `--index-url` 은 PyPI 대신 PyTorch 공식 인덱스에서 내려받도록 지정합니다.
 - 버전 범위(`>=2.6,<2.8`)는 `requirements.txt` 의 고정 범위와 동일하게 유지합니다.
-- PyTorch는 별도의 코드 변경 없이 GPU를 사용합니다([common.py](common.py)의
+- PyTorch는 별도의 코드 변경 없이 GPU를 사용합니다([kim_jeongseok_common.py](kim_jeongseok_common.py)의
   `get_device()` 가 CUDA 가용 시 자동 선택하며, CUDA를 사용할 수 없는 경우 CPU로 실행합니다).
 
 ---
@@ -65,7 +65,7 @@ python -c "import torch; print('torch CUDA available:', torch.cuda.is_available(
 
 `True` 가 출력되면 PyTorch CUDA 빌드가 정상적으로 인식된 것입니다.
 
-**(b) 실행 로그 확인** - `python run.py doctor`(또는 `run` / `demo`) 실행 시 다음 로그가
+**(b) 실행 로그 확인** - `python kim_jeongseok_run.py doctor`(또는 `run` / `demo`) 실행 시 다음 로그가
 표시되면 정상입니다:
 
 ```text

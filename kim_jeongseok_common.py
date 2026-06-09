@@ -1,4 +1,4 @@
-"""[공유 토대] 설정/런타임/로깅/모델/이미지/IO/JSON 파싱 (3인 공유)."""
+"""[김정석 / 스토리] 설정/런타임/로깅/모델/이미지/IO/JSON 파싱."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ HF_PREFLIGHT_IGNORE_PATTERNS = (
 )
 
 # -- 경로 ------------------------------------------------------------------
-# common.py는 저장소 루트에 있으므로 그 폴더가 PROJECT_ROOT.
+# kim_jeongseok_common.py는 저장소 루트에 있으므로 그 폴더가 PROJECT_ROOT.
 PROJECT_ROOT = Path(__file__).resolve().parent
 BASE_DIR = PROJECT_ROOT
 INPUT_DIR = PROJECT_ROOT / "inputs"
@@ -319,7 +319,7 @@ def ensure_runtime_ready() -> None:
     if torch_needs_upgrade:
         print(
             f"[runtime] WARN: {torch_version_detail}. "
-            "Run storypipe doctor (or python run.py doctor) to fix dependencies."
+            "Run storypipe doctor (or python kim_jeongseok_run.py doctor) to fix dependencies."
         )
         return
     if cuda_available:
