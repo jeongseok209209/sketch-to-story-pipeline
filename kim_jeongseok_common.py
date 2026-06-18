@@ -66,8 +66,8 @@ STEP_LOG_VERSION = "step-log-v1"
 
 
 def experiment_dirs(output_root: Path) -> dict[str, Path]:
-    """실험 키(c~j) -> 출력 디렉터리 매핑. vision/pipeline이 공유하므로 common에 둔다."""
-    return {key: output_root / key.upper() for key in ("c", "d", "e", "f", "g", "h", "i", "j")}
+    """실험 키(c~k) -> 출력 디렉터리 매핑. vision/pipeline이 공유하므로 common에 둔다."""
+    return {key: output_root / key.upper() for key in ("c", "d", "e", "f", "g", "h", "i", "j", "k")}
 
 
 def hf_revision(model_id: str) -> str | None:

@@ -1,4 +1,4 @@
-"""[김기홍 / 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~J) + 비전 로더."""
+"""[김기홍 / 비전] BLIP/OpenCLIP 인식(실험 A) + Qwen2.5-VL 장면/콜라주 추출(C~K) + 비전 로더."""
 
 from __future__ import annotations
 
@@ -395,7 +395,7 @@ def recognize_with_steps(
     """Recognize sketch concepts and return both vision JSON and stage records."""
     return _recognize_impl(image_path, clip_threshold=clip_threshold)
 
-# Qwen2.5-VL 장면/콜라주 추출 (실험 C~J)
+# Qwen2.5-VL 장면/콜라주 추출 (실험 C~K)
 
 
 import hashlib
@@ -464,7 +464,7 @@ def _resolve_collage_path(input_dir: Path) -> Path:
             return collage_path
     expected = " or ".join(str(path) for path in candidates)
     raise FileNotFoundError(
-        "Experiment J requires a story collage inside the input tree. "
+        "This collage-based experiment requires a story collage inside the input tree. "
         f"Expected: {expected}"
     )
 
@@ -596,7 +596,8 @@ def _prompt_g_cot_persona(index: int) -> str:
     )
 
 
-def _prompt_j_collage(story_caption: str = "") -> str:
+def _prompt_j_collage(story_caption: str = "", experiment: str = "j") -> str:
+    experiment_label = f"Experiment {experiment.upper()}"
     caption_section = ""
     if story_caption.strip():
         caption_section = (
@@ -605,7 +606,7 @@ def _prompt_j_collage(story_caption: str = "") -> str:
             f"story_caption:\n{story_caption.strip()}\n\n"
         )
     return (
-        "Experiment J collage analysis: You are a careful visual story analyst for a 2x5 collage of child drawings.\n"
+        f"{experiment_label} collage analysis: You are a careful visual story analyst for a 2x5 collage of child drawings.\n"
         "The collage contains Scene 1 through Scene 10 labels. Read the panels in numeric order only.\n"
         "Analyze the whole sequence at once, but do not invent details that are not visible.\n"
         "Use the collage as a broad continuity map. Individual scene JSON will still be the main evidence later.\n"
@@ -667,9 +668,11 @@ def _prompt_j_scene_with_prior_context(
     index: int,
     story_caption: str,
     collage_analysis: dict[str, Any] | None,
+    experiment: str = "j",
 ) -> str:
+    experiment_label = f"Experiment {experiment.upper()}"
     return (
-        "Experiment J per-scene image analysis with weak prior context.\n"
+        f"{experiment_label} per-scene image analysis with weak prior context.\n"
         "Before analyzing this single image, you reviewed the story caption and the 2x5 collage of all 10 scenes.\n"
         "The prior context is weak reference material, not visual evidence and not a plot checklist.\n"
         "Use it only to clarify the whole-story flow, the scene's rough role, and smooth continuity with nearby scenes.\n"
@@ -780,6 +783,7 @@ def _run_qwen_collage_analysis(
     image_path: Path,
     output_dir: Path,
     story_caption: str = "",
+    experiment: str = "j",
     max_new_tokens: int = 520,
 ) -> dict[str, Any]:
     import torch
@@ -794,7 +798,7 @@ def _run_qwen_collage_analysis(
             "role": "user",
             "content": [
                 {"type": "image", "image": str(prepared_path.resolve())},
-                {"type": "text", "text": _prompt_j_collage(story_caption)},
+                {"type": "text", "text": _prompt_j_collage(story_caption, experiment=experiment)},
             ],
         }
     ]
@@ -941,14 +945,15 @@ def prepare_qwen_scenes_for_experiment(
     elif key == "f":
         prompt_builder = _prompt_f_fairy_tale_image_analyst
         qwen_max_new_tokens = 240
-    elif key == "j":
+    elif key in {"j", "k"}:
         prompt_builder = lambda index: _prompt_j_scene_with_prior_context(
             index,
             story_caption or "",
             collage_analysis or {},
+            experiment=key,
         )
         qwen_max_new_tokens = 260
-    elif key in {"g", "h", "i", "j"}:
+    elif key in {"g", "h", "i"}:
         prompt_builder = _prompt_g_cot_persona
         qwen_max_new_tokens = 240
     else:
@@ -977,6 +982,11 @@ def prepare_qwen_collage_for_experiment(
     collage_path = _resolve_collage_path(input_dir)
     common_output_dir = _experiment_dirs(output_root)[key] / "qwen25_vl_3b_story" / "collage_analysis"
     log_stage(f"start {experiment_label} collage analysis: {collage_path}", step=f"{key.upper()}-collage", event="start")
-    analysis = _run_qwen_collage_analysis(collage_path, common_output_dir, story_caption=story_caption)
+    analysis = _run_qwen_collage_analysis(
+        collage_path,
+        common_output_dir,
+        story_caption=story_caption,
+        experiment=key,
+    )
     log_stage(f"{experiment_label} collage analysis succeeded", step=f"{key.upper()}-collage", event="success")
     return analysis

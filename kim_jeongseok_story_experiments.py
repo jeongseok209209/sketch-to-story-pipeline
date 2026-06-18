@@ -1,7 +1,7 @@
-"""[김정석 / 스토리] 실험 C~J 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
+"""[김정석 / 스토리] 실험 C~K 스토리 생성 (프롬프트 / 품질 게이트 / 빌더).
 
 Qwen 장면 JSON(scenes)을 입력으로 받아 EXAONE GGUF로 한국어 동화를 생성한다.
-각 실험(C~J)은 프롬프트 전략/품질 게이트가 다르며, build_experiment_*가 진입점이다.
+각 실험(C~K)은 프롬프트 전략/품질 게이트가 다르며, build_experiment_*가 진입점이다.
 scenes를 인자로 받으므로 vision 도메인을 import하지 않는다(통합은 pipeline/runner).
 """
 
@@ -95,7 +95,7 @@ def _extract_required_json(text: str) -> dict[str, Any]:
 
 
 # -----------------------------------------------------------------------------
-# 실험 C~J 스토리 빌더
+# 실험 C~K 스토리 빌더
 # -----------------------------------------------------------------------------
 def _compact_scene(scene: dict[str, Any]) -> dict[str, Any]:
     return {
@@ -3006,7 +3006,7 @@ def _run_exaone_i_quality_gated_experiment(
     if collage_direction:
         weak_story_direction = (
             f"{weak_story_direction}\n"
-            "Very weak collage sequence hint for Experiment J. Use only to avoid confusing scene order, "
+            f"Very weak collage sequence hint for {experiment_name}. Use only to avoid confusing scene order, "
             "never as required content. Keep individual scene JSON as primary evidence:\n"
             f"{collage_direction}"
         )
@@ -3430,5 +3430,19 @@ def build_experiment_j(
         scenes,
         story_caption,
         experiment_name="Experiment_J",
+        collage_analysis=collage_analysis,
+    )
+
+
+def build_experiment_k(
+    scenes: list[dict[str, Any]],
+    story_caption: str,
+    collage_analysis: dict[str, Any],
+) -> dict[str, Any]:
+    """Experiment K: Experiment J strategy using photorealized scene images."""
+    return _run_exaone_i_quality_gated_experiment(
+        scenes,
+        story_caption,
+        experiment_name="Experiment_K",
         collage_analysis=collage_analysis,
     )

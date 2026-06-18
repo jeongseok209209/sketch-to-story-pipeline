@@ -1,4 +1,4 @@
-"""[박정우 / 파이프라인] 4-커맨드 CLI + doctor(환경 점검/설치) + C~J 통합 러너 + 출력 작성."""
+"""[박정우 / 파이프라인] 4-커맨드 CLI + doctor(환경 점검/설치) + C~K 통합 러너 + 출력 작성."""
 
 from __future__ import annotations
 
@@ -711,7 +711,7 @@ def run_doctor(args: argparse.Namespace) -> None:
         print("WARN: models are present but some checks failed; review the items above.")
         raise SystemExit(1)
 
-# C~J 통합 러너
+# C~K 통합 러너
 
 
 import json
@@ -737,6 +737,7 @@ from kim_jeongseok_story_experiments import (
     build_experiment_h,
     build_experiment_i,
     build_experiment_j,
+    build_experiment_k,
 )
 from kim_gihong_vision import (
     _read_story_caption,
@@ -745,6 +746,10 @@ from kim_gihong_vision import (
 )
 
 LLM_MODEL_NOTE = "EXAONE GGUF via llama.cpp"
+PHOTOREAL_SUBDIR = "실사화"
+SCENE_EXPERIMENT_KEYS = ("c", "d", "e", "f", "g", "h", "i", "j", "k")
+CAPTION_EXPERIMENT_KEYS = {"h", "i", "j", "k"}
+COLLAGE_EXPERIMENT_KEYS = {"i", "j", "k"}
 
 
 # -----------------------------------------------------------------------------
@@ -838,7 +843,27 @@ def _experiment_builders() -> dict[str, tuple[str, Any]]:
         "h": ("Experiment_H", build_experiment_h),
         "i": ("Experiment_I", build_experiment_i),
         "j": ("Experiment_J", build_experiment_j),
+        "k": ("Experiment_K", build_experiment_k),
     }
+
+
+def _photoreal_input_dir(input_dir: Path) -> Path:
+    if input_dir.name == PHOTOREAL_SUBDIR and _iter_images(input_dir):
+        return input_dir
+    candidate = input_dir / PHOTOREAL_SUBDIR
+    if not candidate.exists() or not candidate.is_dir():
+        raise FileNotFoundError(
+            f"Experiment K requires a '{PHOTOREAL_SUBDIR}' image folder under the selected story: {candidate}"
+        )
+    if not _iter_images(candidate):
+        raise ValueError(f"Experiment K found no PNG/JPG images in photoreal folder: {candidate}")
+    return candidate
+
+
+def _caption_source_dir(input_dir: Path) -> Path:
+    if input_dir.name == PHOTOREAL_SUBDIR and (input_dir.parent / STORY_CAPTION_FILENAME).exists():
+        return input_dir.parent
+    return input_dir
 
 
 def run_experiment_with_scenes(
@@ -855,7 +880,7 @@ def run_experiment_with_scenes(
     experiment_name, builder = builders[key]
     set_step_context(experiment=experiment_name, phase="generation")
     log_stage(f"building {experiment_name}", step=key.upper(), model="Qwen scenes + EXAONE GGUF")
-    if key == "j":
+    if key in {"j", "k"}:
         result = builder(scenes, story_caption or "", collage_analysis or {})
     elif key == "i":
         result = builder(scenes, story_caption or "", collage_analysis or {})
@@ -869,7 +894,7 @@ def run_experiment_with_scenes(
 
 
 def run_selected_experiments(
-    experiments: list[str] | tuple[str, ...] = ("c", "d", "e", "f", "g", "h", "i", "j"),
+    experiments: list[str] | tuple[str, ...] = SCENE_EXPERIMENT_KEYS,
     input_dir: str | Path = INPUT_DIR,
     output_root: str | Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
@@ -877,26 +902,35 @@ def run_selected_experiments(
     input_dir = Path(input_dir)
     selected = [experiment.lower() for experiment in experiments]
     if "all" in selected:
-        selected = ["c", "d", "e", "f", "g", "h", "i", "j"]
+        selected = list(SCENE_EXPERIMENT_KEYS)
 
     results: dict[str, Any] = {}
     for key in selected:
-        story_caption = _read_story_caption(input_dir) if key in {"h", "i", "j"} else None
+        experiment_input_dir = _photoreal_input_dir(input_dir) if key == "k" else input_dir
+        story_caption = (
+            _read_story_caption(_caption_source_dir(experiment_input_dir))
+            if key in CAPTION_EXPERIMENT_KEYS
+            else None
+        )
         collage_analysis = (
             prepare_qwen_collage_for_experiment(
-                input_dir,
+                experiment_input_dir,
                 output_root,
                 story_caption=story_caption or "",
                 experiment=key,
             )
-            if key in {"i", "j"}
+            if key in COLLAGE_EXPERIMENT_KEYS
             else None
         )
         set_step_context(experiment=key.upper(), phase="vision")
-        log_stage(f"start Experiment {key.upper()} Qwen scene generation", step="Qwen", event="start")
+        log_stage(
+            f"start Experiment {key.upper()} Qwen scene generation: {experiment_input_dir}",
+            step="Qwen",
+            event="start",
+        )
         scenes = prepare_qwen_scenes_for_experiment(
             key,
-            input_dir=input_dir,
+            input_dir=experiment_input_dir,
             output_root=output_root,
             story_caption=story_caption,
             collage_analysis=collage_analysis,
@@ -928,7 +962,7 @@ from kim_jeongseok_common import log_stage, set_step_context
 from kim_jeongseok_common import ensure_runtime_ready
 from park_jeongwoo_experiment_a import run_experiment_a, run_sequence_story
 
-EXPERIMENT_KEYS = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+EXPERIMENT_KEYS = ("a", "b", *SCENE_EXPERIMENT_KEYS)
 DASHBOARD_PATH = PROJECT_ROOT / "park_jeongwoo_dashboard.py"
 
 
@@ -987,7 +1021,7 @@ def _run_guarded(experiment: str, output_dir: Path, runner: Callable[[], Any], n
 def _run_all(input_dir: Path, output_root: Path) -> None:
     started = _utc_now()
     summaries: list[dict[str, Any]] = []
-    order = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+    order = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"]
     for index, experiment in enumerate(order):
         nxt = order[index + 1] if index + 1 < len(order) else None
         output_dir = output_root / experiment
@@ -1064,13 +1098,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p_doctor.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="이야기 입력 루트.")
     p_doctor.add_argument("--story", help="점검할 이야기(선택).")
 
-    p_run = sub.add_parser("run", help="이야기 + 실험버전(a~j) 1개 실행. 예: storypipe run 1 e")
+    p_run = sub.add_parser("run", help="이야기 + 실험버전(a~k) 1개 실행. 예: storypipe run 1 e")
     p_run.add_argument("story", help="이야기 번호 또는 폴더명 (예: 1, 7).")
-    p_run.add_argument("experiment", choices=EXPERIMENT_KEYS, help="실험 버전 a~j.")
+    p_run.add_argument("experiment", choices=EXPERIMENT_KEYS, help="실험 버전 a~k.")
     p_run.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="이야기 입력 루트.")
     p_run.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="출력 루트.")
 
-    p_all = sub.add_parser("run-all", help="이야기의 전체 실험(A~J) 실행. 예: storypipe run-all 1")
+    p_all = sub.add_parser("run-all", help="이야기의 전체 실험(A~K) 실행. 예: storypipe run-all 1")
     p_all.add_argument("story", help="이야기 번호 또는 폴더명 (예: 1, 7).")
     p_all.add_argument("--input-dir", default=str(DEFAULT_INPUT_SEQUENCE), help="이야기 입력 루트.")
     p_all.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT), help="출력 루트.")

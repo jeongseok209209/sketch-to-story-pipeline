@@ -43,6 +43,7 @@ QUANTITATIVE_METRICS = {
     "scene_linguistic_quality": "장면 문장 언어 품질",
 }
 SCORE_OPTIONS = tuple(range(1, 11))
+SCENE_SELECTION_OPTIONS = tuple(range(1, 11))
 
 QUALITATIVE_OPTIONS = {
     "story_coherence": {
@@ -449,29 +450,102 @@ def _case_by_id(cases: list[EvaluationCase]) -> dict[str, EvaluationCase]:
     return {case.case_id: case for case in cases}
 
 
-def _ensure_quantitative_scene_selection(
+def _inject_dashboard_css() -> None:
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.scene-selector-sticky-marker) {
+            position: sticky;
+            top: 0.5rem;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(.scene-selector-sticky-marker) h2 {
+            margin-top: 0;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _case_has_scene(case: EvaluationCase, scene_index: int) -> bool:
+    return any(scene.scene_index == scene_index for scene in case.scenes)
+
+
+def _mapping_quantitative_scene_index(mapping: dict[str, dict[str, Any]]) -> int:
+    selected_indices = set()
+    for item in mapping.values():
+        try:
+            selected = int(item.get("quantitative_scene_index"))
+        except (TypeError, ValueError):
+            continue
+        if selected in SCENE_SELECTION_OPTIONS:
+            selected_indices.add(selected)
+    if len(selected_indices) == 1:
+        return selected_indices.pop()
+    return SCENE_SELECTION_OPTIONS[0]
+
+
+def _set_quantitative_scene_selection(
     mapping: dict[str, dict[str, Any]],
     cases: list[EvaluationCase],
+    selected_scene_index: int,
 ) -> None:
-    """Persist one random scene per case for quantitative scoring."""
+    """Persist the same selected scene index for every case."""
     cases_by_id = _case_by_id(cases)
     changed = False
-    randomizer = random.SystemRandom()
     for case_id, item in mapping.items():
         case = cases_by_id.get(case_id)
         if not case or not case.scenes:
             continue
-        valid_indices = {scene.scene_index for scene in case.scenes}
-        selected = item.get("quantitative_scene_index")
-        try:
-            selected_index = int(selected)
-        except (TypeError, ValueError):
-            selected_index = -1
-        if selected_index not in valid_indices:
-            item["quantitative_scene_index"] = randomizer.choice(sorted(valid_indices))
+        if item.get("quantitative_scene_index") != selected_scene_index:
+            item["quantitative_scene_index"] = selected_scene_index
             changed = True
     if changed:
         _write_json(MAPPING_FILE, mapping)
+
+
+def _render_quantitative_scene_selector(
+    mapping: dict[str, dict[str, Any]],
+    cases: list[EvaluationCase],
+) -> int:
+    if "selected_quantitative_scene_index" not in st.session_state:
+        st.session_state.selected_quantitative_scene_index = _mapping_quantitative_scene_index(mapping)
+
+    with st.container(border=True):
+        st.markdown('<span class="scene-selector-sticky-marker"></span>', unsafe_allow_html=True)
+        st.markdown("## 정량 평가 이미지 선택")
+        selected_scene_index = int(
+            st.radio(
+                "모든 버전에서 평가할 그림 번호",
+                SCENE_SELECTION_OPTIONS,
+                format_func=lambda value: f"{value}번",
+                key="selected_quantitative_scene_index",
+                horizontal=True,
+            )
+        )
+        _set_quantitative_scene_selection(mapping, cases, selected_scene_index)
+
+        missing_cases = [
+            case.case_id
+            for case in cases
+            if not _case_has_scene(case, selected_scene_index)
+        ]
+        if missing_cases:
+            st.warning(
+                f"{selected_scene_index}번째 장면이 없는 case가 있어 해당 case는 정량 평가를 저장할 수 없습니다: "
+                + ", ".join(missing_cases[:8])
+                + (" ..." if len(missing_cases) > 8 else "")
+            )
+        else:
+            st.caption(
+                f"현재 정량 평가는 모든 버전에서 {selected_scene_index}번째 그림으로 통일됩니다. "
+                "전체 이야기 정성 평가는 아래에서 그대로 진행합니다."
+            )
+    return selected_scene_index
 
 
 def _selected_quantitative_scenes(
@@ -486,7 +560,7 @@ def _selected_quantitative_scenes(
     selected = [scene for scene in case.scenes if scene.scene_index == selected_index]
     if selected:
         return selected
-    return case.scenes[:1]
+    return []
 
 
 def load_records() -> list[dict[str, Any]]:
@@ -505,11 +579,35 @@ def load_records() -> list[dict[str, Any]]:
     return records
 
 
-def latest_records_by_case(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def _record_scene_indices(record: dict[str, Any]) -> set[int]:
+    indices = set()
+    for value in record.get("quantitative_scene_indices") or []:
+        try:
+            indices.add(int(value))
+        except (TypeError, ValueError):
+            continue
+    for scene in record.get("scene_quantitative") or []:
+        try:
+            indices.add(int(scene.get("scene_index")))
+        except (AttributeError, TypeError, ValueError):
+            continue
+    return indices
+
+
+def _record_matches_selected_scene(record: dict[str, Any], selected_scene_index: int | None) -> bool:
+    if selected_scene_index is None:
+        return True
+    return selected_scene_index in _record_scene_indices(record)
+
+
+def latest_records_by_case(
+    records: list[dict[str, Any]],
+    selected_scene_index: int | None = None,
+) -> dict[str, dict[str, Any]]:
     latest: dict[str, dict[str, Any]] = {}
     for record in records:
         case_id = str(record.get("case_id", ""))
-        if case_id:
+        if case_id and _record_matches_selected_scene(record, selected_scene_index):
             latest[case_id] = record
     return latest
 
@@ -1004,7 +1102,7 @@ def _render_results_dashboard(
                 for row in quantitative_rows
             ]
         ).set_index("버전")
-        st.markdown("### A-J 점수 변화")
+        st.markdown("### A-K 점수 변화")
         st.line_chart(chart_data)
 
     qualitative = summary.get("qualitative_by_experiment", {})
@@ -1042,6 +1140,7 @@ def main() -> None:
         page_title="Blind Story Evaluation",
         layout="wide",
     )
+    _inject_dashboard_css()
     st.title("블라인드 스토리 평가")
     st.caption("평가 화면에는 익명 case ID만 표시됩니다. 실험명과 모델명은 숨깁니다.")
 
@@ -1052,10 +1151,10 @@ def main() -> None:
         st.code("python kim_jeongseok_run.py run-all 7", language="bash")
         return
 
-    _ensure_quantitative_scene_selection(mapping, cases)
+    selected_quantitative_scene_index = _render_quantitative_scene_selector(mapping, cases)
 
     records = load_records()
-    latest_records = latest_records_by_case(records)
+    latest_records = latest_records_by_case(records, selected_quantitative_scene_index)
     all_completed = all(case.case_id in latest_records for case in cases)
     if all_completed and st.session_state.get("view_mode", "results") == "results":
         _render_results_dashboard(mapping, latest_records)
@@ -1075,7 +1174,12 @@ def main() -> None:
 
     st.markdown("## 장면별 정량 평가")
     st.caption("각 장면은 1점부터 10점까지 숫자를 클릭해 평가합니다.")
-    st.info("정량 평가는 이 버전에서 무작위로 선택된 한 장면만 진행합니다. 전체 이야기 정성 평가는 아래에서 그대로 진행합니다.")
+    st.info(
+        f"정량 평가는 상단에서 선택한 {selected_quantitative_scene_index}번째 그림으로 진행합니다. "
+        "다른 버전도 같은 번호의 그림으로 평가됩니다."
+    )
+    if not quantitative_scenes:
+        st.error(f"현재 case에는 {selected_quantitative_scene_index}번째 장면이 없어 정량 평가를 저장할 수 없습니다.")
     for scene in quantitative_scenes:
         with st.expander(f"{scene.scene_index}번째 장면 평가", expanded=True):
             _render_scene(scene, existing_record, current_case.case_id)
@@ -1087,13 +1191,14 @@ def main() -> None:
     st.write(current_case.full_story or "전체 이야기 본문이 없습니다.")
     _render_qualitative_form(current_case, existing_record)
 
-    submitted = st.button("현재 case 평가 저장", width="stretch")
+    submitted = st.button("현재 case 평가 저장", disabled=not quantitative_scenes, width="stretch")
 
     if submitted:
         scene_quantitative = _collect_scene_quantitative(current_case, quantitative_scenes)
         story_qualitative = _collect_story_qualitative(current_case)
         record = {
             "case_id": current_case.case_id,
+            "selected_scene_index": selected_quantitative_scene_index,
             "quantitative_scene_indices": [scene.scene_index for scene in quantitative_scenes],
             "scene_quantitative": scene_quantitative,
             "story_qualitative": story_qualitative,

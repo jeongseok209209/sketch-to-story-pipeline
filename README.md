@@ -22,14 +22,15 @@ python kim_jeongseok_run.py doctor
 - 0) python kim_jeongseok_run.py doctor
   환경 점검 + 모델 자동 다운로드 + 스모크 추론. 최초 실행 시 1회 수행합니다.
 - 1) python kim_jeongseok_run.py run <story> <exp>
-  이야기 + 실험버전(a~j) 1개. 예: python kim_jeongseok_run.py run 1 e
+  이야기 + 실험버전(a~k) 1개. 예: python kim_jeongseok_run.py run 1 e
 - 2) python kim_jeongseok_run.py run-all <story>
-  이야기의 전체 실험(A~J). 예: python kim_jeongseok_run.py run-all 7
+  이야기의 전체 실험(A~K). 예: python kim_jeongseok_run.py run-all 7
 - 3) python kim_jeongseok_run.py demo
   "7. 새로운 이야기" 전체 실험 후 블라인드 평가 대시보드까지
 
 - `<story>`는 번호 사용을 권장합니다(예: `1`, `7`). 한글 폴더명 직접 입력을 피할 수 있습니다.
-- 실험 H/I/J와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
+- 실험 H/I/J/K와 `demo`는 `caption.txt`가 있는 이야기가 필요합니다(예제는 story 7).
+- 실험 K는 선택한 이야기 폴더 아래의 `실사화/` 이미지 10장을 입력으로 사용합니다.
 - 다운로드 없이 점검만 실행: `python kim_jeongseok_run.py doctor --check-only`
 
 ### 재현 환경 (2단계)
@@ -53,9 +54,9 @@ python kim_jeongseok_run.py demo        # 전체 실행 + 평가
 
 [김기홍 · 비전 — 보고서·발표]
 - kim_gihong_vision.py
-  BLIP/OpenCLIP 인식(실험 A), Qwen2.5-VL 장면/콜라주 추출(C~J)
+  BLIP/OpenCLIP 인식(실험 A), Qwen2.5-VL 장면/콜라주 추출(C~K)
 - 보고서 작성
-  프로젝트 정리, 실험 A~J 결과 분석, 표·그림 작성
+  프로젝트 정리, 실험 A~K 결과 분석, 표·그림 작성
 - 발표
   발표 자료 구성, 대본 작성
 
@@ -63,7 +64,7 @@ python kim_jeongseok_run.py demo        # 전체 실행 + 평가
 - kim_jeongseok_story_runtime.py
   EXAONE GGUF(llama-cpp-python) 런타임, GPT-2/NLLB 베이스라인, 구조화 플랜
 - kim_jeongseok_story_experiments.py
-  실험 C~J 프롬프트/품질 게이트/빌더
+  실험 C~K 프롬프트/품질 게이트/빌더
 - kim_jeongseok_common.py
   설정/런타임/로깅/모델 다운로드/이미지/IO/JSON 유틸
 - kim_jeongseok_run.py
@@ -73,7 +74,7 @@ python kim_jeongseok_run.py demo        # 전체 실행 + 평가
 - park_jeongwoo_experiment_a.py
   실험 A/B 오케스트레이션 + 정량 평가
 - park_jeongwoo_pipeline.py
-  4-커맨드 CLI, doctor, C~J 통합 러너, 출력 작성
+  4-커맨드 CLI, doctor, C~K 통합 러너, 출력 작성
 - park_jeongwoo_dashboard.py
   블라인드 평가 Streamlit 대시보드
   PPT 제작
