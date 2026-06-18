@@ -29,7 +29,11 @@ EXCEL_RESULTS_FILE = EVALUATION_DIR / "evaluation_results.xlsx"
 INPUT_DIR = BASE_DIR / "inputs"
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg")
-EXPERIMENTS = ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
+EXPERIMENTS = ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K")
+
+# 실험 K는 스케치 대신 '실사화' 하위 폴더의 사진을 입력으로 쓴다.
+# 블라인드 평가에서는 이 사진이 곧 버전(K)을 노출하는 단서가 되므로, 화면에는 원본 스케치로 되돌려 표시한다.
+PHOTOREAL_SUBDIR = "실사화"
 
 QUANTITATIVE_METRICS = {
     "visual_groundedness": "그림 근거 충실도",
@@ -123,17 +127,31 @@ def _resolve_result_path(value: str) -> Path:
     return BASE_DIR / path
 
 
+def _sketch_equivalent(path: Path) -> Path:
+    """실사화 사진 경로를 같은 이름의 원본 스케치 경로로 되돌린다.
+
+    실사화 사진은 그 자체로 버전(K)을 노출하는 단서가 되므로, 블라인드 평가 화면에서는
+    '실사화' 하위 폴더의 이미지를 상위 스토리 폴더의 원본 그림으로 바꿔 표시한다.
+    원본 스케치를 찾지 못하면 입력 경로를 그대로 반환한다.
+    """
+    if path.parent.name == PHOTOREAL_SUBDIR:
+        sketch = path.parent.parent / path.name
+        if sketch.exists():
+            return sketch
+    return path
+
+
 def _resolve_image(image_id: str, scene_payload: dict[str, Any] | None = None) -> Path | None:
     if scene_payload:
         image_path = scene_payload.get("image_path")
         if image_path:
             candidate = Path(str(image_path))
             if candidate.exists():
-                return candidate
+                return _sketch_equivalent(candidate)
             if not candidate.is_absolute():
                 candidate = BASE_DIR / candidate
                 if candidate.exists():
-                    return candidate
+                    return _sketch_equivalent(candidate)
 
     if image_id:
         candidate = INPUT_DIR / image_id
@@ -827,6 +845,10 @@ def _render_case_navigation(cases: list[EvaluationCase]) -> EvaluationCase:
 def _render_story_image_overview(case: EvaluationCase) -> None:
     st.markdown("## 전체 그림 흐름")
     st.caption("전체 이야기 평가를 위해 10장 그림의 순서를 먼저 확인하세요.")
+    st.caption(
+        "블라인드 평가의 공정성을 위해, 일부 버전이 실사화 사진을 입력으로 쓰더라도"
+        " 모든 버전의 화면에는 원본 그림으로 통일해 표시합니다."
+    )
     column_count = 5
     for row_start in range(0, len(case.scenes), column_count):
         columns = st.columns(column_count)
@@ -1026,7 +1048,7 @@ def main() -> None:
     mapping = load_or_create_mapping()
     cases = load_cases(mapping)
     if not cases:
-        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G/H/I/J 결과를 생성하세요.")
+        st.error("평가할 결과 파일이 없습니다. 먼저 A/B/C/D/E/F/G/H/I/J/K 결과를 생성하세요.")
         st.code("python kim_jeongseok_run.py run-all 7", language="bash")
         return
 
