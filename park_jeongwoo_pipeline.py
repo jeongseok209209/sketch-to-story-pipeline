@@ -49,6 +49,29 @@ def _resolve_workspace_path(path: str | Path) -> Path:
     return BASE_DIR / value
 
 
+def _portable_path(path: str | Path) -> str:
+    raw = str(path or "").strip()
+    if not raw:
+        return ""
+    resolved = _resolve_workspace_path(raw).resolve()
+    try:
+        return resolved.relative_to(BASE_DIR.resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
+def _path_for_file_url(path: str | Path) -> Path:
+    return _resolve_workspace_path(path)
+
+
+def _portable_scene(scene: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(scene)
+    image_path = normalized.get("image_path")
+    if image_path:
+        normalized["image_path"] = _portable_path(image_path)
+    return normalized
+
+
 def _contains_images(directory: Path) -> bool:
     if not directory.exists() or not directory.is_dir():
         return False
@@ -181,7 +204,7 @@ def _write_a_standard_result(records: list[dict[str, Any]], output_dir: str | Pa
         {
             "scene_index": index,
             "image_id": record.get("image_id", ""),
-            "image_path": record.get("image_path", ""),
+            "image_path": _portable_path(record.get("image_path", "")),
             "scene_summary": _a_scene_summary(record.get("vision") or {}),
             "vision": record.get("vision") or {},
             "metrics": record.get("metrics") or {},
@@ -274,7 +297,7 @@ def _write_standard_story_files(
     scenes = record.get("scenes") or []
     scene_cards = []
     for scene, sentence in zip(scenes, story.get("scene_sentences") or []):
-        image_path = scene.get("image_path") or scene.get("image_id") or ""
+        image_path = _path_for_file_url(scene.get("image_path") or scene.get("image_id") or "")
         scene_cards.append(
             f"""
             <article class="scene">
@@ -328,10 +351,7 @@ main {{ max-width:1120px; margin:0 auto; padding:28px clamp(14px,3vw,36px) 60px;
 
 
 def _relative_to_base(path: Path) -> str:
-    try:
-        return str(path.resolve().relative_to(BASE_DIR.resolve()))
-    except ValueError:
-        return str(path.resolve())
+    return _portable_path(path)
 
 
 def _result_files_for_success(experiment: str, output_dir: Path) -> list[Path]:
@@ -757,13 +777,14 @@ COLLAGE_EXPERIMENT_KEYS = {"i", "j", "k"}
 # -----------------------------------------------------------------------------
 def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str, Any]], result: dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
+    portable_scenes = [_portable_scene(scene) for scene in scenes]
     record = {
         "experiment": experiment_name,
         "vision_model": VISION_MODEL_ID,
         "llm_model": LLM_MODEL_NOTE,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "image_order": [scene["image_id"] for scene in scenes],
-        "scenes": scenes,
+        "image_order": [scene["image_id"] for scene in portable_scenes],
+        "scenes": portable_scenes,
         **result,
     }
     (output_dir / f"{experiment_name.lower()}_result.json").write_text(
@@ -776,8 +797,8 @@ def write_outputs(experiment_name: str, output_dir: Path, scenes: list[dict[str,
         encoding="utf-8",
     )
     scene_cards = []
-    for scene, sentence in zip(scenes, story["scene_sentences"]):
-        image_path = Path(str(scene.get("image_path") or INPUT_DIR / scene["image_id"]))
+    for scene, sentence in zip(portable_scenes, story["scene_sentences"]):
+        image_path = _path_for_file_url(str(scene.get("image_path") or INPUT_DIR / scene["image_id"]))
         scene_cards.append(
             f"""
             <article class="scene">

@@ -72,6 +72,14 @@ DEFAULT_SEQUENCE_DIR = "inputs"
 BASE_DIR = PROJECT_ROOT
 
 
+def _portable_path(path: str | Path) -> str:
+    resolved = Path(path).resolve()
+    try:
+        return resolved.relative_to(BASE_DIR.resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
 def _ensure_local_venv_python() -> None:
     """Re-run this script with the project virtualenv Python when available."""
     # 프로젝트 안에 .venv가 있으면 의존성 충돌을 줄이기 위해 그 Python으로 재실행합니다.
@@ -120,7 +128,10 @@ def _html_escape(value: Any) -> str:
 
 
 def _file_url(path: str | Path) -> str:
-    return "file:///" + str(path).replace("\\", "/")
+    value = Path(path)
+    if not value.is_absolute():
+        value = BASE_DIR / value
+    return "file:///" + str(value).replace("\\", "/")
 
 
 def _write_story_html(path: Path, experiment_name: str, record: dict[str, Any]) -> None:
@@ -242,7 +253,7 @@ def run_experiment_a(
         # 전체 실행 기록은 한 파일에 모으고, steps 폴더에는 단계별 JSON도 함께 저장합니다.
         run_record = {
             "image_id": image.name,
-            "image_path": str(image.resolve()),
+            "image_path": _portable_path(image),
             "experiment": "A",
             "story_backend": story_backend,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -364,7 +375,7 @@ def run_sequence_story(
         scene_record = {
             "scene_index": index,
             "image_id": image_path.name,
-            "image_path": str(image_path.resolve()),
+            "image_path": _portable_path(image_path),
             "vision": vision,
             "structured_json": structured_json,
             "plan_json": plan_json,
@@ -375,7 +386,7 @@ def run_sequence_story(
         scene_records.append(scene_record)
         sequence_steps[f"{index:02d}_{image_path.stem}"] = {
             "image_id": image_path.name,
-            "image_path": str(image_path.resolve()),
+            "image_path": _portable_path(image_path),
             "vision_steps": vision_steps,
             "scene_record": scene_record,
         }

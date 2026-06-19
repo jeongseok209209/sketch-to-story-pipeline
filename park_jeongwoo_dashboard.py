@@ -121,11 +121,45 @@ def _relative(path: Path) -> str:
         return str(path.resolve())
 
 
+def _relocated_candidates(value: str | Path) -> list[Path]:
+    raw = str(value).strip()
+    if not raw:
+        return []
+
+    direct = Path(raw)
+    candidates = [direct]
+    if not direct.is_absolute():
+        candidates.append(BASE_DIR / direct)
+
+    parts = direct.parts
+    lower_parts = [part.lower() for part in parts]
+    for marker in ("sketch-to-story-pipeline", "inputs", "outputs"):
+        if marker not in lower_parts:
+            continue
+        index = lower_parts.index(marker)
+        if marker == "sketch-to-story-pipeline":
+            tail = parts[index + 1 :]
+        else:
+            tail = parts[index:]
+        if tail:
+            candidates.append(BASE_DIR.joinpath(*tail))
+
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate)
+        if key not in seen:
+            unique.append(candidate)
+            seen.add(key)
+    return unique
+
+
 def _resolve_result_path(value: str) -> Path:
-    path = Path(value)
-    if path.is_absolute():
-        return path
-    return BASE_DIR / path
+    candidates = _relocated_candidates(value)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0] if candidates else BASE_DIR / value
 
 
 def _sketch_equivalent(path: Path) -> Path:
@@ -142,27 +176,67 @@ def _sketch_equivalent(path: Path) -> Path:
     return path
 
 
+def _story_number_prefix(name: str) -> str:
+    prefix = name.split(".", 1)[0].strip()
+    return prefix if prefix.isdigit() else ""
+
+
+def _existing_image_candidate(candidate: Path) -> Path | None:
+    if candidate.exists():
+        return candidate
+    try:
+        relative = candidate.resolve(strict=False).relative_to(INPUT_DIR.resolve())
+    except ValueError:
+        return None
+    parts = relative.parts
+    if not parts:
+        return None
+    prefix = _story_number_prefix(parts[0])
+    if not prefix:
+        return None
+    for story_dir in INPUT_DIR.iterdir():
+        if not story_dir.is_dir() or _story_number_prefix(story_dir.name) != prefix:
+            continue
+        fixed = story_dir.joinpath(*parts[1:])
+        if fixed.exists():
+            return fixed
+    return None
+
+
+def _find_input_image_by_name(image_id: str) -> Path | None:
+    if not image_id or any(separator in image_id for separator in ("/", "\\")):
+        return None
+    matches = sorted(path for path in INPUT_DIR.rglob(image_id) if path.is_file())
+    if not matches:
+        return None
+    for path in matches:
+        if path.parent.name != PHOTOREAL_SUBDIR:
+            return path
+    return matches[0]
+
+
 def _resolve_image(image_id: str, scene_payload: dict[str, Any] | None = None) -> Path | None:
     if scene_payload:
         image_path = scene_payload.get("image_path")
         if image_path:
-            candidate = Path(str(image_path))
-            if candidate.exists():
-                return _sketch_equivalent(candidate)
-            if not candidate.is_absolute():
-                candidate = BASE_DIR / candidate
-                if candidate.exists():
-                    return _sketch_equivalent(candidate)
+            for candidate in _relocated_candidates(str(image_path)):
+                existing = _existing_image_candidate(candidate)
+                if existing:
+                    return _sketch_equivalent(existing)
 
     if image_id:
-        candidate = INPUT_DIR / image_id
-        if candidate.exists():
-            return candidate
+        for candidate in _relocated_candidates(INPUT_DIR / image_id):
+            existing = _existing_image_candidate(candidate)
+            if existing:
+                return _sketch_equivalent(existing)
         stem = Path(image_id).stem
         for extension in IMAGE_EXTENSIONS:
             candidate = INPUT_DIR / f"{stem}{extension}"
             if candidate.exists():
-                return candidate
+                return _sketch_equivalent(candidate)
+        candidate = _find_input_image_by_name(image_id)
+        if candidate:
+            return _sketch_equivalent(candidate)
 
     return None
 
